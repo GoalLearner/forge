@@ -10,6 +10,7 @@
 import OpenAI from 'openai';
 import { stableStringify } from '../util/stable-json.ts';
 import { classifyHttpError } from './retry.ts';
+import { UNKNOWN_USAGE, buildUsage, type LedgerUsage } from '../session/ledger.ts';
 import {
   AbortedError,
   ProviderError,
@@ -75,6 +76,7 @@ export class OpenAIProvider implements Provider {
     // once on first sight, then forward argument deltas as they stream.
     const announced = new Set<number>();
     let usage: NormalizedUsage = ZERO_USAGE;
+    let rawUsage: OpenAIUsage | undefined;
     // Deliberately NOT seeded with 'end_turn'. A stream that closes without a
     // finish_reason must be reported as incomplete, not as a clean stop —
     // pre-seeding it made a truncated response look like a finished answer.
@@ -87,7 +89,10 @@ export class OpenAIProvider implements Provider {
       for await (const chunk of stream) {
         if (req.signal.aborted) throw new AbortedError();
 
-        if (chunk.usage) usage = normalizeOpenAIUsage(chunk.usage);
+        if (chunk.usage) {
+          usage = normalizeOpenAIUsage(chunk.usage);
+          rawUsage = chunk.usage;
+        }
 
         const choice = chunk.choices?.[0];
         if (!choice) continue;
@@ -135,7 +140,7 @@ export class OpenAIProvider implements Provider {
       throw classifyHttpError(err, this.name);
     }
 
-    yield { type: 'usage', usage };
+    yield { type: 'usage', usage, detail: rawUsage ? ledgerUsageFromOpenAI(rawUsage) : UNKNOWN_USAGE };
     yield { type: 'done', stopReason, explicit: sawFinishReason, raw: rawFinishReason };
   }
 }
@@ -247,6 +252,8 @@ interface OpenAIUsage {
   prompt_cache_miss_tokens?: number;
   /** The OpenAI-standard dialect, used by GLM / Kimi / OpenRouter. */
   prompt_tokens_details?: { cached_tokens?: number };
+  /** DeepSeek/OpenAI reasoning breakdown, when the model produces one. */
+  completion_tokens_details?: { reasoning_tokens?: number };
 }
 
 /**
@@ -295,4 +302,28 @@ function mapFinishReason(reason: string, sawToolCall: boolean): StopReason {
     default:
       return 'other';
   }
+}
+
+/**
+ * Ledger view of an OpenAI-shaped usage object.
+ *
+ * Two dialects, and the difference matters for honesty:
+ *   DeepSeek   reports hit AND miss explicitly — both count as "reported".
+ *   OpenAI-ish reports a total plus a cached subset, so miss is "derived".
+ *
+ * Anything the provider omits stays null. In particular `reasoning_tokens` is
+ * only present on models that actually produce reasoning, and its absence must
+ * never become a zero.
+ */
+export function ledgerUsageFromOpenAI(u: OpenAIUsage): LedgerUsage {
+  const hit = u.prompt_cache_hit_tokens ?? u.prompt_tokens_details?.cached_tokens ?? null;
+  return buildUsage({
+    cacheHitInput: hit,
+    // Only DeepSeek states the miss directly; otherwise buildUsage derives it
+    // from total - hit, and marks it derived.
+    cacheMissInput: u.prompt_cache_miss_tokens ?? null,
+    totalInput: u.prompt_tokens ?? null,
+    outputTokens: u.completion_tokens ?? null,
+    reasoningTokens: u.completion_tokens_details?.reasoning_tokens ?? null,
+  });
 }

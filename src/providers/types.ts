@@ -1,3 +1,4 @@
+import type { LedgerUsage } from '../session/ledger.ts';
 /**
  * The provider abstraction.
  *
@@ -85,8 +86,16 @@ export type StreamEvent =
   | { type: 'tool_call_start'; index: number; id: string; name: string }
   /** Raw JSON fragment for the tool at `index`. Accumulate, then repair+parse. */
   | { type: 'tool_args_delta'; index: number; delta: string }
-  /** Token accounting. May arrive more than once; the loop takes the max. */
-  | { type: 'usage'; usage: NormalizedUsage }
+  /**
+   * Token accounting. May arrive more than once; the loop takes the max.
+   *
+   * `usage` stays as-is for the existing cost display. `detail` is the Step 4B
+   * ledger view: same numbers, but nullable, so "the provider did not report
+   * output tokens" is distinguishable from "the provider reported zero".
+   * Optional so an adapter that has not been updated simply contributes no
+   * ledger detail rather than silently contributing zeros.
+   */
+  | { type: 'usage'; usage: NormalizedUsage; detail?: LedgerUsage }
   /**
    * Terminal event. Always emitted exactly once unless the stream throws.
    *

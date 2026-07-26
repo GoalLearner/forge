@@ -41,6 +41,7 @@ import { ProviderRegistry, ConfigurationError, type ResolvedModel } from '../pro
 import { Conversation } from '../agent/messages.ts';
 import { runTurn, type LoopEvent } from '../agent/loop.ts';
 import { AgentRun, RunCancelledError } from '../agent/run.ts';
+import { aggregateSession, formatLedgerCost } from '../session/ledger.ts';
 import { RunCoordinator, SessionWork, replaceSession, type CancelReason } from './run-coordinator.ts';
 import { buildSystemPrompt } from '../agent/prompt.ts';
 import { assessContext } from '../agent/truncate.ts';
@@ -356,6 +357,7 @@ class DesktopSession {
       limits: {
         maxSteps: this.config.limits.maxSteps,
         maxRetriesPerCall: this.config.limits.maxRetries,
+        maxRetriesPerRun: this.config.limits.maxRetries,
         toolTimeoutMs: this.config.limits.toolTimeoutMs,
         maxRuntimeMs: this.config.limits.maxRuntimeMs,
         maxExplicitShellTimeoutMs: this.config.limits.maxExplicitShellTimeoutMs,
@@ -404,6 +406,8 @@ class DesktopSession {
         // The run's own clock, so the enforced deadline and the `activeMs()`
         // the UI reports can never drift apart.
         budget: run.budget,
+        // One ledger per submitted prompt (Step 4B).
+        ledger: run.ledger,
       })) {
         // Keep the run's state in step with what the loop is doing, so the
         // terminal reason below is never guessed.
@@ -429,6 +433,10 @@ class DesktopSession {
       emit('agent:event', { type: 'error', message });
     } finally {
       this.abortController = null;
+      // Finalize the ledger with the run that owns it: a superseded run must
+      // still record what it spent, and a finalized ledger cannot be mutated
+      // by any late event.
+      const ledgerSummary = run.ledger.finalize();
       this.activeRun = null;
       // Persistence happens INSIDE the tracked lifecycle on purpose: supersede()
       // awaits this promise, so a replacement session cannot load the transcript
@@ -438,6 +446,11 @@ class DesktopSession {
         if (this.sessionId) {
           this.store.saveMessages(this.sessionId, this.conversation.messages);
           this.store.touch(this.sessionId, this.model.key);
+          // Only finalized summaries are persisted, so a row never describes a
+          // partially-accounted prompt.
+          if (ledgerSummary.providerAttempts > 0) {
+            this.store.saveRunLedger(this.sessionId, ledgerSummary);
+          }
         }
       } catch {
         /* persistence is best effort */
@@ -506,6 +519,46 @@ class DesktopSession {
     };
   }
 
+  /**
+   * Run + session accounting for the UI.
+   *
+   * Session totals are derived from FINALIZED run summaries rather than a
+   * running counter, so a run that finalizes twice cannot inflate them and the
+   * figure can always be recomputed from storage. An empty history reports
+   * "no ledger data yet" — never a zero total, which is exactly the conflation
+   * this ledger exists to remove.
+   */
+  ledgerState(): Record<string, unknown> {
+    const run = this.activeRun?.ledger.summary() ?? null;
+    const finalized = this.sessionId ? this.store.runLedgers(this.sessionId) : [];
+    const session = aggregateSession(finalized);
+
+    return {
+      run: run
+        ? {
+            modelKey: run.modelKey,
+            logicalRequests: run.logicalRequests,
+            providerAttempts: run.providerAttempts,
+            retriesUsed: run.retriesUsed,
+            retryLimit: run.retryLimit,
+            cacheHitInput: run.cacheHitInput,
+            cacheMissInput: run.cacheMissInput,
+            outputTokens: run.outputTokens,
+            reasoningTokens: run.reasoningTokens,
+            costState: run.cost.state,
+            costText: formatLedgerCost(run.cost),
+          }
+        : null,
+      session: {
+        runs: session.runs,
+        providerAttempts: session.providerAttempts,
+        retriesUsed: session.retriesUsed,
+        costState: session.cost.state,
+        costText: session.runs === 0 ? 'No ledger data yet' : formatLedgerCost(session.cost),
+      },
+    };
+  }
+
   state(): Record<string, unknown> {
     const context = this.model
       ? assessContext(
@@ -542,6 +595,7 @@ class DesktopSession {
       queuedCount: this.work.queuedCount,
       pendingPermissions: this.work.pendingApprovals,
       totals: this.summary(),
+      ledger: this.ledgerState(),
       contextRatio: context?.ratio ?? 0,
       messageCount: this.conversation.length,
       todos,

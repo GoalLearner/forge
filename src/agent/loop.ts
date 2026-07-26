@@ -46,7 +46,18 @@ import {
 } from './run.ts';
 import { parseToolArguments } from './json-repair.ts';
 import { assessContext, trimTranscript, truncateToolOutput } from './truncate.ts';
-import { withRetry } from '../providers/retry.ts';
+import { withRetry, RetryLimitExceededError } from '../providers/retry.ts';
+import {
+ RetryBudget,
+ RunLedger,
+ UNKNOWN_USAGE,
+ NO_BILLABLE_USAGE,
+ clampDiagnostic,
+ priceUsage,
+ snapshotPricing,
+ type AttemptOutcome,
+ type LedgerUsage,
+} from '../session/ledger.ts';
 import {
   AbortedError,
   ProviderError,
@@ -114,6 +125,13 @@ export interface RunTurnOptions {
    * is exactly one clock per run.
    */
   budget?: RuntimeBudget;
+  /**
+   * This prompt's accounting. The desktop passes `AgentRun.ledger` so the
+   * retry allowance and attempt records span every model turn the prompt
+   * produces; the CLI paths let the loop create one from config. Either way
+   * there is exactly one ledger — and one shared retry budget — per run.
+   */
+  ledger?: RunLedger;
 }
 
 /**
@@ -137,6 +155,86 @@ export async function* runTurn(opts: RunTurnOptions): AsyncGenerator<LoopEvent, 
   const runController = new AbortController();
   const budget = opts.budget ?? new RuntimeBudget(config.limits.maxRuntimeMs);
   const signal = runController.signal;
+
+  // `maxRetries` is now the SHARED per-run allowance (see config/schema.ts).
+  const ledger =
+    opts.ledger ?? new RunLedger('run_local', new RetryBudget(config.limits.maxRetries));
+  const pricing = snapshotPricing(model.key, model.entry);
+
+  /**
+   * Metadata for the attempt currently IN FLIGHT.
+   *
+   * Written before each dispatch rather than after `withRetry` returns, because
+   * the paths that need it most are the ones where `withRetry` never returns at
+   * all: a fatal error or an exhausted retry budget is reported from the catch
+   * block, and describing it with the *previous* attempt's timing would put a
+   * plausible-looking but wrong row in the ledger.
+   */
+  let lastAttemptMeta: {
+    retryIndex: number;
+    startedAt: number;
+    dispatched: boolean;
+    /**
+     * True once the provider has delivered its first stream event.
+     *
+     * This is the line between "unknown cost" and "no cost". Providers bill for
+     * tokens delivered, so an attempt that failed before a single event arrived
+     * — a 429, a 5xx, a refused connection — billed nothing, and saying so is a
+     * fact rather than an optimistic guess. Once content is flowing, a failure
+     * may well have been billed for what it already produced, and the honest
+     * answer becomes "we do not know".
+     */
+    streamStarted: boolean;
+  } = {
+    retryIndex: 0,
+    startedAt: 0,
+    dispatched: false,
+    streamStarted: false,
+  };
+
+  /**
+   * The one place an attempt enters the ledger.
+   *
+   * Costing happens here rather than at read time so the pricing snapshot is
+   * the one that applied when the call was made — editing models.json later
+   * cannot silently rewrite history.
+   */
+  const recordAttempt = (a: {
+    retryIndex: number;
+    startedAt: number;
+    dispatched: boolean;
+    streamStarted: boolean;
+    streamCompleted: boolean;
+    outcome: AttemptOutcome;
+    retryable: boolean | null;
+    errorCategory: string | null;
+    errorMessage: string | null;
+    retryDelayMs: number | null;
+    usage: LedgerUsage;
+    returnedModel?: string | null;
+  }): void => {
+    const endedAt = Date.now();
+    ledger.recordAttempt({
+      retryIndex: a.retryIndex,
+      provider: model.entry.provider,
+      requestedModel: model.key,
+      returnedModel: a.returnedModel ?? null,
+      startedAt: a.startedAt,
+      endedAt,
+      durationMs: a.startedAt ? endedAt - a.startedAt : null,
+      dispatched: a.dispatched,
+      streamStarted: a.streamStarted,
+      streamCompleted: a.streamCompleted,
+      outcome: a.outcome,
+      retryable: a.retryable,
+      errorCategory: a.errorCategory,
+      errorMessage: clampDiagnostic(a.errorMessage),
+      retryDelayMs: a.retryDelayMs,
+      usage: a.usage,
+      pricing,
+      cost: priceUsage(a.usage, pricing),
+    });
+  };
 
   const onParentAbort = (): void => runController.abort(opts.signal.reason);
   if (opts.signal.aborted) runController.abort(opts.signal.reason);
@@ -252,25 +350,79 @@ export async function* runTurn(opts: RunTurnOptions): AsyncGenerator<LoopEvent, 
       const text: string[] = [];
       const toolCalls = new Map<number, { id: string; name: string; args: string }>();
       let usage: NormalizedUsage = ZERO_USAGE;
+      // Ledger-side usage stays UNKNOWN until a provider actually reports it —
+      // ZERO_USAGE above is the legacy display path and must not seed this.
+      let ledgerUsage: LedgerUsage = UNKNOWN_USAGE;
+      let streamCompleted = false;
+
+      // ONE logical model request per step, however many attempts it takes.
+      // Tool results coming back produce the NEXT step, hence the next logical
+      // request — that is a new turn, not a retry.
+      ledger.beginRequest();
 
       try {
         // Retry wraps *opening* the stream and pulling its first event, because
         // that is where the HTTP call actually happens. Once an event has been
         // yielded to the UI we are committed.
+        //
+        // This is also the SINGLE instrumentation boundary: every outbound
+        // attempt in Forge passes through here, so recording it once here means
+        // no accounting mutation has to be scattered through the loop.
+        let attemptStartedAt = 0;
+        let attemptRetryIndex = 0;
+        let attemptDispatched = false;
+
         const opened = await withRetry(
           async () => {
+            attemptStartedAt = Date.now();
+            // Dispatch begins the moment the adapter is asked for a stream.
+            attemptDispatched = true;
+            lastAttemptMeta.startedAt = attemptStartedAt;
+            lastAttemptMeta.dispatched = true;
             const iterator = model.provider.stream(request)[Symbol.asyncIterator]();
             const first = await iterator.next();
             return { iterator, first };
           },
           {
-            maxRetries: config.limits.maxRetries,
+            budget: ledger.retryBudget,
             signal,
+            onAttempt: (_attemptIndex, retryIndex) => {
+              attemptRetryIndex = retryIndex;
+              attemptDispatched = false;
+              // Fires before every outbound attempt, including the last one —
+              // which is the only record the catch block will have of it.
+              lastAttemptMeta = { retryIndex, startedAt: 0, dispatched: false, streamStarted: false };
+            },
             onRetry: (attempt, delayMs, error) => {
               pendingRetries.push({ attempt, delayMs, message: error.message });
+              // The attempt that just failed retryably — recorded before the
+              // next one starts, so failures are never lost.
+              recordAttempt({
+                retryIndex: attemptRetryIndex,
+                startedAt: attemptStartedAt,
+                dispatched: attemptDispatched,
+                streamStarted: false,
+                streamCompleted: false,
+                outcome: 'retryable_error',
+                retryable: true,
+                errorCategory: error.opts.status ? `http_${error.opts.status}` : 'transport',
+                errorMessage: error.message,
+                retryDelayMs: delayMs,
+                // A retry is only possible before the first event arrives, so
+                // this attempt provably delivered no tokens either way.
+                usage: NO_BILLABLE_USAGE,
+              });
             },
           },
         );
+        // withRetry only returns once the first stream event has been pulled,
+        // so reaching this line proves content began arriving.
+        lastAttemptMeta = {
+          retryIndex: attemptRetryIndex,
+          startedAt: attemptStartedAt,
+          dispatched: attemptDispatched,
+          streamStarted: true,
+        };
 
         // Retry notices are collected in the callback (which can't yield) and
         // flushed here, so the user sees "retrying (2/4)" as it happens.
@@ -299,15 +451,32 @@ export async function* runTurn(opts: RunTurnOptions): AsyncGenerator<LoopEvent, 
             }
             case 'usage':
               usage = event.usage;
+              if (event.detail) ledgerUsage = event.detail;
               break;
             case 'done':
               stopReason = event.stopReason;
               stopExplicit = event.explicit;
               stopRaw = event.raw;
+              streamCompleted = true;
               break;
           }
           next = await opened.iterator.next();
         }
+
+        // The attempt that actually produced this turn.
+        recordAttempt({
+          retryIndex: lastAttemptMeta.retryIndex,
+          startedAt: lastAttemptMeta.startedAt,
+          dispatched: true,
+          streamStarted: true,
+          streamCompleted,
+          outcome: 'success',
+          retryable: null,
+          errorCategory: null,
+          errorMessage: null,
+          retryDelayMs: null,
+          usage: ledgerUsage,
+        });
       } catch (err) {
         // Flush buffered retry notices before reporting the failure, so the user
         // sees that forge did try again rather than assuming it gave up at once.
@@ -316,12 +485,78 @@ export async function* runTurn(opts: RunTurnOptions): AsyncGenerator<LoopEvent, 
         }
 
         if (err instanceof AbortedError || signal.aborted) {
+          // A cancelled attempt may still have been billed for what it streamed
+          // before the abort landed — recorded as incomplete, never as free.
+          recordAttempt({
+            retryIndex: lastAttemptMeta.retryIndex,
+            startedAt: lastAttemptMeta.startedAt,
+            dispatched: lastAttemptMeta.dispatched,
+            streamStarted: lastAttemptMeta.dispatched,
+            streamCompleted: false,
+            outcome: 'cancelled',
+            retryable: null,
+            errorCategory: 'cancelled',
+            errorMessage: null,
+            retryDelayMs: null,
+            usage: lastAttemptMeta.streamStarted ? ledgerUsage : NO_BILLABLE_USAGE,
+          });
           // Keep whatever text arrived so the transcript reflects what was shown.
           commitAssistantTurn(conversation, text.join(''), []);
           yield abortEvent(step + 1);
           return;
         }
+
+        // Retry budget spent. Reported as its own terminal reason so the user
+        // is pointed at limits.maxRetries rather than an unrelated limit.
+        if (err instanceof RetryLimitExceededError) {
+          // The attempt that spent the last of the allowance. `onRetry` never
+          // fires for it — by definition there is no retry after it — so
+          // without this record the ledger would report one fewer paid attempt
+          // than were actually dispatched, in precisely the situation where the
+          // attempt count is the thing the user is trying to understand.
+          recordAttempt({
+            retryIndex: lastAttemptMeta.retryIndex,
+            startedAt: lastAttemptMeta.startedAt,
+            dispatched: lastAttemptMeta.dispatched,
+            streamStarted: false,
+            streamCompleted: false,
+            outcome: 'retryable_error',
+            retryable: true,
+            errorCategory: err.cause.opts.status ? `http_${err.cause.opts.status}` : 'transport',
+            errorMessage: err.cause.message,
+            retryDelayMs: null,
+            usage: NO_BILLABLE_USAGE,
+          });
+          commitAssistantTurn(conversation, text.join(''), []);
+          yield {
+            type: 'done',
+            stopReason: 'other',
+            steps: step + 1,
+            outcome: 'failed',
+            termination: {
+              kind: 'retry_limit',
+              retriesUsed: ledger.retryBudget.consumed,
+              attempts: err.attempts,
+              lastError: err.cause.message,
+            },
+          };
+          return;
+        }
+
         const pe = err instanceof ProviderError ? err : null;
+        recordAttempt({
+          retryIndex: lastAttemptMeta.retryIndex,
+          startedAt: lastAttemptMeta.startedAt,
+          dispatched: lastAttemptMeta.dispatched,
+          streamStarted: lastAttemptMeta.streamStarted,
+          streamCompleted: false,
+          outcome: 'fatal_error',
+          retryable: false,
+          errorCategory: pe?.opts.status ? `http_${pe.opts.status}` : 'unknown',
+          errorMessage: (err as Error).message,
+          retryDelayMs: null,
+          usage: lastAttemptMeta.streamStarted ? ledgerUsage : NO_BILLABLE_USAGE,
+        });
         yield {
           type: 'error',
           message: pe ? formatProviderError(pe) : (err as Error).message,

@@ -78,7 +78,18 @@ export const LimitsSchema = z.object({
   contextTrimPct: z.number().min(0).max(1).default(0.9),
   /** Runaway guard: max assistant turns in one user request. */
   maxSteps: z.number().int().positive().default(50),
-  /** Network retries for 429/5xx/transport errors. */
+  /**
+   * Automatic retries for 429/5xx/transport errors.
+   *
+   * SEMANTICS CHANGED IN STEP 4B: this is now the allowance for the WHOLE run,
+   * not for each model turn. It used to be handed to the retry helper on every
+   * turn, so it silently reset — a 30-turn tool-using run could make
+   * 30 × (1 + maxRetries) paid attempts. One budget now covers the entire
+   * submitted prompt and does not reset after a successful turn or a tool call.
+   *
+   * The default is unchanged, so existing configs keep working and simply
+   * become stricter rather than looser.
+   */
   maxRetries: z.number().int().nonnegative().default(4),
 
   /**

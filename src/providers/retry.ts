@@ -14,11 +14,51 @@
 
 import { ProviderError, AbortedError } from './types.ts';
 
+/**
+ * Raised when a retryable failure occurs but the run's shared retry allowance
+ * is spent.
+ *
+ * Distinct from the provider error it wraps, because the two call for different
+ * responses: the underlying error might be a transient 503 that would succeed
+ * on the next attempt, while THIS says Forge has decided not to pay for another
+ * attempt in this run. The original error is preserved as diagnostic context so
+ * the report never loses why the attempts were failing.
+ */
+export class RetryLimitExceededError extends Error {
+  readonly attempts: number;
+  readonly cause: ProviderError;
+
+  constructor(attempts: number, cause: ProviderError) {
+    super(`Retry budget exhausted after ${attempts} attempt(s): ${cause.message}`);
+    this.name = 'RetryLimitExceededError';
+    this.attempts = attempts;
+    this.cause = cause;
+  }
+}
+
+/** Just the slice of RetryBudget that retry.ts needs — keeps the import light. */
+export interface SharedRetryBudget {
+  canRetry(): boolean;
+  consume(): boolean;
+  readonly consumed: number;
+  readonly limit: number;
+}
+
 export interface RetryOptions {
-  maxRetries: number;
+  /**
+   * The run's SHARED allowance, not a per-request count.
+   *
+   * This used to be a plain `maxRetries: number` handed to every model turn,
+   * which meant the allowance silently reset on each turn: a 30-turn
+   * tool-using run could make 30 × (1 + maxRetries) paid attempts. One budget
+   * object now spans the whole submitted prompt.
+   */
+  budget: SharedRetryBudget;
   signal: AbortSignal;
   /** Called before each retry so the UI can show "retrying (2/4)...". */
   onRetry?: (attempt: number, delayMs: number, error: ProviderError) => void;
+  /** Observability hook: fires once per outbound attempt, before dispatch. */
+  onAttempt?: (attemptIndex: number, retryIndex: number) => void;
 }
 
 const BASE_DELAY_MS = 500;
@@ -57,24 +97,37 @@ function backoffDelay(attempt: number, retryAfterSec?: number): number {
  * point it returns — it opens the stream but must not have yielded anything.
  */
 export async function withRetry<T>(fn: () => Promise<T>, opts: RetryOptions): Promise<T> {
-  let lastError: ProviderError | undefined;
-
-  for (let attempt = 0; attempt <= opts.maxRetries; attempt++) {
+  // Unbounded loop, bounded by the SHARED budget rather than a local counter.
+  // The first attempt is free; every subsequent one must buy a unit that no
+  // later model turn can get back.
+  for (let attempt = 0; ; attempt++) {
     if (opts.signal.aborted) throw new AbortedError();
+    opts.onAttempt?.(attempt + 1, attempt);
+
     try {
       return await fn();
     } catch (err) {
       if (err instanceof AbortedError) throw err;
       const pe = err instanceof ProviderError ? err : classifyUnknown(err);
-      if (!pe.opts.retryable || attempt === opts.maxRetries) throw pe;
 
-      lastError = pe;
+      // A malformed request will fail identically next time — retrying it just
+      // spends budget for nothing.
+      if (!pe.opts.retryable) throw pe;
+
+      // Budget is checked BEFORE the backoff sleep: there is no point waiting
+      // for an attempt we are not going to make.
+      if (!opts.budget.consume()) {
+        throw new RetryLimitExceededError(attempt + 1, pe);
+      }
+
       const delay = backoffDelay(attempt, pe.opts.retryAfter);
-      opts.onRetry?.(attempt + 1, delay, pe);
+      opts.onRetry?.(opts.budget.consumed, delay, pe);
+
+      // Abort-aware: a cancellation or runtime expiry during backoff rejects
+      // immediately and no further attempt is dispatched.
       await sleep(delay, opts.signal);
     }
   }
-  throw lastError ?? new Error('retry loop exhausted');
 }
 
 function classifyUnknown(err: unknown): ProviderError {

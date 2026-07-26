@@ -21,6 +21,7 @@
 
 import { runTurn } from './agent/loop.ts';
 import { describeTermination, RunCancelledError } from './agent/run.ts';
+import { RetryBudget, RunLedger, formatLedgerCost, type TokenCount } from './session/ledger.ts';
 import type { Conversation } from './agent/messages.ts';
 import type { ResolvedModel } from './providers/registry.ts';
 import type { Config } from './config/schema.ts';
@@ -59,6 +60,9 @@ export async function runHeadless(opts: HeadlessOptions): Promise<number> {
   opts.conversation.addUserText(opts.prompt);
   opts.store.setTitleIfUnset(opts.sessionId, opts.prompt);
 
+  // One ledger per submitted prompt, with the shared retry allowance.
+  const ledger = new RunLedger(`run_headless_${Date.now().toString(36)}`, new RetryBudget(opts.config.limits.maxRetries));
+
   let totals = { ...EMPTY_TOTALS };
   let sawError = false;
   let aborted = false;
@@ -77,6 +81,7 @@ export async function runHeadless(opts: HeadlessOptions): Promise<number> {
       toolContext: { ...opts.toolContext, signal: controller.signal },
       config: opts.config,
       signal: controller.signal,
+      ledger,
       confirm: async (request): Promise<PermissionDecision> => {
         log(
           `! Auto-denied "${request.title}: ${request.detail}" — nothing can answer a prompt in non-interactive mode.`,
@@ -151,6 +156,36 @@ export async function runHeadless(opts: HeadlessOptions): Promise<number> {
     );
   }
 
+  // Step 4B: the honest line. Printed whenever anything was actually attempted,
+  // including runs that failed — those are exactly the ones whose spend used to
+  // vanish. `formatLedgerCost` refuses to render an unknown total as $0.00.
+  // Finalize and persist UNCONDITIONALLY. Gating this on --cost would mean a
+  // run's accounting existed only when someone thought to ask for it, and the
+  // session totals the desktop reads back would silently omit every headless
+  // run. Whether it is PRINTED is a display choice; whether it is RECORDED is
+  // not.
+  const s = ledger.finalize();
+  try {
+    opts.store.saveRunLedger(opts.sessionId, s);
+  } catch {
+    // Best-effort, same as the transcript save above: a closed database during
+    // shutdown must not turn into an unhandled rejection.
+  }
+
+  if (opts.showCost) {
+    if (s.providerAttempts > 0) {
+      log(
+        `  ${s.logicalRequests} model request(s), ${s.providerAttempts} provider attempt(s), ` +
+          `${s.retriesUsed}/${s.retryLimit} retries used`,
+      );
+      log(
+        `  cache-hit ${fmtTokens(s.cacheHitInput)} · cache-miss ${fmtTokens(s.cacheMissInput)} · ` +
+          `output ${fmtTokens(s.outputTokens)}${s.reasoningTokens === null ? '' : ` · reasoning ${fmtTokens(s.reasoningTokens)}`}`,
+      );
+      log(`  ${formatLedgerCost(s.cost)}`);
+    }
+  }
+
   return exitCodeFor({ outcome, sawError, aborted });
 }
 
@@ -175,4 +210,9 @@ export function exitCodeFor(result: {
 
 function firstLine(text: string): string {
   return text.split('\n')[0]?.slice(0, 200) ?? '';
+}
+
+/** Unknown token counts print as "unknown", never as 0. */
+function fmtTokens(v: TokenCount): string {
+  return v === null ? 'unknown' : v.toLocaleString();
 }

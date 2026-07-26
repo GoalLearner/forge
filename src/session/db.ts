@@ -138,6 +138,30 @@ function migrate(db: DatabaseSyncType): void {
     // 0 = normal, 1 = pinned to the top of the thread list.
     db.exec('ALTER TABLE sessions ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0;');
   }
+
+  // Step 4B. Additive: a brand new table, so sessions recorded before this
+  // existed still load — they simply have no ledger rows, and the reader
+  // reports that as "no ledger data" rather than as $0.00.
+  //
+  // One row per FINALIZED run. Nothing mid-run is written here, so a row can
+  // never represent a partially-accounted prompt. `summary` holds the
+  // normalized RunLedgerSummary as JSON: the shape belongs to ledger.ts, and
+  // pinning it into columns would force a migration every time it grows.
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS run_ledgers (
+      run_id            TEXT PRIMARY KEY,
+      session_id        TEXT NOT NULL,
+      created_at        INTEGER NOT NULL,
+      model_key         TEXT,
+      logical_requests  INTEGER NOT NULL,
+      provider_attempts INTEGER NOT NULL,
+      retries_used      INTEGER NOT NULL,
+      cost_state        TEXT NOT NULL,
+      cost_nanos        INTEGER NOT NULL,
+      summary           TEXT NOT NULL
+    );
+  `);
+  db.exec('CREATE INDEX IF NOT EXISTS idx_run_ledgers_session ON run_ledgers(session_id);');
 }
 
 export function closeDatabase(): void {

@@ -22,6 +22,7 @@ import { AgentRun, RuntimeBudget, RuntimeExpiredError, type AgentLimits } from '
 const LIMITS: AgentLimits = {
   maxSteps: 50,
   maxRetriesPerCall: 4,
+  maxRetriesPerRun: 4,
   toolTimeoutMs: 120_000,
   maxRuntimeMs: 900_000,
   maxExplicitShellTimeoutMs: 600_000,

@@ -21,6 +21,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
+import { buildUsage } from '../session/ledger.ts';
 import { classifyHttpError } from './retry.ts';
 import {
   AbortedError,
@@ -157,7 +158,21 @@ export class AnthropicProvider implements Provider {
       throw classifyHttpError(err, this.name);
     }
 
-    yield { type: 'usage', usage };
+    yield {
+      type: 'usage',
+      usage,
+      // Anthropic reports input/output directly; total input is the sum of the
+      // three input buckets, so cache-miss is the plain input_tokens field.
+      detail: buildUsage({
+        cacheHitInput: usage.cachedInputTokens,
+        cacheMissInput: usage.inputTokens,
+        cacheWriteInput: usage.cacheWriteTokens,
+        totalInput: usage.inputTokens + usage.cachedInputTokens + usage.cacheWriteTokens,
+        outputTokens: usage.outputTokens,
+        // Anthropic does not break out reasoning tokens separately.
+        reasoningTokens: null,
+      }),
+    };
     yield { type: 'done', stopReason, explicit: sawStopReason, raw: rawStopReason };
   }
 }

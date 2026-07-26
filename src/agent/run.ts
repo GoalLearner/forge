@@ -33,6 +33,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import { RetryBudget, RunLedger } from '../session/ledger.ts';
 
 // ---------------------------------------------------------------------------
 // States
@@ -86,6 +87,13 @@ export type AgentTerminationReason =
   | { kind: 'max_steps'; steps: number }
   | { kind: 'max_runtime'; elapsedMs: number }
   | { kind: 'max_retries'; attempts: number }
+  /**
+   * The run's SHARED retry allowance was spent and another retryable failure
+   * arrived. Distinct from max_steps/max_runtime/tool_timeout so the user is
+   * pointed at `limits.maxRetries` rather than an unrelated limit; `lastError`
+   * keeps the provider failure that was actually being retried.
+   */
+  | { kind: 'retry_limit'; retriesUsed: number; attempts: number; lastError: string }
   | { kind: 'tool_timeout'; tool: string; timeoutMs: number }
   | { kind: 'no_progress'; steps: number }
   | { kind: 'duplicate_calls'; tool: string; repeats: number }
@@ -131,6 +139,8 @@ export function describeTermination(reason: AgentTerminationReason): string {
       return `Run stopped after reaching the ${formatDuration(reason.elapsedMs)} active-runtime limit.`;
     case 'max_retries':
       return `Gave up after ${reason.attempts} failed attempts to reach the model.`;
+    case 'retry_limit':
+      return `Used all ${reason.retriesUsed} available retries for this request and stopped. Last provider error: ${reason.lastError}`;
     case 'tool_timeout':
       return `Tool timed out after ${formatDuration(reason.timeoutMs)}: ${reason.tool}`;
     case 'no_progress':
@@ -176,6 +186,13 @@ export interface AgentLimits {
   maxSteps: number;
   maxRetriesPerCall: number;
 
+  /**
+   * Shared automatic-retry allowance for the WHOLE run (Step 4B).
+   * Sourced from the existing `limits.maxRetries`, whose meaning changed from
+   * per-request to per-run — see the note in config/schema.ts.
+   */
+  maxRetriesPerRun: number;
+
   /** Ceiling on any single tool call. Enforced (Step 4A). */
   toolTimeoutMs: number;
   /** Ceiling on ACTIVE run time — approval waits excluded. Enforced (4A). */
@@ -184,7 +201,6 @@ export interface AgentLimits {
   maxExplicitShellTimeoutMs: number;
 
   /** Declared for later slices; not enforced yet. */
-  maxRetriesPerRun?: number;
   maxDuplicateFailures?: number;
   maxNoProgressSteps?: number;
   maxCostUsd?: number;
@@ -407,6 +423,15 @@ export class AgentRun {
    */
   readonly budget: RuntimeBudget;
 
+  /**
+   * This prompt's accounting, created once and never shared.
+   *
+   * Owned by the run rather than the loop so that the retry allowance and the
+   * attempt records survive across every model turn the prompt produces — and
+   * so a superseded run's ledger finalizes with the run that owns it.
+   */
+  readonly ledger: RunLedger;
+
   constructor(opts: AgentRunOptions) {
     this.id = newRunId();
     this.sessionId = opts.sessionId;
@@ -415,6 +440,7 @@ export class AgentRun {
     this.now = opts.now ?? Date.now;
     this.startedAt = this.now();
     this.budget = new RuntimeBudget(opts.limits.maxRuntimeMs, this.now);
+    this.ledger = new RunLedger(this.id, new RetryBudget(opts.limits.maxRetriesPerRun));
   }
 
   get finished(): boolean {

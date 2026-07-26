@@ -20,6 +20,7 @@ import TextInput from 'ink-text-input';
 
 import { Conversation } from '../agent/messages.ts';
 import { runTurn, type LoopEvent } from '../agent/loop.ts';
+import { RunLedger, RetryBudget } from '../session/ledger.ts';
 import { describeTermination, RunCancelledError } from '../agent/run.ts';
 import { assessContext } from '../agent/truncate.ts';
 import type { ProviderRegistry, ResolvedModel } from '../providers/registry.ts';
@@ -96,6 +97,9 @@ export function App(props: AppProps): React.ReactElement {
   const [interruptArmed, setInterruptArmed] = useState(false);
 
   const nextId = useRef(0);
+  // Run ids are a storage primary key, so a same-millisecond collision would
+  // silently overwrite the earlier run rather than record a second one.
+  const nextRunSeq = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
   const resolvePermission = useRef<((d: PermissionDecision) => void) | null>(null);
   const interruptTimer = useRef<NodeJS.Timeout | null>(null);
@@ -178,6 +182,15 @@ export function App(props: AppProps): React.ReactElement {
       const accumulated: string[] = [];
       const toolMeta = new Map<string, { name: string; summary: string }>();
 
+      // One ledger per submitted prompt, exactly as the desktop and headless
+      // paths do. Without it the loop would still make its own — so the retry
+      // ceiling would hold — but nothing would be finalized or persisted, and
+      // the TUI would be the one front end whose runs left no record.
+      const ledger = new RunLedger(
+        `run_tui_${Date.now().toString(36)}_${nextRunSeq.current++}`,
+        new RetryBudget(props.config.limits.maxRetries),
+      );
+
       try {
         for await (const event of runTurn({
           conversation: props.conversation,
@@ -186,6 +199,7 @@ export function App(props: AppProps): React.ReactElement {
           toolContext,
           config: props.config,
           signal: controller.signal,
+          ledger,
           confirm,
         })) {
           applyEvent(event);
@@ -213,6 +227,9 @@ export function App(props: AppProps): React.ReactElement {
         try {
           props.store.saveMessages(props.sessionId, props.conversation.messages);
           props.store.touch(props.sessionId, model.key);
+          // Finalize first: it freezes the record, so whatever is written is
+          // the same total the run would report if asked again.
+          props.store.saveRunLedger(props.sessionId, ledger.finalize());
         } catch {
           /* ignore */
         }

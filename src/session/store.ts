@@ -10,6 +10,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import type { RunLedgerSummary } from './ledger.ts';
 import { openDatabase } from './db.ts';
 import { addUsage, EMPTY_TOTALS, type UsageTotals } from './cost.ts';
 import type { ModelEntry } from '../config/schema.ts';
@@ -304,6 +305,62 @@ export class SessionStore {
       }
     }
     return repairDanglingToolCalls(out);
+  }
+
+  // -------------------------------------------------------------------------
+  // Run ledgers (Step 4B)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Persist ONE finalized run ledger.
+   *
+   * Only finalized summaries are written, so a row can never describe a
+   * partially-accounted prompt. Keyed by run id with INSERT OR REPLACE, which
+   * makes a double-finalize idempotent rather than double-counting the session.
+   */
+  saveRunLedger(sessionId: string, summary: RunLedgerSummary): void {
+    this.db
+      .prepare(
+        `INSERT OR REPLACE INTO run_ledgers
+           (run_id, session_id, created_at, model_key, logical_requests,
+            provider_attempts, retries_used, cost_state, cost_nanos, summary)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        summary.runId,
+        sessionId,
+        Date.now(),
+        summary.modelKey,
+        summary.logicalRequests,
+        summary.providerAttempts,
+        summary.retriesUsed,
+        summary.cost.state,
+        summary.cost.nanos,
+        JSON.stringify(summary),
+      );
+  }
+
+  /**
+   * Every finalized run ledger for a session, oldest first.
+   *
+   * Returns an empty array for sessions recorded before Step 4B. The caller
+   * must render that as "no ledger data", never as a zero total — that
+   * conflation is the whole reason this table exists.
+   */
+  runLedgers(sessionId: string): RunLedgerSummary[] {
+    const rows = this.db
+      .prepare('SELECT summary FROM run_ledgers WHERE session_id = ? ORDER BY created_at ASC')
+      .all(sessionId) as Array<{ summary: string }>;
+
+    const out: RunLedgerSummary[] = [];
+    for (const row of rows) {
+      try {
+        out.push(JSON.parse(row.summary) as RunLedgerSummary);
+      } catch {
+        // One unreadable row must not make a whole session unopenable.
+      }
+    }
+    return out;
   }
 
   // -------------------------------------------------------------------------
