@@ -1,22 +1,49 @@
 diff --git a/backend/src/index.ts b/backend/src/index.ts
-index adb2829..0190304 100644
+index adb2829..8a1c5ce 100644
 --- a/backend/src/index.ts
 +++ b/backend/src/index.ts
-@@ -37,6 +37,7 @@ import { handleUserStateGet, handleUserStatePost } from './handlers/user-state';
+@@ -33,6 +33,7 @@ import { handleLeaderboardArchiveGet } from './handlers/leaderboard-archive';
+ import { handleStep100kClub } from './handlers/step-100k-club';
+ import { handleInsightsWeekly } from './handlers/insights-weekly';
+ import { handleAccountDelete } from './handlers/account-delete';
++import { handleHealth } from './handlers/health';
+ import { handleUserStateGet, handleUserStatePost } from './handlers/user-state';
  import { handleAppOpenPost } from './handlers/app-open';
  import { handleClientErrorsPost } from './handlers/client-errors';
- import { handleAdminRetention } from './handlers/admin-retention';
-+import { handleHealth } from './handlers/health';
- import { handleUserAccoladesGet } from './handlers/accolades';
- import { handleRevenueCatWebhook } from './handlers/iap-revenuecat-webhook';
- import { handleEntitlementsGet } from './handlers/iap-entitlements';
-@@ -193,6 +194,9 @@ export default {
+@@ -192,7 +193,7 @@ export default {
+           }
          }
        }
-       // ── Health check (uncached, no auth) ──
-+      else if (path === '/v1/health' && method === 'GET') {
-+        response = await handleHealth(request, env);
-+      }
+-      // ── Health check (uncached, no auth) ──
++      // ── Health checks (uncached, no auth) ──
        else if (path === '/health' && method === 'GET') {
          response = Response.json({
            status: 'ok',
+@@ -200,6 +201,9 @@ export default {
+           time: new Date().toISOString(),
+         });
+       }
++      else if (path === '/v1/health' && method === 'GET') {
++        response = handleHealth();
++      }
+       // ── Realtime PvP WebSocket upgrade (PVP.md §21) ──
+       // Browsers cannot set an Authorization header on a WS handshake, so this
+       // route authenticates via the ?token= query param (validated inside the
+@@ -352,8 +356,16 @@ export default {
+           // ── Friends + legacy-Duels residuals ──
+           else if (path === '/v1/friends' && method === 'GET') {
+             response = await handleFriendsList(request, env, session);
++
++          } else if (path === '/v1/friends/leaderboard' && method === 'GET') {
++
++            response = await 
++          } else if (path === '/v1/users/me/hall-of-awakened' && method === 'GET') {
++            // Hall of the Awakened GET — returns one row indexed by the
++            // caller's userId (per BACKEND.md §28 — READ path).
++            response = await handleHallGet(request, env, session);
+           } else if (path === '/v1/friends/leaderboard' && method === 'GET') {
+-            // W320 — friends leaderboard: steps this week among accepted
++            // v3 Phase 1z.232 — Friends-only step leaderboard across accepted
+             // friends + self. Reuses leaderboard_snapshots + the friend graph
+             // (no new schema/binding; read budget shares RL_FRIENDS_READ).
+             response = await handleFriendsLeaderboardGet(request, env, session);
