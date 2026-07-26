@@ -318,9 +318,11 @@ test('a successful run aggregates cost across both model turns', async (t) => {
   const s = r.ledger.summary();
 
   assert.equal(s.providerAttempts, 2);
-  // The mock speaks DeepSeek's dialect: it reports the cache hit AND the miss,
-  // so no count is inferred and the figure rests entirely on provider numbers.
-  assert.equal(s.cost.state, 'known', 'every pricing input was reported, none derived');
+  // The mock speaks DeepSeek's dialect and reports every token count directly.
+  // The DOLLARS are still Forge's own multiplication against models.json, so
+  // the figure is an estimate — reported counts do not make locally computed
+  // money authoritative.
+  assert.equal(s.cost.state, 'estimated', 'locally priced, however exact the counts');
   assert.ok(s.cost.nanos > 0);
   assert.equal(s.cacheHitInput, 120, '60 per turn, reported by the provider');
   assert.equal(s.cacheMissInput, 80);
@@ -328,17 +330,16 @@ test('a successful run aggregates cost across both model turns', async (t) => {
   assert.equal(s.reasoningTokens, null, 'the mock reports none — stays unknown, not 0');
 });
 
-test('a retried attempt does not make the run cost untrustworthy', async (t) => {
+test('a retried attempt leaves the run cost a priced lower bound', async (t) => {
   const r = await drive([{ kind: 'retryable' }, { kind: 'ok' }], { maxRetries: 2 }, t);
   const s = r.ledger.summary();
 
   assert.equal(s.providerAttempts, 2);
-  // Retries only happen before the first stream event, so the failed attempt
-  // provably delivered no tokens and cannot have been billed. Marking the run
-  // untrustworthy over a routine 429 would make the confidence label fire
-  // constantly and mean nothing when it mattered.
-  assert.equal(s.cost.state, 'known', 'the failure contributed a certain zero');
-  assert.ok(s.cost.nanos > 0, 'and the successful attempt contributed the actual charge');
+  // The failed attempt left this process; what the provider did with it is not
+  // observable, so the run total cannot be closed out. The successful attempt
+  // still contributes a real, exact subtotal underneath that label.
+  assert.equal(s.cost.state, 'incomplete', 'one dispatched attempt reported nothing');
+  assert.ok(s.cost.nanos > 0, 'the successful attempt is still priced as a lower bound');
 });
 
 test('finalization is idempotent and freezes the ledger', async (t) => {

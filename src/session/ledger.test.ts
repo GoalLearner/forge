@@ -16,6 +16,7 @@ import {
   UNKNOWN_USAGE,
   NO_BILLABLE_USAGE,
   aggregateCost,
+  asPartial,
   aggregateSession,
   buildUsage,
   clampDiagnostic,
@@ -114,12 +115,69 @@ test('contradictory usage is flagged, not clamped to a plausible number', () => 
   assert.equal(u.complete, false);
 });
 
-test('an attempt that delivered nothing is known-zero, not incomplete', () => {
+test('an attempt that never left the process is known-zero', () => {
   assert.equal(NO_BILLABLE_USAGE.complete, true);
-  // Every count that feeds pricing is a reported zero, so this is the one
-  // genuinely certain figure in the whole ledger.
+  // Nothing was sent, so no inference could run and no charge can exist. The
+  // ONLY certain figure in the ledger, and the only warrant for `known`.
+  assert.equal(NO_BILLABLE_USAGE.provenNoDispatch, true);
   assert.equal(priceUsage(NO_BILLABLE_USAGE, PRICING).state, 'known');
   assert.equal(priceUsage(NO_BILLABLE_USAGE, PRICING).nanos, 0);
+});
+
+test('a known zero aggregated with a real estimate stays an estimate', () => {
+  const undispatched = priceUsage(NO_BILLABLE_USAGE, PRICING);
+  const real = priceUsage(
+    buildUsage({ cacheHitInput: 100, cacheMissInput: 1_000, outputTokens: 500 }),
+    PRICING,
+  );
+  const total = aggregateCost([undispatched, real]);
+
+  assert.equal(total.state, 'estimated', 'confidence never rounds up to the stronger member');
+  assert.equal(total.nanos, real.nanos, 'and the zero contributes nothing but a row');
+});
+
+test('reported token counts do not make locally computed money authoritative', () => {
+  // Both halves of the cache split stated outright — the strongest usage a
+  // provider gives Forge today. The dollars still come from models.json.
+  const fullyReported = buildUsage({
+    cacheHitInput: 960,
+    cacheMissInput: 40,
+    totalInput: 1_000,
+    outputTokens: 100,
+  });
+  assert.equal(fullyReported.sources.cacheHitInput, 'reported');
+  assert.equal(fullyReported.sources.cacheMissInput, 'reported');
+  assert.equal(fullyReported.sources.outputTokens, 'reported');
+
+  const cost = priceUsage(fullyReported, PRICING);
+  assert.ok(cost.nanos > 0);
+  assert.equal(cost.state, 'estimated');
+});
+
+test('asPartial keeps observed numbers but reopens the total', () => {
+  const observed = buildUsage({
+    cacheHitInput: 960,
+    cacheMissInput: 40,
+    totalInput: 1_000,
+    outputTokens: 100,
+  });
+  const partial = asPartial(observed);
+
+  assert.equal(partial.cacheHitInput, 960, 'the figures survive');
+  assert.equal(partial.outputTokens, 100);
+  assert.equal(partial.complete, false);
+
+  const cost = priceUsage(partial, PRICING);
+  assert.equal(cost.state, 'incomplete');
+  assert.equal(cost.nanos, priceUsage(observed, PRICING).nanos, 'priced identically, labelled honestly');
+});
+
+test('asPartial on an undispatched attempt drops the proven-zero claim', () => {
+  // Reaching this combination would mean something was observed from a call
+  // that was never made; the observation wins and the claim is withdrawn.
+  const partial = asPartial(NO_BILLABLE_USAGE);
+  assert.equal(partial.provenNoDispatch, undefined);
+  assert.equal(priceUsage(partial, PRICING).state, 'incomplete');
 });
 
 // --- money -----------------------------------------------------------------

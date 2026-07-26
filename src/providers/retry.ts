@@ -114,18 +114,32 @@ export async function withRetry<T>(fn: () => Promise<T>, opts: RetryOptions): Pr
       // spends budget for nothing.
       if (!pe.opts.retryable) throw pe;
 
-      // Budget is checked BEFORE the backoff sleep: there is no point waiting
-      // for an attempt we are not going to make.
-      if (!opts.budget.consume()) {
+      // Ask whether a retry is PERMITTED without spending the unit yet. There
+      // is no point sleeping for an attempt we are not going to make, but a
+      // unit must not be charged for an attempt that never happens either.
+      if (!opts.budget.canRetry()) {
         throw new RetryLimitExceededError(attempt + 1, pe);
       }
 
       const delay = backoffDelay(attempt, pe.opts.retryAfter);
-      opts.onRetry?.(opts.budget.consumed, delay, pe);
+      // Reports the retry that is about to be waited for, so the UI counts from
+      // one even though the unit is not deducted until after the sleep.
+      opts.onRetry?.(opts.budget.consumed + 1, delay, pe);
 
       // Abort-aware: a cancellation or runtime expiry during backoff rejects
       // immediately and no further attempt is dispatched.
       await sleep(delay, opts.signal);
+
+      // Re-check after the wait. A signal that fired while we slept must stop
+      // the run here, before anything is charged or sent.
+      if (opts.signal.aborted) throw new AbortedError();
+
+      // Consume LAST, adjacent to the dispatch it pays for: the only statements
+      // between this line and the outbound call in `fn()` are synchronous, so a
+      // unit can never be deducted for an attempt that does not follow it.
+      if (!opts.budget.consume()) {
+        throw new RetryLimitExceededError(attempt + 1, pe);
+      }
     }
   }
 }

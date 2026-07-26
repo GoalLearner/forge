@@ -29,7 +29,7 @@ import { PermissionManager } from '../safety/permissions.ts';
 import { FileTracker } from '../safety/file-tracker.ts';
 import { buildTools, toolSchemas } from '../tools/index.ts';
 import { TodoStore } from '../tools/todo.ts';
-import { RunLedger, RetryBudget, UNKNOWN_USAGE } from '../session/ledger.ts';
+import { RunLedger, RetryBudget, UNKNOWN_USAGE, formatLedgerCost } from '../session/ledger.ts';
 import type { ResolvedModel } from '../providers/registry.ts';
 import type { ToolContext } from '../tools/types.ts';
 
@@ -228,7 +228,7 @@ test('a retried request is billed as one logical request and three attempts', as
   );
 });
 
-test('failed attempts add nothing to the cost, but the successful one does', async (t) => {
+test('the successful attempt is priced; the dispatched failures make it a lower bound', async (t) => {
   const { server, url } = await startServer({ failures: 2, turns: [{ text: 'ok' }] });
   t.after(() => server.close());
 
@@ -239,10 +239,14 @@ test('failed attempts add nothing to the cost, but the successful one does', asy
   assert.equal(s.cacheHitInput, 960);
   assert.equal(s.cacheMissInput, 40);
   assert.equal(s.outputTokens, 100);
-  assert.equal(s.cost.state, 'known', 'a 500 that returned no usage is not missing data');
 
   // 960 @ $0.10/M + 40 @ $1.00/M + 100 @ $10.00/M = $0.001136
-  assert.equal(s.cost.nanos, 96_000 + 40_000 + 1_000_000);
+  assert.equal(s.cost.nanos, 96_000 + 40_000 + 1_000_000, 'the priced subtotal is exact');
+  assert.equal(
+    s.cost.state,
+    'incomplete',
+    'two requests reached the provider and reported nothing back — what they cost is not observable from here',
+  );
 });
 
 test('the retry allowance is spent across turns, not restored by each one', async (t) => {
@@ -290,20 +294,24 @@ test('exhausting the shared allowance fails the run with retry_limit', async (t)
   assert.equal(ledger.retryBudget.canRetry(), false);
 });
 
-test('a run where nothing ever streamed cost nothing, and says so definitively', async (t) => {
+test('a run whose every attempt reached the provider and returned nothing is incomplete', async (t) => {
   const { server, url } = await startServer({ failures: Infinity, turns: [] });
   t.after(() => server.close());
 
   const { ledger } = await drive(url, { maxRetries: 1 });
   const s = ledger.summary();
 
-  // Every attempt died on a 500 before a single event arrived. Billing is per
-  // token delivered and none were, so zero is a measurement here — not the
-  // "we lost track and defaulted to nothing" zero this ledger exists to
-  // eliminate. That distinction is exactly what `streamStarted` buys.
-  assert.equal(s.cost.state, 'known');
-  assert.equal(s.cost.nanos, 0);
-  assert.equal(s.outputTokens, 0, 'zero tokens delivered, stated as a fact');
+  // Each attempt left this process and came back a 500. Whether the provider
+  // did any work — and billed for it — is simply not observable from here.
+  // An earlier revision called this a known $0.00 on the theory that billing is
+  // per token delivered; that is a guess about provider policy, not evidence.
+  assert.equal(s.cost.state, 'incomplete');
+  assert.equal(s.outputTokens, null, 'nothing was reported, so nothing is claimed');
+  assert.equal(
+    formatLedgerCost(s.cost),
+    'Usage unavailable',
+    'and it must never present itself as an authoritative $0.00',
+  );
 });
 
 test('the reported termination names the limit the user can actually change', async (t) => {
@@ -346,8 +354,8 @@ test('cancelling mid-flight still records the attempt that was in progress', asy
   assert.equal(s.retriesUsed, 0, 'a user cancellation is not a retryable failure');
   assert.equal(
     s.cost.state,
-    'known',
-    'the server never answered, so the dispatched request delivered nothing billable',
+    'incomplete',
+    'the request was dispatched and the provider never answered — its cost is unknown, not nil',
   );
   assert.equal(s.cost.nanos, 0);
 });

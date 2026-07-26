@@ -131,6 +131,16 @@ export interface LedgerUsage {
    * False forces the attempt — and everything aggregating it — to `incomplete`.
    */
   complete: boolean;
+  /**
+   * Set ONLY when the attempt provably never reached the provider, so no
+   * inference could have been performed and no charge could exist.
+   *
+   * This is the single warrant for a `known` cost, and it deliberately cannot
+   * be inferred from usage numbers: a response that simply reported nothing
+   * looks identical to one that was never sent, and only the caller knows
+   * which happened. See `priceUsage`.
+   */
+  provenNoDispatch?: boolean;
   /** Set when provider numbers contradict each other (e.g. hits > total). */
   inconsistent?: string;
 }
@@ -152,24 +162,22 @@ export const UNKNOWN_USAGE: LedgerUsage = Object.freeze<LedgerUsage>({
 });
 
 /**
- * Usage for an attempt that provably delivered no billable tokens.
+ * Usage for an attempt that provably never reached the provider.
  *
- * Two cases qualify, and the second is the load-bearing one:
+ * ONLY that case: the request was rejected locally, or the outbound call was
+ * never invoked. Nothing was sent, so no inference could have run and no charge
+ * can exist — the single situation where zero is a fact rather than an absence.
  *
- *   - the request never reached the network at all, and
- *   - it reached the provider but failed before a single stream event arrived
- *     (429, 5xx, refused connection, DNS failure).
+ * A dispatched attempt does NOT qualify, however it failed. A 429, a 5xx or a
+ * reset socket tells us the request left this process; what the provider did
+ * with it, and whether it billed, is not observable from here. Those are
+ * `UNKNOWN_USAGE`, which prices to `incomplete`.
  *
- * Billing is per token delivered, so zero events means zero cost — a fact, not
- * an optimistic guess. This is the one place zero is asserted rather than
- * withheld, and drawing the line at "did anything stream" is what keeps it
- * defensible: an attempt that broke MID-stream may well have been billed for
- * what it already produced, and that case is recorded as `UNKNOWN_USAGE`.
- *
- * The alternative — treating every transient failure as `incomplete` — would
- * mark a run's cost untrustworthy because of a single routine 429, which is the
- * most common event in the system. That destroys the signal precisely when the
- * cost figure is otherwise perfectly good.
+ * An earlier revision drew this line at "did anything stream", reasoning that
+ * billing is per token delivered. That is an assumption about provider billing
+ * policy, not an observation, and it made a rate-limited run display an
+ * authoritative $0.00. The line is now drawn at the one boundary Forge can
+ * actually observe: whether the outbound call was made.
  */
 export const NO_BILLABLE_USAGE: LedgerUsage = Object.freeze<LedgerUsage>({
   cacheHitInput: 0,
@@ -185,7 +193,24 @@ export const NO_BILLABLE_USAGE: LedgerUsage = Object.freeze<LedgerUsage>({
     reasoningTokens: 'unknown',
   },
   complete: true,
+  provenNoDispatch: true,
 });
+
+/**
+ * Reinterpret observed usage as a lower bound rather than a final total.
+ *
+ * Used when the provider DID report usage but the attempt then failed: those
+ * numbers are real and must not be thrown away, yet more work may have been
+ * done and billed after the last figure we saw. Pricing them yields a subtotal
+ * labelled `incomplete`, which is exactly "at least this much".
+ */
+export function asPartial(usage: LedgerUsage): LedgerUsage {
+  if (!usage.complete) return usage;
+  // provenNoDispatch is dropped deliberately: something was observed, so the
+  // attempt manifestly reached the provider.
+  const { provenNoDispatch: _ignored, ...rest } = usage;
+  return { ...rest, complete: false };
+}
 
 /** Sum of every token we know about — used for the `unpriced` display. */
 export function knownTokenTotal(usage: LedgerUsage): number {
@@ -320,6 +345,11 @@ export interface CostResult {
 export function priceUsage(usage: LedgerUsage, pricing: PricingSnapshot | null): CostResult {
   const tokens = knownTokenTotal(usage);
 
+  // The only warrant for `known`: nothing was sent, so nothing can be owed.
+  // Note this is checked BEFORE `complete`, because it is a statement about
+  // dispatch rather than about the completeness of any numbers.
+  if (usage.provenNoDispatch) return { state: 'known', nanos: 0, tokens: 0 };
+
   if (!usage.complete) {
     // Price whatever IS known, and label it a lower bound.
     const partial = pricing ? partialNanos(usage, pricing) : 0;
@@ -329,24 +359,22 @@ export function priceUsage(usage: LedgerUsage, pricing: PricingSnapshot | null):
   if (!pricing) return { state: 'unpriced', nanos: 0, tokens };
 
   // A subscription plan has already been paid for; the marginal figure is zero
-  // but it is not a quoted cost, so it stays an estimate.
+  // but it is still Forge's own conclusion, not a quoted amount.
   if (pricing.subscription) return { state: 'estimated', nanos: 0, tokens };
 
-  const nanos = partialNanos(usage, pricing);
-
-  // `known` vs `estimated` turns on whether any token count was inferred rather
-  // than stated. This is the whole reason `sources` is carried around: DeepSeek
-  // reports the cache hit AND miss, so its figure rests entirely on numbers the
-  // provider sent; an OpenAI-dialect response states a total and a cached
-  // subset, so the miss is our subtraction and the total inherits that. Only
-  // the three counts that actually feed pricing are consulted — a missing
-  // reasoning breakdown changes no arithmetic and must not downgrade the label.
-  const derived =
-    usage.sources.cacheHitInput !== 'reported' ||
-    usage.sources.cacheMissInput !== 'reported' ||
-    usage.sources.outputTokens !== 'reported';
-
-  return { state: derived ? 'estimated' : 'known', nanos, tokens };
+  // Everything that survives to here is money FORGE calculated, from its own
+  // configured price table. That makes it an estimate no matter how precisely
+  // the token counts were reported.
+  //
+  // A previous revision promoted this to `known` when every count came back
+  // `reported` (DeepSeek states both halves of the cache split; the OpenAI
+  // dialect makes us subtract). But provenance of the token counts says nothing
+  // about the provenance of the DOLLARS: both dialects were multiplied by the
+  // same local models.json rates, so labelling one authoritative and the other
+  // an estimate distinguished two figures that are equally derived — and would
+  // present a stale price table as fact. `known` is reserved for a genuine
+  // provider-quoted amount, which no supported provider returns today.
+  return { state: 'estimated', nanos: partialNanos(usage, pricing), tokens };
 }
 
 function partialNanos(usage: LedgerUsage, pricing: PricingSnapshot): Nanodollars {
@@ -550,6 +578,11 @@ export class RunLedger {
 
   get finalized(): boolean {
     return this.frozen;
+  }
+
+  /** Which logical model turn is open. Part of an attempt's stable identity. */
+  get currentRequestIndex(): number {
+    return this.currentRequest;
   }
 
   /** Begin a new intended model turn. Tool results produce a NEW request. */

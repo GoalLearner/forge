@@ -21,7 +21,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk';
-import { buildUsage } from '../session/ledger.ts';
+import { buildUsage, type LedgerUsage } from '../session/ledger.ts';
 import { classifyHttpError } from './retry.ts';
 import {
   AbortedError,
@@ -87,6 +87,8 @@ export class AnthropicProvider implements Provider {
     // stop_reason is an incomplete response, not a successful one.
     let stopReason: StopReason = 'other';
     let sawStopReason = false;
+    /** Whether the provider has reported any usage yet — see the catch below. */
+    let sawUsage = false;
     let rawStopReason: string | undefined;
     /** content block index -> tool call index, since not every block is a tool. */
     const toolIndexByBlock = new Map<number, number>();
@@ -100,6 +102,7 @@ export class AnthropicProvider implements Provider {
           case 'message_start': {
             const u = event.message?.usage;
             if (u) {
+              sawUsage = true;
               usage.inputTokens = u.input_tokens ?? 0;
               usage.cachedInputTokens = u.cache_read_input_tokens ?? 0;
               usage.cacheWriteTokens = u.cache_creation_input_tokens ?? 0;
@@ -153,28 +156,40 @@ export class AnthropicProvider implements Provider {
         }
       }
     } catch (err) {
+      // Anthropic reports input usage up front in `message_start`, so a stream
+      // that dies later has usually already told us most of what it consumed.
+      // Surfacing it before rethrowing turns a lost figure into an honest lower
+      // bound. Unreachable from the success path, so nothing is emitted twice.
+      if (sawUsage) yield { type: 'usage', usage, detail: ledgerUsageFromAnthropic(usage) };
       if (err instanceof AbortedError || req.signal.aborted) throw new AbortedError();
       if (err instanceof ProviderError) throw err;
       throw classifyHttpError(err, this.name);
     }
 
-    yield {
-      type: 'usage',
-      usage,
-      // Anthropic reports input/output directly; total input is the sum of the
-      // three input buckets, so cache-miss is the plain input_tokens field.
-      detail: buildUsage({
-        cacheHitInput: usage.cachedInputTokens,
-        cacheMissInput: usage.inputTokens,
-        cacheWriteInput: usage.cacheWriteTokens,
-        totalInput: usage.inputTokens + usage.cachedInputTokens + usage.cacheWriteTokens,
-        outputTokens: usage.outputTokens,
-        // Anthropic does not break out reasoning tokens separately.
-        reasoningTokens: null,
-      }),
-    };
+    yield { type: 'usage', usage, detail: ledgerUsageFromAnthropic(usage) };
     yield { type: 'done', stopReason, explicit: sawStopReason, raw: rawStopReason };
   }
+}
+
+/**
+ * Ledger view of accumulated Anthropic usage.
+ *
+ * Anthropic reports the three input buckets directly and they do not overlap,
+ * so total input is their sum and cache-miss is the plain `input_tokens` field.
+ * Extracted so the mid-stream failure path and the clean path build it
+ * identically — two spellings of the same mapping would be a bug waiting to
+ * diverge.
+ */
+function ledgerUsageFromAnthropic(usage: NormalizedUsage): LedgerUsage {
+  return buildUsage({
+    cacheHitInput: usage.cachedInputTokens,
+    cacheMissInput: usage.inputTokens,
+    cacheWriteInput: usage.cacheWriteTokens,
+    totalInput: usage.inputTokens + usage.cachedInputTokens + usage.cacheWriteTokens,
+    outputTokens: usage.outputTokens,
+    // Anthropic does not break out reasoning tokens separately.
+    reasoningTokens: null,
+  });
 }
 
 // ---------------------------------------------------------------------------

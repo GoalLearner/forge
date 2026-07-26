@@ -135,6 +135,13 @@ export class OpenAIProvider implements Provider {
         }
       }
     } catch (err) {
+      // Usage the provider already sent is real and must survive the failure.
+      // Yielding it here rather than swallowing it is what lets a run that died
+      // mid-stream report "at least this much" instead of nothing. The consumer
+      // pulls this event, then the next pull rethrows — so the error is not
+      // suppressed, and because the success path below is unreachable once we
+      // throw, the same usage can never be emitted twice.
+      if (rawUsage) yield { type: 'usage', usage, detail: ledgerUsageFromOpenAI(rawUsage) };
       if (err instanceof AbortedError || req.signal.aborted) throw new AbortedError();
       if (err instanceof ProviderError) throw err;
       throw classifyHttpError(err, this.name);
