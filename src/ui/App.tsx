@@ -21,6 +21,8 @@ import TextInput from 'ink-text-input';
 import { Conversation } from '../agent/messages.ts';
 import { runTurn, type LoopEvent } from '../agent/loop.ts';
 import { RunLedger, RetryBudget } from '../session/ledger.ts';
+import { MutationState } from '../agent/verification.ts';
+import { MAX_VERIFICATION_REPAIRS } from '../agent/verification.ts';
 import { describeTermination, RunCancelledError } from '../agent/run.ts';
 import { assessContext } from '../agent/truncate.ts';
 import type { ProviderRegistry, ResolvedModel } from '../providers/registry.ts';
@@ -190,6 +192,9 @@ export function App(props: AppProps): React.ReactElement {
         `run_tui_${Date.now().toString(36)}_${nextRunSeq.current++}`,
         new RetryBudget(props.config.limits.maxRetries),
       );
+      // Same scope as the ledger: one per submitted prompt, so a repair
+      // allowance can never be inherited by the next thing the user types.
+      const mutations = new MutationState(MAX_VERIFICATION_REPAIRS);
 
       try {
         for await (const event of runTurn({
@@ -200,6 +205,7 @@ export function App(props: AppProps): React.ReactElement {
           config: props.config,
           signal: controller.signal,
           ledger,
+          mutations,
           confirm,
         })) {
           applyEvent(event);
@@ -229,7 +235,8 @@ export function App(props: AppProps): React.ReactElement {
           props.store.touch(props.sessionId, model.key);
           // Finalize first: it freezes the record, so whatever is written is
           // the same total the run would report if asked again.
-          props.store.saveRunLedger(props.sessionId, ledger.finalize());
+          mutations.finalize();
+          props.store.saveRunLedger(props.sessionId, ledger.finalize(), mutations.summary());
         } catch {
           /* ignore */
         }

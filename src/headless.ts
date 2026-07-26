@@ -22,6 +22,8 @@
 import { runTurn } from './agent/loop.ts';
 import { describeTermination, RunCancelledError } from './agent/run.ts';
 import { RetryBudget, RunLedger, formatLedgerCost, type TokenCount } from './session/ledger.ts';
+import { MutationState, describeVerification, MAX_VERIFICATION_REPAIRS } from './agent/verification.ts';
+
 import type { Conversation } from './agent/messages.ts';
 import type { ResolvedModel } from './providers/registry.ts';
 import type { Config } from './config/schema.ts';
@@ -62,6 +64,7 @@ export async function runHeadless(opts: HeadlessOptions): Promise<number> {
 
   // One ledger per submitted prompt, with the shared retry allowance.
   const ledger = new RunLedger(`run_headless_${Date.now().toString(36)}`, new RetryBudget(opts.config.limits.maxRetries));
+  const mutations = new MutationState(MAX_VERIFICATION_REPAIRS);
 
   let totals = { ...EMPTY_TOTALS };
   let sawError = false;
@@ -82,6 +85,7 @@ export async function runHeadless(opts: HeadlessOptions): Promise<number> {
       config: opts.config,
       signal: controller.signal,
       ledger,
+      mutations,
       confirm: async (request): Promise<PermissionDecision> => {
         log(
           `! Auto-denied "${request.title}: ${request.detail}" — nothing can answer a prompt in non-interactive mode.`,
@@ -165,8 +169,26 @@ export async function runHeadless(opts: HeadlessOptions): Promise<number> {
   // run. Whether it is PRINTED is a display choice; whether it is RECORDED is
   // not.
   const s = ledger.finalize();
+  mutations.finalize();
+  const verification = mutations.summary();
+
+  // Printed unconditionally, unlike cost: whether the change was verified is a
+  // correctness fact, not a display preference.
+  if (verification.status !== 'not_required') {
+    log(`  ${describeVerification(verification)}`);
+    for (const c of verification.checks) {
+      log(`    ${c.result === 'passed' ? 'ok  ' : 'FAIL'} ${c.name} — ${c.command} (exit ${c.exitCode ?? 'none'})`);
+    }
+    if (verification.repairsUsed > 0) {
+      log(`    repair rounds used: ${verification.repairsUsed}/${verification.repairAllowance}`);
+    }
+    if (verification.changedPaths.length > 0) {
+      log(`    files changed: ${verification.changedPaths.join(', ')}`);
+    }
+  }
+
   try {
-    opts.store.saveRunLedger(opts.sessionId, s);
+    opts.store.saveRunLedger(opts.sessionId, s, verification);
   } catch {
     // Best-effort, same as the transcript save above: a closed database during
     // shutdown must not turn into an unhandled rejection.

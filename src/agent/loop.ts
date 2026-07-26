@@ -44,6 +44,14 @@ import {
   type AgentTerminationReason,
   type TerminalState,
 } from './run.ts';
+import {
+  MAX_VERIFICATION_REPAIRS,
+  MutationState,
+  buildVerificationPlan,
+  buildRepairMessage,
+  executeVerification,
+  describeVerification,
+} from './verification.ts';
 import { parseToolArguments } from './json-repair.ts';
 import { assessContext, trimTranscript, truncateToolOutput } from './truncate.ts';
 import { withRetry, RetryLimitExceededError } from '../providers/retry.ts';
@@ -133,6 +141,13 @@ export interface RunTurnOptions {
    * there is exactly one ledger — and one shared retry budget — per run.
    */
   ledger?: RunLedger;
+  /**
+   * This prompt's mutation/verification state. The desktop passes the run's own
+   * object so the verification verdict survives into persistence; the CLI paths
+   * let the loop create one. Either way there is exactly one per submitted
+   * prompt, so a repair allowance can never be inherited by a later run.
+   */
+  mutations?: MutationState;
 }
 
 /**
@@ -161,6 +176,7 @@ export async function* runTurn(opts: RunTurnOptions): AsyncGenerator<LoopEvent, 
   const ledger =
     opts.ledger ?? new RunLedger('run_local', new RetryBudget(config.limits.maxRetries));
   const pricing = snapshotPricing(model.key, model.entry);
+  const mutations = opts.mutations ?? new MutationState(MAX_VERIFICATION_REPAIRS);
 
   /**
    * The attempt currently in flight, or null when none is.
@@ -588,6 +604,42 @@ export async function* runTurn(opts: RunTurnOptions): AsyncGenerator<LoopEvent, 
         }
         // The verification step: a stop reason is not automatically a success.
         const termination = terminationForStopReason(stopReason, stopExplicit, stopRaw);
+
+        // ---- Post-edit verification gate --------------------------------
+        //
+        // A clean model stop is a claim, not a result. If this run actually
+        // changed project files and that exact tree has not passed the
+        // project's own checks, the claim is unproven and the run must not
+        // settle as `completed` yet. Benchmark N7 ended here as an ordinary
+        // success while `tsc --noEmit` was broken; this is the gate that stops
+        // it. Only a would-be success is gated — a failure or a cancellation
+        // already has a truthful reason and is left alone.
+        if (termination.kind === 'completed' && mutations.needsVerification()) {
+          const verdict = yield* verifyAndMaybeRepair(mutations, opts, config, signal, step);
+          if (verdict === 'retry') continue; // repair turn queued; next step is a real request
+          if (verdict === 'cancelled') {
+            yield abortEvent(step + 1);
+            return;
+          }
+          if (verdict === 'failed') {
+            const failed = (mutations.lastOutcome?.checks ?? [])
+              .filter((c) => c.required && c.result !== 'passed')
+              .map((c) => c.name);
+            yield {
+              type: 'done',
+              stopReason,
+              steps: step + 1,
+              outcome: 'failed',
+              termination: {
+                kind: 'verification_failed',
+                failed,
+                repairsUsed: mutations.repairsUsed,
+              },
+            };
+            return;
+          }
+        }
+
         yield {
           type: 'done',
           stopReason,
@@ -811,6 +863,11 @@ export async function* runTurn(opts: RunTurnOptions): AsyncGenerator<LoopEvent, 
           result: executed.result,
           durationMs: executed.durationMs,
         };
+        // Mutation is recorded from what the tool DID, never from what the
+        // model said it did. A write that came back an error changed nothing
+        // and must not arm verification; a write that came back clean did, and
+        // invalidates any earlier pass.
+        noteMutation(mutations, call.name, call.input, executed.result);
         results.push(toResultBlock(call.id, executed.result, config.limits.maxToolOutputBytes));
         if (executed.outcome === 'timeout' && !timedOutCall) {
           timedOutCall = { name: call.name, timeoutMs };
@@ -1145,4 +1202,118 @@ function commitAssistantTurn(
 function formatProviderError(err: ProviderError): string {
   const status = err.opts.status ? ` (HTTP ${err.opts.status})` : '';
   return `${err.opts.provider}${status}: ${err.message}`;
+}
+
+
+// ---------------------------------------------------------------------------
+// Post-edit verification
+// ---------------------------------------------------------------------------
+
+/** Tools whose success is direct evidence that a project file changed. */
+const FILE_MUTATING_TOOLS = new Set(['write_file', 'edit_file', 'multi_edit']);
+
+/**
+ * Record a mutation when a tool actually made one.
+ *
+ * Deliberately narrow. `todo_write` is `readOnly: false` but only touches an
+ * in-memory list, and `run_shell` may or may not have written anything — arming
+ * verification off either would demand project checks from runs that changed
+ * nothing, which is exactly the false signal this feature must not add. Shell
+ * writes are a known v1 gap, documented rather than guessed at.
+ */
+export function noteMutation(
+  mutations: MutationState,
+  name: string,
+  input: Record<string, unknown>,
+  result: ToolResult,
+): void {
+  if (!FILE_MUTATING_TOOLS.has(name)) return;
+  if (result.isError) return; // a failed write changed nothing
+  const path = typeof input.path === 'string' ? input.path : undefined;
+  mutations.recordMutation(path);
+}
+
+type VerificationVerdict = 'passed' | 'failed' | 'retry' | 'cancelled' | 'unavailable';
+
+/**
+ * Run the project's checks and decide what happens to the run.
+ *
+ * Returns `retry` when a repair turn has been queued — the caller continues the
+ * step loop, so the repair is an ordinary logical request that shares the run's
+ * ledger, retry ceiling, step cap and runtime budget. Nothing here bypasses
+ * those.
+ */
+export async function* verifyAndMaybeRepair(
+  mutations: MutationState,
+  opts: RunTurnOptions,
+  config: Config,
+  signal: AbortSignal,
+  step: number,
+): AsyncGenerator<LoopEvent, VerificationVerdict, undefined> {
+  mutations.beginVerification();
+  yield { type: 'notice', level: 'info', message: 'Verifying the changes…' };
+
+  const plan = buildVerificationPlan(opts.toolContext.cwd, {
+    timeoutMs: config.limits.toolTimeoutMs,
+  });
+
+  // Nothing runnable. The change is real but unproven, and saying so is the
+  // whole point — this must never read as a pass.
+  if (plan.checks.filter((c) => c.required).length === 0) {
+    mutations.recordVerification({
+      status: 'unavailable',
+      checks: [],
+      generation: mutations.generation,
+    });
+    const why = plan.unavailableReasons.join('; ') || 'no project checks were found';
+    yield {
+      type: 'notice',
+      level: 'warn',
+      message: `Files changed but could not be automatically verified — ${why}.`,
+    };
+    return 'unavailable';
+  }
+
+  const outcome = await executeVerification(plan, mutations.generation, { signal });
+  mutations.recordVerification(outcome);
+
+  if (outcome.status === 'cancelled' || signal.aborted) return 'cancelled';
+
+  if (outcome.status === 'unavailable') {
+    const bad = outcome.checks.find((c) => c.result === 'unavailable');
+    yield {
+      type: 'notice',
+      level: 'warn',
+      message: `Files changed but could not be automatically verified — ${bad?.name ?? 'a check'} could not run${bad?.reason ? `: ${bad.reason}` : ''}.`,
+    };
+    return 'unavailable';
+  }
+
+  if (outcome.status === 'passed') {
+    yield { type: 'notice', level: 'info', message: describeVerification(mutations.summary()) };
+    return 'passed';
+  }
+
+  // Failed. Spend a repair round if one is left; otherwise stop honestly.
+  if (!mutations.canRepair()) {
+    yield {
+      type: 'notice',
+      level: 'warn',
+      message: `${describeVerification(mutations.summary())} No repair attempts remain.`,
+    };
+    return 'failed';
+  }
+
+  const extra = mutations.pathsAddedSinceRepair();
+  mutations.consumeRepair();
+  yield {
+    type: 'notice',
+    level: 'warn',
+    message: `${describeVerification(mutations.summary())} Asking the model to repair (attempt ${mutations.repairsUsed} of ${mutations.maxRepairs}).`,
+  };
+  // Appended at the END of the transcript: every earlier message keeps its
+  // exact bytes, so the cached prefix is untouched.
+  opts.conversation.addUserText(buildRepairMessage(outcome, mutations, extra));
+  void step;
+  return 'retry';
 }

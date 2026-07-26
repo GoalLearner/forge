@@ -11,6 +11,7 @@
 
 import { randomUUID } from 'node:crypto';
 import type { RunLedgerSummary } from './ledger.ts';
+import type { VerificationSummary } from '../agent/verification.ts';
 import { openDatabase } from './db.ts';
 import { addUsage, EMPTY_TOTALS, type UsageTotals } from './cost.ts';
 import type { ModelEntry } from '../config/schema.ts';
@@ -318,7 +319,15 @@ export class SessionStore {
    * partially-accounted prompt. Keyed by run id with INSERT OR REPLACE, which
    * makes a double-finalize idempotent rather than double-counting the session.
    */
-  saveRunLedger(sessionId: string, summary: RunLedgerSummary): void {
+  saveRunLedger(
+    sessionId: string,
+    summary: RunLedgerSummary,
+    verification?: VerificationSummary,
+  ): void {
+    // Merged into the stored JSON rather than given its own column: the row is
+    // already a serialized summary, so this needs no migration and old rows
+    // simply have no verification key — which reads as unknown, never "passed".
+    const payload = verification ? { ...summary, verification } : summary;
     this.db
       .prepare(
         `INSERT OR REPLACE INTO run_ledgers
@@ -336,7 +345,7 @@ export class SessionStore {
         summary.retriesUsed,
         summary.cost.state,
         summary.cost.nanos,
-        JSON.stringify(summary),
+        JSON.stringify(payload),
       );
   }
 

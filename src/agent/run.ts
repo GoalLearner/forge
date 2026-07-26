@@ -34,6 +34,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { RetryBudget, RunLedger } from '../session/ledger.ts';
+import { MutationState, MAX_VERIFICATION_REPAIRS } from './verification.ts';
 
 // ---------------------------------------------------------------------------
 // States
@@ -110,6 +111,17 @@ export type AgentTerminationReason =
   /** The provider gave a terminal reason we do not recognize. `raw` is theirs. */
   | { kind: 'unknown_stop'; raw?: string }
   | { kind: 'provider_error'; message: string; hint?: string }
+  /**
+   * The model finished, but the project's own checks did not pass on the tree it
+   * left behind, and the repair allowance is spent.
+   *
+   * Distinct from `max_steps` on purpose. Benchmark N7 ended as an ordinary
+   * success with a broken typecheck, and N8 only stopped because it ran out of
+   * steps — in both cases the user had no signal that the WORK was wrong rather
+   * than merely unfinished. This reason says exactly that, and carries the
+   * failing check names so the message can name them.
+   */
+  | { kind: 'verification_failed'; failed: string[]; repairsUsed: number }
   | { kind: 'cancelled'; by: 'user' | 'superseded' | 'shutdown' }
   | { kind: 'setup_error'; message: string };
 
@@ -159,6 +171,8 @@ export function describeTermination(reason: AgentTerminationReason): string {
         : 'The model stopped for an unrecognized reason.';
     case 'provider_error':
       return reason.message;
+    case 'verification_failed':
+      return `The edits were made, but ${reason.failed.join(', ')} still ${reason.failed.length === 1 ? 'fails' : 'fail'} after ${reason.repairsUsed} repair attempt${reason.repairsUsed === 1 ? '' : 's'}. The files are left in place for you to inspect.`;
     case 'cancelled':
       return reason.by === 'user'
         ? 'Interrupted.'
@@ -431,6 +445,12 @@ export class AgentRun {
    * so a superseded run's ledger finalizes with the run that owns it.
    */
   readonly ledger: RunLedger;
+  /**
+   * This run's mutation and verification record. Owned here for the same reason
+   * as the ledger: a run superseded mid-flight must still be able to report what
+   * it changed and whether that state was ever verified.
+   */
+  readonly mutations: MutationState;
 
   constructor(opts: AgentRunOptions) {
     this.id = newRunId();
@@ -441,6 +461,7 @@ export class AgentRun {
     this.startedAt = this.now();
     this.budget = new RuntimeBudget(opts.limits.maxRuntimeMs, this.now);
     this.ledger = new RunLedger(this.id, new RetryBudget(opts.limits.maxRetriesPerRun));
+    this.mutations = new MutationState(MAX_VERIFICATION_REPAIRS);
   }
 
   get finished(): boolean {

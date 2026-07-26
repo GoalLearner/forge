@@ -408,6 +408,7 @@ class DesktopSession {
         budget: run.budget,
         // One ledger per submitted prompt (Step 4B).
         ledger: run.ledger,
+        mutations: run.mutations,
       })) {
         // Keep the run's state in step with what the loop is doing, so the
         // terminal reason below is never guessed.
@@ -437,6 +438,8 @@ class DesktopSession {
       // still record what it spent, and a finalized ledger cannot be mutated
       // by any late event.
       const ledgerSummary = run.ledger.finalize();
+      run.mutations.finalize();
+      const verificationSummary = run.mutations.summary();
       this.activeRun = null;
       // Persistence happens INSIDE the tracked lifecycle on purpose: supersede()
       // awaits this promise, so a replacement session cannot load the transcript
@@ -449,7 +452,7 @@ class DesktopSession {
           // Only finalized summaries are persisted, so a row never describes a
           // partially-accounted prompt.
           if (ledgerSummary.providerAttempts > 0) {
-            this.store.saveRunLedger(this.sessionId, ledgerSummary);
+            this.store.saveRunLedger(this.sessionId, ledgerSummary, verificationSummary);
           }
         }
       } catch {
