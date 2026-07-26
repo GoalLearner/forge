@@ -543,7 +543,7 @@ export interface RunLedgerSummary {
   modelKey: string | null;
   logicalRequests: number;
   providerAttempts: number;
-  retriesUsed: number;
+  retriesUsed: string;
   retryLimit: number;
   cacheHitInput: TokenCount;
   cacheMissInput: TokenCount;
@@ -700,7 +700,7 @@ function sumTokens(
 export function aggregateSession(runs: readonly RunLedgerSummary[]): {
   runs: number;
   providerAttempts: number;
-  retriesUsed: number;
+  retriesUsed: string;
   cost: CostResult;
 } {
   const seen = new Set<string>();
