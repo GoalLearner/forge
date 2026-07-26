@@ -1,0 +1,11 @@
+● grep grep "cost.confidence|CostConfidence|cost_confidence"
+● grep grep "provable.zero|provably.zero"
+● glob glob **/*.ts
+● read_file read src/session/cost.ts
+● read_file read src/agent/accounting-contract.test.ts
+● read_file read src/agent/loop.ts
+● read_file read src/session/ledger.ts
+deepseek/deepseek-v4-pro  $0.0155  4 request(s)  cache 49%
+  4 model request(s), 4 provider attempt(s), 0/4 retries used
+  cache-hit 29,440 · cache-miss 30,663 · output 2,376 · reasoning 876
+  $0.0155 estimated

@@ -1,0 +1,21 @@
+diff --git a/backend/src/lib/responses.ts b/backend/src/lib/responses.ts
+index 53efb41..0c61e95 100644
+--- a/backend/src/lib/responses.ts
++++ b/backend/src/lib/responses.ts
+@@ -30,3 +30,16 @@ export function jsonError(
+   }
+   return Response.json(body, { status });
+ }
++
++/**
++ * Returns a 429 Too Many Requests JSON error response with a
++ * Retry-After: 60 header.  The optional detail string lets callers
++ * supply a human-readable message; otherwise a generic default is used.
++ */
++export function jsonRateLimited(detail = "Too many requests. Please retry after 60 seconds."): Response {
++  const body: Record<string, unknown> = { error: "RATE_LIMITED", detail };
++  return Response.json(body, {
++    status: 429,
++    headers: { "Retry-After": "60" },
++  });
++}

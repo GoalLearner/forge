@@ -89,4 +89,35 @@ Factual corrections after the freeze must be appended below with a reason and
 timestamp. No amendment may weaken acceptance criteria or add hints.
 
 ### Amendment log
-(none)
+
+**2026-07-26 ~10:20 PDT — task branch naming (factual correction, no criteria changed).**
+The plan specified per-task branches named `bench/dogfood-v1/<task-id>`. That is
+structurally impossible in git: the benchmark artifacts branch is already
+`bench/dogfood-v1`, and a ref cannot exist as both a file and a directory
+(`cannot lock ref 'refs/heads/bench/dogfood-v1/N1': 'refs/heads/bench/dogfood-v1'
+exists`). Per-task branches are therefore named `bench/dogfood-v1-<task-id>`.
+Reason: git ref constraint discovered on the first worktree creation. No
+acceptance criterion, prompt or validation command was altered, and this was
+fixed before any Forge task run produced a result.
+
+**2026-07-26 ~10:25 PDT — OPERATOR-CAUSED external side effect, disclosed.**
+While seeding the disclosed N3 defect, the evaluator (Claude Code) made the seed
+commit with a plain `git commit`. awakened-app's `.git/hooks/post-commit` hook
+auto-pushed the task branch, creating `bench/dogfood-v1-N3` on GitHub origin.
+`NO_AUTOPUSH=1` had been wired into the Forge invocation path only, not into the
+evaluator's own git commands — an operator harness defect, **not** a Forge
+behavior.
+
+Impact assessed and remediated immediately:
+- Canonical `main` was NOT affected: local and origin both remained at `ada9252`.
+- No production branch, deployment or user-visible artifact was touched.
+- The pushed branch was deleted (`git push origin --delete bench/dogfood-v1-N3`);
+  `git ls-remote` subsequently showed zero `bench/*` refs on origin.
+
+Handling decision: the Phase 10 stop conditions govern task outcomes produced by
+Forge. This was caused by the evaluator's harness, is fully reverted, and left the
+canonical repository byte-identical. The benchmark therefore CONTINUES, with the
+incident disclosed here and in the final integrity statement rather than hidden.
+Corrective control: every subsequent evaluator git write in awakened-app is
+prefixed with `NO_AUTOPUSH=1`, and origin refs are re-verified after each seeded
+task.

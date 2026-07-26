@@ -1,0 +1,11 @@
+Now I can see the problem. The commit `66915fc` changed `retriesUsed` from `number` to `string` in the type definitions, but the actual values are still numbers. Let me also check consumers of these types.Let me check a few key references to understand all consumers:The type error is clear: commit `66915fc` changed `retriesUsed` from `number` to `string` in two type definitions, but every producer and consumer treats it as a number. The fix is to revert those two annotations.Now let me verify the fix looks correct and the tests still pass:Good. Now let me run the typecheck and tests:Typecheck passes. Now let me run the tests:Both pass:
+
+- `npm run typecheck` — clean, no errors
+- `npm test` — all 339 tests pass, 0 failures
+
+**The fix:** The commit `66915fc` changed `retriesUsed` from `number` to `string` in two type annotations in `src/session/ledger.ts`:
+
+- Line 546: `RunLedgerSummary.retriesUsed`
+- Line 703: `aggregateSession` return type
+
+But everywhere else — the `RetryBudget.consumed` getter (returns `number`), the `.summary()` method (assigns `this.retryBudget.consumed`), numeric addition in `aggregateSession`, template literals, test assertions, and IPC serialization — treats it as a number. Reverting both `string` back to `number` resolved the type error without changing any runtime behavior.

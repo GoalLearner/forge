@@ -1,0 +1,2 @@
+ Test Files  6 failed | 26 passed (32)
+      Tests  486 passed (486)

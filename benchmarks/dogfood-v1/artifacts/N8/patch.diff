@@ -1,0 +1,22 @@
+diff --git a/backend/src/index.ts b/backend/src/index.ts
+index adb2829..0190304 100644
+--- a/backend/src/index.ts
++++ b/backend/src/index.ts
+@@ -37,6 +37,7 @@ import { handleUserStateGet, handleUserStatePost } from './handlers/user-state';
+ import { handleAppOpenPost } from './handlers/app-open';
+ import { handleClientErrorsPost } from './handlers/client-errors';
+ import { handleAdminRetention } from './handlers/admin-retention';
++import { handleHealth } from './handlers/health';
+ import { handleUserAccoladesGet } from './handlers/accolades';
+ import { handleRevenueCatWebhook } from './handlers/iap-revenuecat-webhook';
+ import { handleEntitlementsGet } from './handlers/iap-entitlements';
+@@ -193,6 +194,9 @@ export default {
+         }
+       }
+       // ── Health check (uncached, no auth) ──
++      else if (path === '/v1/health' && method === 'GET') {
++        response = await handleHealth(request, env);
++      }
+       else if (path === '/health' && method === 'GET') {
+         response = Response.json({
+           status: 'ok',

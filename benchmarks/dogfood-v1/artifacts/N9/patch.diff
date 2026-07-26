@@ -1,0 +1,44 @@
+diff --git a/src/session/ledger.ts b/src/session/ledger.ts
+index 924878a..bdb03d8 100644
+--- a/src/session/ledger.ts
++++ b/src/session/ledger.ts
+@@ -68,24 +68,23 @@ export function nanosToUsd(nanos: Nanodollars): number {
+  * render as a number that looks settled.
+  */
+ export function formatLedgerCost(cost: CostResult): string {
+-  switch (cost.state) {
+-    case 'known':
+-    case 'estimated': {
+-      const suffix = cost.state === 'estimated' ? ' estimated' : '';
+-      return `${formatUsd(cost.nanos)}${suffix}`;
+-    }
+-    case 'incomplete':
+-      // A lower bound is still useful — it just must not claim to be the total.
+-      return cost.nanos > 0
+-        ? `At least ${formatUsd(cost.nanos)} — usage incomplete`
+-        : 'Usage unavailable';
+-    case 'unpriced':
+-      return cost.tokens > 0
+-        ? `Unpriced — ${cost.tokens.toLocaleString()} tokens`
+-        : 'Unpriced';
+-  }
++  return COST_FORMATTERS[cost.state](cost);
+ }
+ 
++const COST_FORMATTERS: Readonly<Record<CostState, (c: CostResult) => string>> = {
++  known: (c) => formatUsd(c.nanos),
++  estimated: (c) => `${formatUsd(c.nanos)} estimated`,
++  incomplete: (c) =>
++    // A lower bound is still useful — it just must not claim to be the total.
++    c.nanos > 0
++      ? `At least ${formatUsd(c.nanos)} — usage incomplete`
++      : 'Usage unavailable',
++  unpriced: (c) =>
++    c.tokens > 0
++      ? `Unpriced — ${c.tokens.toLocaleString()} tokens`
++      : 'Unpriced',
++};
++
+ /** Bare monetary formatting. Sub-cent amounts keep enough digits to be useful. */
+ export function formatUsd(nanos: Nanodollars): string {
+   const usd = nanosToUsd(nanos);

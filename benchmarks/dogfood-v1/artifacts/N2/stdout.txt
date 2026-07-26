@@ -1,0 +1,51 @@
+Now let me find the specific client rendering function for the co-op battle screen and how per-hunter flights are rendered:Now let me verify the exact backend condition by re-reading lines 473–486:Let me find the handler name that returns this response to the client:Here is the complete trace.
+
+---
+
+## Backend
+
+**File:** `backend/src/handlers/coop-boss.ts`
+
+**Function:** `serializeCoop` (line 416), called by `handleCoopBossGet` (GET `/v1/coop-boss/:id`), `handleCoopBossList` (GET `/v1/coop-boss`), `handleCoopBossCreate`, and others.
+
+**Exact condition for per-participant flights inclusion** — line 483:
+
+```ts
+...(isBoth ? { flights: p.flights.get(uid) || 0 } : {}),
+```
+
+The `isBoth` variable is set at line 447:
+
+```ts
+const isBoth = metric === 'both';
+```
+
+where `metric` comes from the boss config via `bossMetric(row.boss_id)`. Only bosses whose `COOP_BOSS_CFG` entry has `metric: 'both'` trigger inclusion. These are the dual-condition bosses:
+
+| Boss ID | Lines |
+|---|---|
+| `the_gaunt_wardens` | line 130 — C-rank, 10k steps + 6 flights |
+| `the_sundered_choir` | line 131 — B-rank, 12k steps + 10 flights |
+| `the_grinning_god` | line 150 — S-rank, 150k steps + 75 flights |
+
+Per-participant flights are spread into **four** places in the serialized response:
+- `party[]` (line 483) — the roster array
+- `challenger` (line 498) — legacy single field
+- `partner` (line 505) — legacy single field
+- `partner2` (line 516) — legacy third-seat field (for trios+)
+
+---
+
+## Frontend
+
+**File:** `app.js`
+
+**Rendering function:** `_coopActiveHtml` (line 49626). Two rendering sites within it:
+
+1. **Per-hunter flight segments in the secondary progress rail** (lines 49661–49677) — the comment says *"W783 — PER-HUNTER flight segments"*. This builds a stacked bar where each hunter's flights contribution (`h.raw.flights`) gets a colored segment proportional to the goal, using the same `chd-cN` color classes as the steps rail so one hunter keeps one color across both bars.
+
+2. **Per-hunter flight count in the party card row** (line 49706) — inside the party roster rows:
+   ```js
+   (_coopIsBoth(inst) ? '<div class="chd-sub">' + _N((h.raw && h.raw.flights) || 0) + ' flights</div>' : '')
+   ```
+   This renders each hunter's individual flight count as a subtitle beneath their primary stat in the party member list.

@@ -1,0 +1,13 @@
+diff --git a/backend/src/lib/founder-mark.ts b/backend/src/lib/founder-mark.ts
+index 2a088af..adfec73 100644
+--- a/backend/src/lib/founder-mark.ts
++++ b/backend/src/lib/founder-mark.ts
+@@ -48,7 +48,7 @@ export async function isFounderMarkEligible(env: Env, userId: string): Promise<b
+   )
+     .bind(userId)
+     .first<{ bosses_slain_total: number | null }>();
+-  if (!(row && Number(row.bosses_slain_total ?? 0) > FOUNDER_KILL_THRESHOLD)) return false;
++  if (!(row && Number(row.bosses_slain_total ?? 0) >= FOUNDER_KILL_THRESHOLD)) return false;
+ 
+   // W739 — account age (created_at is server-set at signup; never client-influenced).
+   const acct = await env.DB.prepare('SELECT created_at FROM users WHERE id = ? LIMIT 1')

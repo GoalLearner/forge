@@ -1,0 +1,17 @@
+Let me read a few neighboring tests to absorb the exact mocking style.Now I have a clear picture of the handler and the mocking conventions. Let me write the test file.All 9 tests pass.**`backend/src/handlers/account-delete.test.ts`** — 9 tests, all passing.
+
+Coverage of the handler's real behavior:
+
+| Test | What it checks |
+|---|---|
+| `returns 429 when rate-limited` | `RL_ACCOUNT_DELETE.limit` returning `{ success: false }` gates the handler before any DB call |
+| `runs the core DELETE FROM users` | The `DELETE FROM users WHERE id = ?` fires for the correct userId and returns `{ deleted: true }` |
+| `attempts every best-effort per-table purge` | All 19 best-effort statements across 11 tables are issued |
+| `also purges user_state_snapshots (manual cascade)` | `deleteUserStateSnapshot` is called with the correct userId |
+| `a best-effort purge failure does NOT prevent the core deletion` | `skin_entitlements` (first best-effort) throws → handler still reaches `DELETE FROM users` and returns 200 |
+| `a mid-chain best-effort failure does NOT prevent the core deletion` | `device_tokens` (middle of chain) throws → core delete still runs |
+| `multiple best-effort failures do NOT prevent the core deletion` | Three tables throw → core delete still runs |
+| `the core users DELETE runs AFTER all best-effort purges` | `DELETE FROM users` is the last statement in the call order |
+| `deletes for the correct userId across all statements` | Every parameterized call binds the target `userId` |
+
+The mocking style matches the neighboring tests: `makeDb` returns a `prepare → bind → { run, all, first }` chain cast to `D1Database`, with an optional `failTables` set to simulate D1 errors on specific tables; `makeEnv` assembles the `Env` with the DB mock and a rate-limiter stub.

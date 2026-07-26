@@ -1,0 +1,26 @@
+Both the implementation and tests are already in place. Let me verify the tests pass.All 10 tests pass. Here's the summary:
+
+**`backend/src/lib/responses.ts`** — `jsonRateLimited` already added (lines 39–45):
+- Returns status 429 with `{ error: "RATE_LIMITED", detail }` body
+- Sets `Retry-After: 60` header
+- Default detail: `"Too many requests. Please retry after 60 seconds."`
+- Accepts optional custom detail string
+
+**`backend/src/lib/responses.test.ts`** — tests already written (7 tests for `jsonRateLimited`):
+- Status 429
+- `RATE_LIMITED` error code in body
+- Default detail when none supplied
+- Custom detail override
+- `Retry-After: 60` header present both with default and custom detail
+- Plus 3 coverage tests for `jsonOk` and `jsonError` (preexisting helpers, unchanged)
+
+No handler wiring — the function is exported and ready for consumption.
+`jsonError` are untouched
+
+**`backend/src/lib/responses.test.ts`** — 10 tests covering `jsonOk`, `jsonError`, and `jsonRateLimited`:
+- Status 429 asserted
+- `error: "RATE_LIMITED"` in the JSON body
+- Default and custom detail strings
+- `Retry-After: 60` header present in both default and custom-detail cases
+
+All 10 tests pass. Not wired into any handler.

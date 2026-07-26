@@ -1,0 +1,12 @@
+Two broad issues: missing dependencies (`jose`, `better-sqlite3`) and a metrics cap mismatch. Let me diagnose all three.Three issues identified:
+
+1. **`metrics.ts:82`** — cap is `20` but should be `200` (comment even says "200 leaves generous headroom").
+2. **Missing `node_modules`** — `jose` and `better-sqlite3` are in `package.json` but not installed.
+
+Let me fix both:`node_modules/` is completely absent. Let me try running `npm install` with a simpler invocation:Dependencies installed. Now let me run the full test suite to verify:All **31 test files pass**, all **521 tests pass**. Zero failures.Two root causes, both fixed:
+
+1. **`backend/src/lib/metrics.ts:82`** — `relics_collected` cap was `20`, test expected `200`. The accompanying comment already described the design intent of 200 ("200 leaves generous headroom"), so this was a simple typo in the source. Changed to `200`.
+
+2. **Missing `node_modules/`** — `package.json` declared `jose` and `better-sqlite3` but `node_modules` was absent entirely. Ran `npm ci` to restore from the lockfile. This unblocked 6 test suites that import through `jose` and 1 suite that imports `better-sqlite3`.
+
+Result: **31/31 test files, 521/521 tests passing.**

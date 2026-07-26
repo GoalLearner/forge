@@ -1,0 +1,22 @@
+diff --git a/src/session/ledger.ts b/src/session/ledger.ts
+index fc05dee..924878a 100644
+--- a/src/session/ledger.ts
++++ b/src/session/ledger.ts
+@@ -543,7 +543,7 @@ export interface RunLedgerSummary {
+   modelKey: string | null;
+   logicalRequests: number;
+   providerAttempts: number;
+-  retriesUsed: string;
++  retriesUsed: number;
+   retryLimit: number;
+   cacheHitInput: TokenCount;
+   cacheMissInput: TokenCount;
+@@ -700,7 +700,7 @@ function sumTokens(
+ export function aggregateSession(runs: readonly RunLedgerSummary[]): {
+   runs: number;
+   providerAttempts: number;
+-  retriesUsed: string;
++  retriesUsed: number;
+   cost: CostResult;
+ } {
+   const seen = new Set<string>();

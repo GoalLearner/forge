@@ -1,0 +1,29 @@
+Two issues: missing dependencies (`jose`, `better-sqlite3`) and 2 failing founder-mark tests. Let me diagnose both.Found two issues. The founder-mark bug is a simple off-by-one in the code — I can fix that directly. For the missing packages, I need you to run `npm install` in `backend/`.
+
+Let me fix the code bug first:Here's the diagnosis:
+
+## Two defects found
+
+### 1. Founder-mark off-by-one (fixed)
+
+**`backend/src/lib/founder-mark.ts:51`** — The eligibility check used `>` instead of `>=`:
+
+```
+// Before (broken):
+if (!(row && Number(row.bosses_slain_total ?? 0) > FOUNDER_KILL_THRESHOLD)) return false;
+
+// After (fixed):
+if (!(row && Number(row.bosses_slain_total ?? 0) >= FOUNDER_KILL_THRESHOLD)) return false;
+```
+
+`FOUNDER_KILL_THRESHOLD = 50`, so exactly-50-kills users were being rejected. The comment on line 42 even says `>= 50` but the code used `>`. This caused both "50 kills → eligible" tests to fail.
+
+### 2. Missing `node_modules` — needs `npm install`
+
+The `backend/node_modules/` directory is empty (no `jose`, no `better-sqlite3`). This causes 6 test suites to fail during import resolution. I can't run shell commands in this environment — please run:
+
+```
+cd backend && npm install
+```
+
+Then `npx vitest run` should pass all 477 tests with the founder-mark fix already applied.

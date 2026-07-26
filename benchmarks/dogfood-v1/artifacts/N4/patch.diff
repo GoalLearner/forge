@@ -1,0 +1,13 @@
+diff --git a/backend/src/lib/metrics.ts b/backend/src/lib/metrics.ts
+index 86f082b..c52a0aa 100644
+--- a/backend/src/lib/metrics.ts
++++ b/backend/src/lib/metrics.ts
+@@ -79,7 +79,7 @@ export const METRIC_CAPS: Readonly<Record<Metric, number>> = {
+    * relics today (95-card catalog, commons + orphans excluded) and the
+    * catalog only grows a few per release — 200 leaves generous headroom
+    * while catching garbage (counts as milliseconds, etc.). W622. */
+-  relics_collected: 20,
++  relics_collected: 200,
+ };
+ 
+ export function isValidMetric(value: unknown): value is Metric {

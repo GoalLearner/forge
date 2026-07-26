@@ -1,0 +1,77 @@
+Here is the full cost-confidence contract, drawn from three files: `src/session/ledger.ts`, `src/session/cost.ts`, and `src/agent/accounting-contract.test.ts`.
+
+---
+
+## The four cost states
+
+Defined at `src/session/ledger.ts:326`:
+
+```ts
+export type CostState = 'known' | 'estimated' | 'incomplete' | 'unpriced';
+```
+
+### 1. `known`
+The provider itself quoted a dollar figure. **This state is defined but currently unreachable from any real provider** — no supported provider returns a cost in its response. The only path that produces it is a pre-dispatch failure: `NO_BILLABLE_USAGE`, which carries `provenNoDispatch: true` (`ledger.ts:351`). In that case the cost is a true, provable zero.
+
+### 2. `estimated`
+Forge multiplied locally-configured rates from `models.json` against the token counts. This is what **every** successful or partially-successful dispatched attempt produces. It means "we did the arithmetic; the token counts may be exact, but the dollars came from a local price table that can drift." (`ledger.ts:365-377`)
+
+### 3. `incomplete`
+Something billable is unaccounted for. Returned when `usage.complete` is false — meaning the provider did not report every required field (`cacheHitInput`, `cacheMissInput`, `outputTokens`). The `nanos` field is a **lower bound**: "at least this much was spent, but more may have been billed after we stopped hearing from the provider." (`ledger.ts:353-357`)
+
+### 4. `unpriced`
+No `PricingSnapshot` is available (the model has no configured rate). Returns 0 nanos but carries the token count so the user sees something like "Unpriced — 1,200 tokens". (`ledger.ts:359`)
+
+---
+
+## Which state locally-calculated money must use: `estimated`
+
+Per `ledger.ts:365-377`:
+
+> Everything that survives to here is money FORGE calculated, from its own configured price table. That makes it an **estimate** no matter how precisely the token counts were reported.
+>
+> A previous revision promoted this to `known` when every count came back `reported`... But provenance of the token counts says nothing about the provenance of the DOLLARS: both dialects were multiplied by the same local `models.json` rates, so labelling one authoritative and the other an estimate distinguished two figures that are equally derived — and would present a stale price table as fact. `known` is reserved for a genuine provider-quoted amount, which no supported provider returns today.
+
+The test at `accounting-contract.test.ts:209-222` locks this in: even when DeepSeek reports every token count directly (no subtraction, no derivation), the state is still `estimated` because the dollars came from Forge's own price table. The test at line 252-273 makes it even more explicit:
+
+```ts
+test('no positive locally calculated cost can come back known', () => {
+  // ...
+  assert.notEqual(cost.state, 'known',
+    'the only known cost is one nobody had to calculate');
+  assert.equal(cost.state, 'estimated');
+});
+```
+
+---
+
+## The single provable zero
+
+**A failure that never left the process.** Cited in three places:
+
+1. `ledger.ts:348-351` — the `priceUsage` guard:
+   ```ts
+   // The only warrant for `known`: nothing was sent, so nothing can be owed.
+   if (usage.provenNoDispatch) return { state: 'known', nanos: 0, tokens: 0 };
+   ```
+
+2. `loop.ts:243-245` — the `finalizeAttempt` dispatch check:
+   ```ts
+   if (!st.dispatched) {
+     // Never left the process: the one provable zero.
+     usage = NO_BILLABLE_USAGE;
+   }
+   ```
+
+3. `accounting-contract.test.ts:354` — the test name itself:
+   ```ts
+   test('a failure that never left the process is the one provable zero', () => { ... });
+   ```
+
+`NO_BILLABLE_USAGE` (`ledger.ts:182-197`) is the concrete value: all token counts are `0`, `complete: true`, `provenNoDispatch: true`. The dispatch flag is *marked before the HTTP call is made* (`loop.ts:418-419`: `st.dispatched = true` sits before `model.provider.stream(...)`), so the only way to reach this state is a failure ahead of that boundary — for example, a validation rejection or a cancellation before the stream is opened.
+
+This is the single case because **once a request has left the process, Forge cannot observe whether the provider billed for it**. A 429, a 503, a reset socket, a mid-stream death — all of those are `UNKNOWN_USAGE`, which prices to `incomplete`, never `known` and never `$0.00`. The comment at `ledger.ts:164-181` explains:
+
+> ONLY that case: the request was rejected locally, or the outbound call was never invoked. Nothing was sent, so no inference could have run and no charge can exist — the single situation where zero is a fact rather than an absence.
+>
+> A dispatched attempt does NOT qualify, however it failed. A 429, a 5xx or a reset socket tells us the request left this process; what the provider did with it, and whether it billed, is not observable from here.

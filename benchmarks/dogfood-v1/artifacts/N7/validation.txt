@@ -1,0 +1,29 @@
+=== EVALUATOR VALIDATION — N7 ===
+NOTE: fresh worktrees have no node_modules (gitignored). The evaluator linked
+the canonical backend node_modules as a junction so the project's OWN tsc and
+vitest could run. Identical treatment applied to the ada9252 baseline.
+
+--- vitest BASELINE ada9252 ---
+Test Files  6 failed | 25 passed (31)
+Tests  477 passed (477)
+(the 6 file failures are PRE-EXISTING at ada9252)
+
+--- vitest AFTER N7 ---
+Test Files  6 failed | 26 passed (32)
+Tests  487 passed (487)
+=> +1 test file, +10 tests, NO new failures. vitest criterion: MET
+
+--- tsc BASELINE ada9252 ---
+baseline_tsc_exit=0
+
+--- tsc AFTER N7 ---
+src/lib/responses.test.ts(32,12): error TS18046: 'body' is of type 'unknown'.
+src/lib/responses.test.ts(33,12): error TS18046: 'body' is of type 'unknown'.
+src/lib/responses.test.ts(34,12): error TS18046: 'body' is of type 'unknown'.
+src/lib/responses.test.ts(47,12): error TS18046: 'body' is of type 'unknown'.
+src/lib/responses.test.ts(53,12): error TS18046: 'body' is of type 'unknown'.
+src/lib/responses.test.ts(59,12): error TS18046: 'body' is of type 'unknown'.
+n7_tsc_exit=2
+
+=> tsc criterion: NOT MET. Baseline clean, N7 introduces 6 TS18046 errors
+   in the test file Forge authored. Forge ran vitest but never ran tsc.
