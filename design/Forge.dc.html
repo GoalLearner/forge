@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0}
+.froot{--ui:'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif;--mono:'JetBrains Mono',Consolas,ui-monospace,monospace;--bg:#f4f5f7;--surface:#ffffff;--surface2:#eceef2;--border:#dde1e7;--border2:#c7cdd6;--text:#1d232c;--dim:#5a6472;--faint:#8b93a1;--accent:#2f6fed;--on-accent:#ffffff;--green:#188044;--red:#c62f39;--amber:#956609;--amber-bg:rgba(224,164,44,.13);--red-bg:rgba(198,47,57,.08);--add-bg:rgba(24,128,68,.10);--add-bg2:rgba(24,128,68,.22);--del-bg:rgba(198,47,57,.09);--del-bg2:rgba(198,47,57,.2);--sel:rgba(47,111,237,.10);--scrim:rgba(24,30,40,.32);--shadow:0 14px 44px rgba(18,26,38,.16),0 2px 8px rgba(18,26,38,.08);color-scheme:light}
+.froot[data-theme="dark"]{--bg:#16191f;--surface:#1c2027;--surface2:#242933;--border:#2c323d;--border2:#3a4250;--text:#d8dde5;--dim:#98a1b0;--faint:#69727f;--accent:#6b9aff;--on-accent:#0d1524;--green:#43b06b;--red:#e5636b;--amber:#d9a13f;--amber-bg:rgba(217,161,63,.14);--red-bg:rgba(229,99,107,.10);--add-bg:rgba(67,176,107,.13);--add-bg2:rgba(67,176,107,.26);--del-bg:rgba(229,99,107,.12);--del-bg2:rgba(229,99,107,.24);--sel:rgba(107,154,255,.14);--scrim:rgba(5,8,12,.55);--shadow:0 18px 52px rgba(0,0,0,.5),0 2px 10px rgba(0,0,0,.4);color-scheme:dark}
+@media (prefers-color-scheme: dark){.froot[data-theme="system"]{--bg:#16191f;--surface:#1c2027;--surface2:#242933;--border:#2c323d;--border2:#3a4250;--text:#d8dde5;--dim:#98a1b0;--faint:#69727f;--accent:#6b9aff;--on-accent:#0d1524;--green:#43b06b;--red:#e5636b;--amber:#d9a13f;--amber-bg:rgba(217,161,63,.14);--red-bg:rgba(229,99,107,.10);--add-bg:rgba(67,176,107,.13);--add-bg2:rgba(67,176,107,.26);--del-bg:rgba(229,99,107,.12);--del-bg2:rgba(229,99,107,.24);--sel:rgba(107,154,255,.14);--scrim:rgba(5,8,12,.55);--shadow:0 18px 52px rgba(0,0,0,.5),0 2px 10px rgba(0,0,0,.4);color-scheme:dark}}
+a{color:var(--accent)}a:hover{opacity:.85}
+button{font:inherit;color:inherit;background:none;border:none;padding:0;cursor:pointer;text-align:left}
+input,textarea,select{font:inherit;color:inherit;background:none;border:none;outline:none;padding:0}
+.froot ::placeholder{color:var(--faint);opacity:1}
+.froot :focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.froot ::selection{background:var(--sel)}
+.froot ::-webkit-scrollbar{width:10px;height:10px}
+.froot ::-webkit-scrollbar-thumb{background:var(--border2);border:3px solid transparent;border-radius:6px;background-clip:padding-box}
+.froot ::-webkit-scrollbar-track{background:transparent}
+@keyframes fpulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fblink{0%,55%{opacity:1}56%,100%{opacity:0}}
+@keyframes fspin{to{transform:rotate(360deg)}}
+@keyframes frise{from{opacity:0;transform:translateY(6px)}}
+@keyframes fslide{from{opacity:0;transform:translateX(14px)}}
+@keyframes ffade{from{opacity:0}}
+.froot .tkebab{opacity:0;transition:opacity .12s}
+.froot .trow:hover .tkebab{opacity:1}
+.froot .tkebab:focus-visible{opacity:1}
+</style>
+</helmet>
+<div class="froot" data-theme="{{ theme }}" style="position:relative;height:100vh;min-height:520px;min-width:720px;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font-family:var(--ui);font-size:13px;line-height:1.5;overflow:auto;-webkit-font-smoothing:antialiased">
+
+<sc-if value="{{ sFirst }}" hint-placeholder-val="{{ false }}">
+<div style="flex:1;overflow-y:auto;display:grid;place-items:center;padding:32px" data-screen-label="First run">
+  <div style="width:620px;max-width:100%;display:flex;flex-direction:column;gap:18px;animation:frise .25s ease">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">
+      <svg width="26" height="26" viewBox="0 0 16 16" style="color:var(--accent)"><rect x="4.9" y="4.9" width="6.2" height="6.2" rx="1.2" transform="rotate(45 8 8)" fill="currentColor"></rect></svg>
+      <div style="font-size:20px;font-weight:650;letter-spacing:-.01em">Welcome to Forge</div>
+      <div style="color:var(--dim);font-size:13px;max-width:46ch">A coding agent that runs on cheap models. Bring an API key, point it at a folder — a full working day should cost well under a dollar.</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+      <div style="padding:16px 18px">
+        <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:10px"><span style="width:18px;height:18px;border-radius:50%;border:1px solid var(--accent);color:var(--accent);display:grid;place-items:center;font-family:var(--mono);font-size:10px;font-weight:700;flex:none">1</span><span style="font-weight:650;font-size:13.5px">Choose a provider</span><span style="margin-left:auto;font-size:11px;color:var(--faint)">add more later in Settings</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button style="border:1px solid var(--accent);border-radius:8px;padding:9px 12px;background:var(--sel)"><span style="display:flex;align-items:center;gap:7px"><span style="font-weight:650;font-size:12.5px">DeepSeek</span><span style="font-size:9.5px;font-weight:700;letter-spacing:.05em;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 5px">RECOMMENDED</span><span style="margin-left:auto;width:14px;height:14px;border-radius:50%;border:4px solid var(--accent)"></span></span><span style="display:block;font-size:11.5px;color:var(--dim);margin-top:2px">cheapest overall, strong prompt caching</span></button>
+          <button style="border:1px solid var(--border);border-radius:8px;padding:9px 12px" style-hover="border-color:var(--border2)"><span style="display:flex;align-items:center;gap:7px"><span style="font-weight:650;font-size:12.5px">GLM</span><span style="margin-left:auto;width:14px;height:14px;border-radius:50%;border:1px solid var(--border2)"></span></span><span style="display:block;font-size:11.5px;color:var(--dim);margin-top:2px">fast, generous free tier</span></button>
+          <button style="border:1px solid var(--border);border-radius:8px;padding:9px 12px" style-hover="border-color:var(--border2)"><span style="display:flex;align-items:center;gap:7px"><span style="font-weight:650;font-size:12.5px">Kimi</span><span style="margin-left:auto;width:14px;height:14px;border-radius:50%;border:1px solid var(--border2)"></span></span><span style="display:block;font-size:11.5px;color:var(--dim);margin-top:2px">best long-context handling</span></button>
+          <button style="border:1px solid var(--border);border-radius:8px;padding:9px 12px" style-hover="border-color:var(--border2)"><span style="display:flex;align-items:center;gap:7px"><span style="font-weight:650;font-size:12.5px">Custom</span><span style="margin-left:auto;width:14px;height:14px;border-radius:50%;border:1px solid var(--border2)"></span></span><span style="display:block;font-size:11.5px;color:var(--dim);margin-top:2px">any OpenAI-compatible endpoint</span></button>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding:16px 18px">
+        <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:10px"><span style="width:18px;height:18px;border-radius:50%;border:1px solid var(--accent);color:var(--accent);display:grid;place-items:center;font-family:var(--mono);font-size:10px;font-weight:700;flex:none">2</span><span style="font-weight:650;font-size:13.5px">Add your DeepSeek key</span></div>
+        <div style="display:flex;gap:8px">
+          <div style="flex:1;display:flex;align-items:center;height:32px;padding:0 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-family:var(--mono);font-size:12px">sk-••••••••••••••••d81f</div>
+          <button style="height:32px;padding:0 13px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;color:var(--dim)" style-hover="color:var(--text);border-color:var(--border2)">Test key</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;margin-top:8px;font-size:12px;color:var(--green)"><svg width="12" height="12" viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Key works — caching enabled on this account</span></div>
+        <div style="margin-top:6px;font-size:11px;color:var(--faint)">Stored locally in <span style="font-family:var(--mono);font-size:10.5px">%APPDATA%\Forge</span> — sent only to DeepSeek, never anywhere else.</div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding:16px 18px">
+        <div style="display:flex;align-items:baseline;gap:9px;margin-bottom:10px"><span style="width:18px;height:18px;border-radius:50%;border:1px solid var(--accent);color:var(--accent);display:grid;place-items:center;font-family:var(--mono);font-size:10px;font-weight:700;flex:none">3</span><span style="font-weight:650;font-size:13.5px">Pick a project folder</span></div>
+        <div style="display:flex;align-items:center;gap:10px;border:1px dashed var(--border2);border-radius:8px;padding:11px 13px">
+          <svg width="15" height="15" viewBox="0 0 16 16" style="color:var(--faint)"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg>
+          <span style="color:var(--dim);font-size:12.5px">Forge works inside one folder at a time — reads, edits and commits stay in it.</span>
+          <button style="margin-left:auto;height:28px;padding:0 14px;border-radius:6px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:12.5px;flex:none" onClick="{{ goEmpty }}">Choose folder…</button>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;font-size:11.5px;color:var(--faint)">Everything here can change later in Settings <span style="font-family:var(--mono);font-size:10px;border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;padding:1px 5px;background:var(--surface)">Ctrl ,</span></div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ notFirst }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;align-items:center;gap:8px;height:46px;padding:0 12px;background:var(--surface);border-bottom:1px solid var(--border);flex:none" data-screen-label="Header">
+  <button onClick="{{ toggleSb }}" title="Toggle sidebar — Ctrl B" style="display:grid;place-items:center;width:28px;height:28px;border-radius:6px;color:var(--dim)" style-hover="background:var(--surface2);color:var(--text)"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg></button>
+  <div style="display:flex;align-items:center;gap:7px;padding:0 4px"><svg width="14" height="14" viewBox="0 0 16 16" style="color:var(--accent)"><rect x="4.9" y="4.9" width="6.2" height="6.2" rx="1.2" transform="rotate(45 8 8)" fill="currentColor"></rect></svg><span style="font-weight:650;letter-spacing:.01em">Forge</span></div>
+  <div title="Current project — switch in the sidebar" style="display:flex;align-items:center;gap:7px;height:28px;padding:0 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg)"><svg width="13" height="13" viewBox="0 0 16 16" style="color:var(--dim)"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span style="font-weight:600;font-size:12.5px">{{ curProj }}</span><span style="font-family:var(--mono);font-size:10.5px;color:var(--dim)">main</span><span style="width:5px;height:5px;border-radius:50%;background:var(--green)" title="working tree clean"></span></div>
+  <div style="flex:1"></div>
+  <sc-if value="{{ running }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;align-items:center;gap:7px;height:28px;padding:0 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);font-size:12px"><span style="width:6px;height:6px;border-radius:50%;background:var(--amber);animation:fpulse 1.6s ease-in-out infinite"></span><span style="font-weight:600">Working set</span><span style="font-family:var(--mono);font-size:10.5px;color:var(--dim)">3 files</span></div>
+  </sc-if>
+  <sc-if value="{{ hasChangesBtn }}" hint-placeholder-val="{{ false }}">
+    <button onClick="{{ goReview }}" title="Review changes — Ctrl D" style="display:flex;align-items:center;gap:7px;height:28px;padding:0 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);font-size:12px" style-hover="border-color:var(--accent)"><span style="font-weight:600">Changes</span><span style="font-family:var(--mono);font-size:10.5px;color:var(--green)">+18</span><span style="font-family:var(--mono);font-size:10.5px;color:var(--red)">−6</span><span style="min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--accent);color:var(--on-accent);font-family:var(--mono);font-size:10px;font-weight:700;display:grid;place-items:center">2</span></button>
+  </sc-if>
+  <button onClick="{{ goUsage }}" title="Usage &amp; cost — Ctrl U" style="display:flex;align-items:center;gap:7px;height:28px;padding:0 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);font-family:var(--mono);font-size:10.5px;color:var(--dim)" style-hover="border-color:var(--border2)"><span style="color:var(--text);font-weight:600">{{ cost }}</span><span style="width:1px;height:12px;background:var(--border)"></span><svg width="36" height="11" viewBox="0 0 36 11" style="color:{{ cacheColor }}"><polyline points="{{ cacheSpark }}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></polyline></svg><span style="color:{{ cacheColor }};font-weight:700">{{ cachePct }}%</span><span>cache</span></button>
+  <button onClick="{{ goSettings }}" title="Settings — Ctrl ," style="display:grid;place-items:center;width:28px;height:28px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--dim)" style-hover="color:var(--text);border-color:var(--border2)"><svg width="14" height="14" viewBox="0 0 16 16"><path d="M2 4.5h12M2 8h12M2 11.5h12" stroke="currentColor" stroke-width="1.3"></path><circle cx="5.5" cy="4.5" r="1.7" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></circle><circle cx="10.5" cy="8" r="1.7" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></circle><circle cx="6.5" cy="11.5" r="1.7" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></circle></svg></button>
+</div>
+
+<div style="flex:1;display:flex;min-height:0">
+<sc-if value="{{ sbOpen }}" hint-placeholder-val="{{ true }}">
+<aside style="width:232px;flex:none;border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;min-height:0" data-screen-label="Sidebar — projects &amp; threads">
+  <div style="padding:10px 10px 4px;display:flex;flex-direction:column;gap:6px">
+    <button onClick="{{ goEmpty }}" style="display:flex;align-items:center;gap:8px;height:30px;padding:0 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-size:12.5px;font-weight:600" style-hover="border-color:var(--border2);background:var(--surface2)"><svg width="12" height="12" viewBox="0 0 16 16" style="color:var(--accent)"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>New session<span style="margin-left:auto;font-family:var(--mono);font-size:9.5px;font-weight:400;color:var(--faint);border:1px solid var(--border);border-radius:3px;padding:0 4px">Ctrl N</span></button>
+    <div style="display:flex;align-items:center;gap:7px;height:28px;padding:0 9px;border:1px solid var(--border);border-radius:6px;background:var(--bg)"><svg width="12" height="12" viewBox="0 0 16 16" style="color:var(--faint);flex:none"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.4"></circle><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.4"></path></svg><input value="{{ sq }}" onChange="{{ onSq }}" placeholder="Search threads…" style="flex:1;font-size:12px;min-width:0"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:6px 10px 10px">
+    <sc-if value="{{ sbPinnedShow }}" hint-placeholder-val="{{ false }}">
+    <div style="font-size:9.5px;font-weight:700;letter-spacing:.09em;color:var(--faint);padding:6px 6px 4px">PINNED</div>
+    <sc-for list="{{ pinnedRows }}" as="t" hint-placeholder-count="1">
+      <div class="trow" onContextMenu="{{ t.onCtx }}" style="position:relative;border-radius:6px;background:{{ t.bg }}" style-hover="background:var(--surface2)"><sc-if value="{{ t.renaming }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:6px;padding:5px 7px"><input value="{{ t.renameText }}" onChange="{{ t.onRenameInput }}" onKeyDown="{{ t.onRenameKey }}" onBlur="{{ t.onRenameCommit }}" autoFocus="{{ true }}" style="flex:1;min-width:0;height:24px;padding:0 7px;border:1px solid var(--accent);border-radius:5px;background:var(--bg);font-size:12.5px"><span style="font-family:var(--mono);font-size:9px;color:var(--faint);flex:none">↵</span></div></sc-if><sc-if value="{{ t.notRenaming }}" hint-placeholder-val="{{ true }}"><button onClick="{{ t.onPick }}" style="display:block;width:100%;padding:6px 26px 6px 8px"><span style="display:flex;align-items:center;gap:6px"><sc-if value="{{ t.pinned }}" hint-placeholder-val="{{ true }}"><svg width="9" height="9" viewBox="0 0 16 16" style="color:var(--accent);flex:none"><circle cx="8" cy="6" r="3.4" fill="currentColor"></circle><path d="M8 9v5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg></sc-if><span style="font-size:12.5px;font-weight:{{ t.w }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.title }}</span></span><span style="display:block;font-family:var(--mono);font-size:9.5px;color:var(--faint);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.time }} · {{ t.cost }} · {{ t.msgs }}</span></button><button class="tkebab" onClick="{{ t.onKebab }}" title="Thread actions" style="position:absolute;top:6px;right:5px;width:20px;height:20px;display:grid;place-items:center;border-radius:5px;color:var(--faint)" style-hover="background:var(--border);color:var(--text)"><svg width="12" height="12" viewBox="0 0 16 16"><circle cx="8" cy="3.6" r="1.4" fill="currentColor"></circle><circle cx="8" cy="8" r="1.4" fill="currentColor"></circle><circle cx="8" cy="12.4" r="1.4" fill="currentColor"></circle></svg></button></sc-if></div>
+    </sc-for>
+    </sc-if>
+    <div style="display:flex;align-items:baseline;gap:6px;padding:12px 6px 4px"><span style="font-size:9.5px;font-weight:700;letter-spacing:.09em;color:var(--faint)">RECENT</span><span style="margin-left:auto;font-family:var(--mono);font-size:9.5px;color:var(--faint)">{{ sbRecentCount }}</span></div>
+    <sc-for list="{{ recentRows }}" as="t" hint-placeholder-count="5">
+      <div class="trow" onContextMenu="{{ t.onCtx }}" style="position:relative;border-radius:6px;background:{{ t.bg }}" style-hover="background:var(--surface2)"><sc-if value="{{ t.renaming }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:6px;padding:5px 7px"><input value="{{ t.renameText }}" onChange="{{ t.onRenameInput }}" onKeyDown="{{ t.onRenameKey }}" onBlur="{{ t.onRenameCommit }}" autoFocus="{{ true }}" style="flex:1;min-width:0;height:24px;padding:0 7px;border:1px solid var(--accent);border-radius:5px;background:var(--bg);font-size:12.5px"><span style="font-family:var(--mono);font-size:9px;color:var(--faint);flex:none">↵</span></div></sc-if><sc-if value="{{ t.notRenaming }}" hint-placeholder-val="{{ true }}"><button onClick="{{ t.onPick }}" style="display:block;width:100%;padding:6px 26px 6px 8px"><span style="display:flex;align-items:center;gap:6px"><span style="font-size:12.5px;font-weight:{{ t.w }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.title }}</span></span><span style="display:block;font-family:var(--mono);font-size:9.5px;color:var(--faint);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.time }} · {{ t.cost }} · {{ t.msgs }}</span></button><button class="tkebab" onClick="{{ t.onKebab }}" title="Thread actions" style="position:absolute;top:6px;right:5px;width:20px;height:20px;display:grid;place-items:center;border-radius:5px;color:var(--faint)" style-hover="background:var(--border);color:var(--text)"><svg width="12" height="12" viewBox="0 0 16 16"><circle cx="8" cy="3.6" r="1.4" fill="currentColor"></circle><circle cx="8" cy="8" r="1.4" fill="currentColor"></circle><circle cx="8" cy="12.4" r="1.4" fill="currentColor"></circle></svg></button></sc-if></div>
+    </sc-for>
+    <sc-if value="{{ sbNone }}" hint-placeholder-val="{{ false }}"><div style="padding:10px 8px;font-size:11.5px;color:var(--faint);line-height:1.5">{{ sbNoneMsg }}</div></sc-if>
+    <sc-if value="{{ archivedShow }}" hint-placeholder-val="{{ false }}">
+    <button onClick="{{ showArchived }}" style="display:flex;align-items:center;gap:8px;width:100%;padding:7px 8px;border-radius:6px;color:var(--dim);font-size:12px;margin-top:3px" style-hover="background:var(--surface2);color:var(--text)"><svg width="12" height="12" viewBox="0 0 16 16" style="flex:none"><rect x="2" y="3" width="12" height="3.4" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"></rect><path d="M3.2 6.4v6.4h9.6V6.4M6.5 9h3" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span>{{ archivedCount }} archived</span><svg width="10" height="10" viewBox="0 0 16 16" style="margin-left:auto;color:var(--faint)"><path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg></button>
+    </sc-if>
+    <div style="font-size:9.5px;font-weight:700;letter-spacing:.09em;color:var(--faint);padding:16px 6px 4px">PROJECTS</div>
+    <sc-for list="{{ sbProjects }}" as="pr" hint-placeholder-count="4">
+      <button onClick="{{ pr.onPick }}" style="display:flex;align-items:center;gap:8px;width:100%;padding:6px 8px;border-radius:6px;background:{{ pr.bg }}" style-hover="background:var(--surface2)"><svg width="12" height="12" viewBox="0 0 16 16" style="color:var(--dim);flex:none"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span style="font-size:12.5px;font-weight:{{ pr.w }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ pr.name }}</span><span style="margin-left:auto;width:5px;height:5px;border-radius:50%;background:{{ pr.dot }};flex:none"></span></button>
+    </sc-for>
+    <button onClick="{{ goProj }}" style="display:flex;align-items:center;gap:8px;width:100%;padding:6px 8px;border-radius:6px;color:var(--dim);font-size:12px" style-hover="background:var(--surface2);color:var(--text)"><svg width="12" height="12" viewBox="0 0 16 16" style="flex:none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg>Open folder…</button>
+  </div>
+  <div style="padding:8px 10px;border-top:1px solid var(--border)">
+    <button onClick="{{ goSettings }}" style="display:flex;align-items:center;gap:8px;width:100%;padding:6px 8px;border-radius:6px;color:var(--dim);font-size:12px" style-hover="background:var(--surface2);color:var(--text)"><svg width="13" height="13" viewBox="0 0 16 16"><path d="M2 4.5h12M2 8h12M2 11.5h12" stroke="currentColor" stroke-width="1.3"></path><circle cx="5.5" cy="4.5" r="1.7" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></circle><circle cx="10.5" cy="8" r="1.7" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></circle><circle cx="6.5" cy="11.5" r="1.7" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></circle></svg>Settings<span style="margin-left:auto;font-family:var(--mono);font-size:9.5px;color:var(--faint);border:1px solid var(--border);border-radius:3px;padding:0 4px">Ctrl ,</span></button>
+  </div>
+</aside>
+</sc-if>
+<div style="flex:1;min-width:360px;display:flex;flex-direction:column">
+<div style="flex:1;overflow-y:auto">
+<div style="max-width:760px;margin:0 auto;padding:22px 36px 40px;display:flex;flex-direction:column;gap:14px">
+
+<sc-if value="{{ sEmpty }}" hint-placeholder-val="{{ false }}">
+<div style="padding-top:44px;display:flex;flex-direction:column;max-width:640px" data-screen-label="Empty state">
+  <div style="display:flex;align-items:center;gap:11px">
+    <span style="width:30px;height:30px;border-radius:8px;background:var(--sel);display:grid;place-items:center;flex:none"><svg width="15" height="15" viewBox="0 0 16 16" style="color:var(--accent)"><rect x="4.9" y="4.9" width="6.2" height="6.2" rx="1.2" transform="rotate(45 8 8)" fill="currentColor"></rect></svg></span>
+    <div style="min-width:0">
+      <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:21px;font-weight:650;letter-spacing:-.01em">meridian</span><span style="font-family:var(--mono);font-size:11px;color:var(--dim)">main · clean</span></div>
+      <div style="font-family:var(--mono);font-size:10.5px;color:var(--faint);letter-spacing:.02em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">C:\Users\rich\dev\meridian · last commit 2h ago</div>
+    </div>
+  </div>
+  <div style="margin-top:40px;display:flex;align-items:baseline;gap:9px;flex-wrap:wrap"><span style="font-weight:600;font-size:14px">What are we working on?</span><span style="font-size:11.5px;color:var(--faint)">nothing is saved until you send — no empty thread is created</span></div>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+    <button onClick="{{ sug1 }}" style="display:flex;align-items:baseline;gap:10px;padding:11px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);width:100%" style-hover="border-color:var(--border2);background:var(--surface2)"><span style="font-weight:600;font-size:12.5px;flex:none">Ask about the code</span><span style="color:var(--dim);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">“what does the tokenizer hand the parser?”</span></button>
+    <button onClick="{{ sug2 }}" style="display:flex;align-items:baseline;gap:10px;padding:11px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);width:100%" style-hover="border-color:var(--border2);background:var(--surface2)"><span style="font-weight:600;font-size:12.5px;flex:none">Make a change</span><span style="color:var(--dim);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">“add error recovery to unterminated expressions”</span></button>
+    <button onClick="{{ sug3 }}" style="display:flex;align-items:baseline;gap:10px;padding:11px 14px;border:1px solid var(--border);border-radius:8px;background:var(--surface);width:100%" style-hover="border-color:var(--border2);background:var(--surface2)"><span style="font-weight:600;font-size:12.5px;flex:none">Fix something</span><span style="color:var(--dim);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">“the parser test is failing on nested calls — work out why”</span></button>
+  </div>
+  <div style="display:flex;align-items:baseline;gap:8px;margin-top:36px"><span style="font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--faint)">RECENT SESSIONS</span><button onClick="{{ goHist }}" style="margin-left:auto;font-size:11.5px;color:var(--accent)" style-hover="text-decoration:underline">View all</button></div>
+  <div style="display:flex;flex-direction:column;gap:2px;margin-top:8px">
+    <button onClick="{{ goHist }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;width:100%" style-hover="background:var(--surface2)"><svg width="13" height="13" viewBox="0 0 16 16" style="color:var(--faint);flex:none"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.3"></circle><path d="M8 4.5V8l2.4 1.5" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span style="font-size:12.5px">Add error recovery to tokenizer</span><span style="margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)">yesterday · $0.041 · 3 files</span></button>
+    <button onClick="{{ goHist }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;width:100%" style-hover="background:var(--surface2)"><svg width="13" height="13" viewBox="0 0 16 16" style="color:var(--faint);flex:none"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.3"></circle><path d="M8 4.5V8l2.4 1.5" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span style="font-size:12.5px">Explain the AST walker</span><span style="margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)">Mon · $0.008 · read-only</span></button>
+  </div>
+  <div style="display:flex;gap:16px;margin-top:48px;font-size:11.5px;color:var(--faint)"><span><span style="font-family:var(--mono);font-size:10px;border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;padding:1px 5px;background:var(--surface)">Ctrl K</span> commands</span><span><span style="font-family:var(--mono);font-size:10px;border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;padding:1px 5px;background:var(--surface)">Ctrl P</span> switch project</span><span><span style="font-family:var(--mono);font-size:10px;border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;padding:1px 5px;background:var(--surface)">Ctrl H</span> history</span></div>
+</div>
+</sc-if>
+
+<sc-if value="{{ threadMid }}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:14px" data-screen-label="Thread — mid-run">
+  <div>
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px"><span style="width:24px;height:24px;border-radius:7px;background:var(--surface2);border:1px solid var(--border2);display:grid;place-items:center;flex:none;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--dim);line-height:1">&rsaquo;</span><span style="font-weight:650;font-size:12.5px;color:var(--text)">You</span><span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">14:32</span></div>
+    <div style="background:var(--sel);border:1px solid color-mix(in oklab,var(--accent) 20%,var(--border));border-left:2.5px solid var(--accent);border-radius:3px 9px 9px 3px;padding:10px 13px;font-size:14px;line-height:1.55;color:var(--text)">The parser test is failing on nested call expressions — work out why and fix it.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:9px;margin-bottom:-6px"><span style="width:24px;height:24px;border-radius:7px;background:var(--sel);display:grid;place-items:center;flex:none"><svg width="13" height="13" viewBox="0 0 16 16" style="color:var(--accent)"><rect x="4.9" y="4.9" width="6.2" height="6.2" rx="1.2" transform="rotate(45 8 8)" fill="currentColor"></rect></svg></span><span style="font-weight:650;font-size:12.5px;color:var(--text)">Forge</span><span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">14:32</span></div>
+  <div style="max-width:64ch;font-size:14px;line-height:1.62;color:var(--text)">Reproducing the failure first, then tracing it through the tokenizer.</div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:9px;padding:8px 13px;background:var(--surface2)">
+      <sc-if value="{{ sMid }}" hint-placeholder-val="{{ true }}"><span style="width:11px;height:11px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:fspin .8s linear infinite;flex:none"></span><span style="font-weight:600;font-size:12.5px">Working</span><span style="color:var(--dim);font-size:12px">— step 4 of 6 · fixing the tokenizer</span></sc-if>
+      <sc-if value="{{ sPermAny }}" hint-placeholder-val="{{ false }}"><span style="width:7px;height:7px;border-radius:50%;background:var(--amber);animation:fpulse 1.6s ease-in-out infinite;flex:none"></span><span style="font-weight:600;font-size:12.5px">Working</span><span style="color:var(--dim);font-size:12px">— step 4 of 6 · paused on a request</span></sc-if>
+      <span style="margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)">{{ elapsed }}</span>
+    </div>
+    <div style="height:2px;background:var(--surface2)"><div style="height:2px;width:58%;background:{{ barColor }};transition:width .4s"></div></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--red);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">run_shell</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">npm test</span><span style="margin-left:auto;color:var(--faint);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">23 passed · 1 failed · 2.4s</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">read_file</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">src/parser.ts</span><span style="margin-left:auto;color:var(--faint);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">412 lines · 0.3s</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">read_file</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">test/parser.test.ts</span><span style="margin-left:auto;color:var(--faint);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">96 lines · 0.2s</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">grep</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">"consumeUntil(" — 6 matches in 3 files</span><span style="margin-left:auto;color:var(--faint);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">0.1s</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">read_file</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">src/generated/grammar/expression-tables.gen.ts</span><span style="margin-left:auto;color:var(--faint);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">1,204 lines · 0.4s</span></div>
+    <sc-if value="{{ sMid }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px;background:var(--sel)"><span style="width:6px;height:6px;border-radius:50%;background:var(--accent);animation:fpulse 1.2s ease-in-out infinite;flex:none"></span><span style="color:var(--dim);width:70px;flex:none">edit_file</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">src/tokenizer.ts</span><span style="margin-left:auto;color:var(--accent);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">applying edit…</span></div>
+    </sc-if>
+    <sc-if value="{{ sPermAny }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px;background:var(--amber-bg)"><span style="width:6px;height:6px;border-radius:50%;background:var(--amber);animation:fpulse 1.6s ease-in-out infinite;flex:none"></span><span style="color:var(--dim);width:70px;flex:none">{{ permTool }}</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ permTarget }}</span><span style="margin-left:auto;color:var(--amber);font-weight:600;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">awaiting approval</span></div>
+    </sc-if>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;color:var(--faint);font-family:var(--mono);font-size:10.5px;padding:1px 0"><span style="flex:1;height:1px;background:var(--border)"></span><span>context trimmed to fit — 34% used</span><span style="flex:1;height:1px;background:var(--border)"></span></div>
+  <sc-if value="{{ sMid }}" hint-placeholder-val="{{ true }}">
+  <div style="max-width:64ch;font-size:14px;line-height:1.62;color:var(--text)">Found it. <code style="font-family:var(--mono);font-size:11.5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px">readCall</code> uses <code style="font-family:var(--mono);font-size:11.5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px">consumeUntil(src, pos, ")")</code>, which stops at the <em>first</em> closing paren — so <code style="font-family:var(--mono);font-size:11.5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px">sum(len(xs), 2)</code> truncates to <code style="font-family:var(--mono);font-size:11.5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px">len(xs</code>. Switching to a depth-tracking scan<span style="display:inline-block;width:7px;height:14px;background:var(--accent);vertical-align:-2px;margin-left:2px;animation:fblink 1.1s steps(1) infinite"></span></div>
+  </sc-if>
+
+  <sc-if value="{{ sPermA }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Permission — routine" style="display:flex;flex-direction:column;gap:10px">
+    <sc-if value="{{ paPending }}" hint-placeholder-val="{{ false }}">
+    <div style="border:1px solid var(--amber);border-radius:8px;background:var(--surface);overflow:hidden;box-shadow:0 0 0 3px var(--amber-bg);animation:frise .2s ease">
+      <div style="display:flex;align-items:center;gap:9px;padding:8px 13px;background:var(--amber-bg)"><span style="width:7px;height:7px;border-radius:50%;background:var(--amber);animation:fpulse 1.6s ease-in-out infinite;flex:none"></span><span style="font-weight:600;font-size:12.5px">Allow Forge to edit</span><code style="font-family:var(--mono);font-size:11.5px">src/tokenizer.ts</code><span style="font-weight:600;font-size:12.5px">?</span><span style="margin-left:auto;font-size:11px;color:var(--dim)">low risk — undoable per file</span></div>
+      <div style="padding:11px 13px;display:flex;flex-direction:column;gap:9px">
+        <div style="font-size:12.5px;color:var(--dim)">Replace <code style="font-family:var(--mono);font-size:11px">consumeUntil</code> with a depth-tracking scan — the fix for the failing nested-call test.</div>
+        <div style="font-family:var(--mono);font-size:11px;line-height:1.7;border:1px solid var(--border);border-radius:6px;overflow:hidden">
+          <div style="background:var(--del-bg);padding:0 10px;white-space:pre">-  const end = consumeUntil(src, pos, ")");</div>
+          <div style="background:var(--add-bg);padding:0 10px;white-space:pre">+  let depth = 1;</div>
+          <div style="background:var(--add-bg);padding:0 10px;white-space:pre">+  while (i &lt; src.length &amp;&amp; depth &gt; 0) {</div>
+          <div style="padding:0 10px;color:var(--faint)">   … +6 more added lines · net +9 −5</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <button onClick="{{ paAllow }}" style="display:flex;align-items:center;gap:7px;height:28px;padding:0 13px;border-radius:6px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:12.5px" style-hover="opacity:.92">Allow once<span style="font-family:var(--mono);font-size:9.5px;font-weight:400;border:1px solid color-mix(in oklab,var(--on-accent) 40%,transparent);border-radius:3px;padding:0 4px">Enter</span></button>
+          <button onClick="{{ paAlways }}" style="height:28px;padding:0 12px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;color:var(--dim)" style-hover="color:var(--text);border-color:var(--border2)">Always allow edits in meridian</button>
+          <button onClick="{{ paDeny }}" style="height:28px;padding:0 12px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;color:var(--red)" style-hover="border-color:var(--red)">Don't allow</button>
+          <span style="margin-left:auto;font-size:11px;color:var(--faint)">1 waiting behind · <span style="font-family:var(--mono);font-size:10.5px">run_shell npm test</span></span>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+    <sc-if value="{{ paAllowed }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:9px;padding:8px 13px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:12.5px;animation:ffade .2s ease"><svg width="12" height="12" viewBox="0 0 16 16" style="color:var(--green)"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Allowed — edit applied to</span><code style="font-family:var(--mono);font-size:11.5px">src/tokenizer.ts</code><span style="font-family:var(--mono);font-size:11px;color:var(--green)">+9</span><span style="font-family:var(--mono);font-size:11px;color:var(--red)">−5</span><span style="margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)">0.4s</span></div>
+    <sc-if value="{{ qPending }}" hint-placeholder-val="{{ false }}">
+    <div style="border:1px solid var(--amber);border-radius:8px;background:var(--surface);overflow:hidden;box-shadow:0 0 0 3px var(--amber-bg);animation:frise .2s ease">
+      <div style="display:flex;align-items:center;gap:9px;padding:8px 13px;background:var(--amber-bg)"><span style="width:7px;height:7px;border-radius:50%;background:var(--amber);animation:fpulse 1.6s ease-in-out infinite;flex:none"></span><span style="font-weight:600;font-size:12.5px">Run</span><code style="font-family:var(--mono);font-size:11.5px">npm test</code><span style="font-weight:600;font-size:12.5px">?</span><span style="margin-left:auto;font-size:11px;color:var(--dim)">was queued — next in line</span></div>
+      <div style="padding:11px 13px;display:flex;flex-direction:column;gap:9px">
+        <div style="font-size:12.5px;color:var(--dim)">Verify the fix — expecting 24 passed.</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <button onClick="{{ qAllow }}" style="display:flex;align-items:center;gap:7px;height:28px;padding:0 13px;border-radius:6px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:12.5px" style-hover="opacity:.92">Allow once<span style="font-family:var(--mono);font-size:9.5px;font-weight:400;border:1px solid color-mix(in oklab,var(--on-accent) 40%,transparent);border-radius:3px;padding:0 4px">Enter</span></button>
+          <button onClick="{{ qAllow }}" style="height:28px;padding:0 12px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;color:var(--dim)" style-hover="color:var(--text)">Always allow npm test</button>
+          <button onClick="{{ qDeny }}" style="height:28px;padding:0 12px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;color:var(--red)">Don't allow</button>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+    <sc-if value="{{ qAllowed }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:9px;padding:8px 13px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:12.5px;animation:ffade .2s ease"><svg width="12" height="12" viewBox="0 0 16 16" style="color:var(--green)"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Allowed —</span><code style="font-family:var(--mono);font-size:11.5px">npm test</code><span style="color:var(--green);font-weight:600">24 passed</span><span style="margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)">3.1s</span></div>
+    <button onClick="{{ goDone }}" style="align-self:flex-start;font-size:11.5px;color:var(--accent)" style-hover="text-decoration:underline">Jump to the finished run →</button>
+    </sc-if>
+    <sc-if value="{{ qDenied }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:9px;padding:8px 13px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:12.5px;color:var(--dim)"><svg width="12" height="12" viewBox="0 0 16 16" style="color:var(--red)"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8"></path></svg><span>Not allowed — Forge will wait; run tests yourself when ready.</span></div>
+    </sc-if>
+    <sc-if value="{{ paDenied }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:9px;padding:8px 13px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:12.5px;color:var(--dim)"><svg width="12" height="12" viewBox="0 0 16 16" style="color:var(--red)"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8"></path></svg><span>Not allowed — Forge will propose the change as a patch in chat instead.</span></div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ sPermB }}" hint-placeholder-val="{{ false }}">
+  <div data-screen-label="Permission — dangerous" style="display:flex;flex-direction:column;gap:10px">
+    <div style="max-width:64ch;font-size:14px;line-height:1.62;color:var(--text)">The stale build output under <code style="font-family:var(--mono);font-size:11.5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px">build\</code> is shadowing the new tokenizer. A clean rebuild avoids that:</div>
+    <sc-if value="{{ dbPending }}" hint-placeholder-val="{{ false }}">
+    <div style="border:1px solid var(--red);border-radius:8px;background:var(--surface);overflow:hidden;box-shadow:0 0 0 3px var(--red-bg);animation:frise .2s ease">
+      <div style="display:flex;align-items:center;gap:9px;padding:8px 13px;background:var(--red-bg)"><svg width="14" height="14" viewBox="0 0 16 16" style="color:var(--red);flex:none"><path d="M8 2.2L15 13.8H1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path><path d="M8 6.5v3.2" stroke="currentColor" stroke-width="1.4"></path><circle cx="8" cy="11.8" r=".9" fill="currentColor"></circle></svg><span style="font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--red)">DESTRUCTIVE COMMAND</span><span style="margin-left:auto;font-size:11px;color:var(--dim)">will not run without you</span></div>
+      <div style="padding:11px 13px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-family:var(--mono);font-size:13px;background:var(--red-bg);border:1px solid color-mix(in oklab,var(--red) 35%,var(--border));border-radius:6px;padding:9px 12px">rm -rf build</div>
+        <div style="font-size:12.5px">Deletes <b>build\</b> — 214 files. Not tracked by git; <b>cannot be undone</b>.</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <input value="{{ dbText }}" onChange="{{ onDbText }}" placeholder="Type build to arm" style="flex:1;min-width:180px;height:32px;padding:0 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-family:var(--mono);font-size:12.5px">
+          <button onClick="{{ dbDeny }}" style="height:32px;padding:0 14px;border-radius:6px;background:var(--text);color:var(--bg);font-weight:600;font-size:12.5px" style-hover="opacity:.9">Don't allow</button>
+          <sc-if value="{{ dbOk }}" hint-placeholder-val="{{ false }}"><button onClick="{{ dbAllow }}" style="height:32px;padding:0 14px;border-radius:6px;background:var(--red);color:#fff;font-weight:600;font-size:12.5px" style-hover="opacity:.9">Delete build — allow once</button></sc-if>
+          <sc-if value="{{ dbNotOk }}" hint-placeholder-val="{{ false }}"><button style="height:32px;padding:0 14px;border-radius:6px;background:var(--red);color:#fff;font-weight:600;font-size:12.5px;opacity:.4;cursor:not-allowed">Delete build — allow once</button></sc-if>
+        </div>
+        <div style="font-size:11px;color:var(--faint)">No keyboard shortcut here — typing the folder name is deliberate, so this can't be approved by muscle memory. “Always allow” is never offered for destructive commands.</div>
+      </div>
+    </div>
+    </sc-if>
+    <sc-if value="{{ dbAllowed }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:9px;padding:8px 13px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:12.5px;animation:ffade .2s ease"><svg width="12" height="12" viewBox="0 0 16 16" style="color:var(--green)"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Ran</span><code style="font-family:var(--mono);font-size:11.5px">rm -rf build</code><span style="color:var(--dim)">— 214 files removed</span><span style="margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)">0.6s</span></div>
+    </sc-if>
+    <sc-if value="{{ dbDenied }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:9px;padding:8px 13px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:12.5px;color:var(--dim)"><svg width="12" height="12" viewBox="0 0 16 16" style="color:var(--red)"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8"></path></svg><span>Declined —</span><code style="font-family:var(--mono);font-size:11.5px">build\</code><span>kept. Forge will exclude it via tsconfig instead.</span></div>
+    </sc-if>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{ threadDone }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:14px" data-screen-label="Thread — completed run">
+  <button onClick="{{ toggleTurns }}" style="display:flex;align-items:center;gap:8px;padding:6px 12px;border:1px dashed var(--border);border-radius:8px;color:var(--faint);font-size:11.5px;width:100%" style-hover="color:var(--dim);border-color:var(--border2)"><span style="font-family:var(--mono);font-size:10px">{{ turnsChev }}</span><span style="font-weight:600">2 earlier turns</span><span>· “Set up vitest fixtures” · “Explain the AST walker”</span><span style="margin-left:auto;font-family:var(--mono);font-size:10px">14:02–14:19</span></button>
+  <sc-if value="{{ turnsOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;flex-direction:column;gap:6px;animation:ffade .2s ease">
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);opacity:.65"><span style="font-size:12.5px">Set up vitest fixtures</span><span style="margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)">14:02 · 6 actions · $0.006</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);opacity:.65"><span style="font-size:12.5px">Explain the AST walker</span><span style="margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)">14:19 · read-only · $0.004</span></div>
+  </div>
+  </sc-if>
+  <div>
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px"><span style="width:24px;height:24px;border-radius:7px;background:var(--surface2);border:1px solid var(--border2);display:grid;place-items:center;flex:none;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--dim);line-height:1">&rsaquo;</span><span style="font-weight:650;font-size:12.5px;color:var(--text)">You</span><span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">14:32</span></div>
+    <div style="background:var(--sel);border:1px solid color-mix(in oklab,var(--accent) 20%,var(--border));border-left:2.5px solid var(--accent);border-radius:3px 9px 9px 3px;padding:10px 13px;font-size:14px;line-height:1.55;color:var(--text)">The parser test is failing on nested call expressions — work out why and fix it.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:9px;margin-bottom:-6px"><span style="width:24px;height:24px;border-radius:7px;background:var(--sel);display:grid;place-items:center;flex:none"><svg width="13" height="13" viewBox="0 0 16 16" style="color:var(--accent)"><rect x="4.9" y="4.9" width="6.2" height="6.2" rx="1.2" transform="rotate(45 8 8)" fill="currentColor"></rect></svg></span><span style="font-weight:650;font-size:12.5px;color:var(--text)">Forge</span><span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">14:32</span></div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+    <button onClick="{{ toggleRun }}" style="display:flex;align-items:center;gap:9px;padding:8px 13px;background:var(--surface2);width:100%" style-hover="background:var(--surface2)"><svg width="13" height="13" viewBox="0 0 16 16" style="color:var(--green);flex:none"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span style="font-weight:600;font-size:12.5px">Ran 9 actions</span><span style="color:var(--dim);font-size:12px">in 34s</span><span style="font-family:var(--mono);font-size:10.5px;color:var(--dim)">4 reads · 2 edits ·</span><span style="font-family:var(--mono);font-size:10.5px;color:var(--green)">npm test ✓</span><svg width="11" height="11" viewBox="0 0 16 16" style="margin-left:auto;color:var(--faint);transform:rotate({{ runChevDeg }});transition:transform .15s"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg></button>
+    <sc-if value="{{ runOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="animation:ffade .15s ease">
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--red);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">run_shell</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">npm test</span><span style="margin-left:auto;color:var(--faint);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">23 passed · 1 failed · 2.4s</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">read_file</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">src/parser.ts</span><span style="margin-left:auto;color:var(--faint);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">412 lines · 0.3s</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">read_file</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">test/parser.test.ts</span><span style="margin-left:auto;color:var(--faint);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">96 lines · 0.2s</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">grep</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">"consumeUntil(" — 6 matches in 3 files</span><span style="margin-left:auto;color:var(--faint);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">0.1s</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">read_file</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">src/tokenizer.ts</span><span style="margin-left:auto;color:var(--faint);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">188 lines · 0.2s</span></div>
+      <button onClick="{{ toggleDiffA }}" style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px;width:100%" style-hover="background:var(--surface2)"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">edit_file</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">src/tokenizer.ts</span><span style="margin-left:auto;color:var(--green);flex:none">+9</span><span style="color:var(--red);flex:none">−5</span><svg width="10" height="10" viewBox="0 0 16 16" style="color:var(--faint);transform:rotate({{ diffAChevDeg }})"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg></button>
+      <sc-if value="{{ diffAOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="border-top:1px solid var(--border);background:var(--bg);overflow-x:auto">
+        <div style="display:flex;gap:10px;align-items:center;padding:5px 13px;font-family:var(--mono);font-size:10.5px;color:var(--dim);background:var(--surface2)"><span>@@ -126,7 +126,11 @@</span><span style="color:var(--faint)">function readCall(src, pos)</span><button onClick="{{ goReview }}" style="margin-left:auto;color:var(--accent);font-size:10.5px" style-hover="text-decoration:underline">open in Changes →</button></div>
+        <div style="font-family:var(--mono);font-size:11.5px;line-height:1.75;padding:2px 0;min-width:560px">
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr"><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">126</span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">126</span><span></span><span style="white-space:pre;color:var(--dim)">function readCall(src: string, pos: number): Token {</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--del-bg)"><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">127</span><span></span><span style="text-align:center;color:var(--red)">−</span><span style="white-space:pre">  const end = <span style="background:var(--del-bg2);border-radius:2px">consumeUntil(src, pos, ")")</span>;</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--del-bg)"><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">128</span><span></span><span style="text-align:center;color:var(--red)">−</span><span style="white-space:pre">  if (end === -1) {</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--del-bg)"><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">129</span><span></span><span style="text-align:center;color:var(--red)">−</span><span style="white-space:pre">    throw new ParseError("Unterminated call expression", pos);</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--del-bg)"><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">130</span><span></span><span style="text-align:center;color:var(--red)">−</span><span style="white-space:pre">  }</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--del-bg)"><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">131</span><span></span><span style="text-align:center;color:var(--red)">−</span><span style="white-space:pre">  return { kind: "call", value: src.slice(pos, end), end };</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">127</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  let <span style="background:var(--add-bg2);border-radius:2px">depth</span> = 1;</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">128</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  let i = pos;</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">129</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  while (i &lt; src.length &amp;&amp; depth &gt; 0) {</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">130</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">    if (src[i] === "(") depth++;</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">131</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">    if (src[i] === ")") depth--;</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">132</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">    i++;</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">133</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  }</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">134</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  if (depth &gt; 0) throw new ParseError("Unterminated call expression", pos);</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">135</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  return { kind: "call", value: src.slice(pos, i - 1), end: i };</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr"><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">132</span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">136</span><span></span><span style="white-space:pre;color:var(--dim)">}</span></div>
+        </div>
+      </div>
+      </sc-if>
+      <button onClick="{{ toggleDiffB }}" style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px;width:100%" style-hover="background:var(--surface2)"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">edit_file</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">test/parser.test.ts</span><span style="margin-left:auto;color:var(--green);flex:none">+9</span><span style="color:var(--red);flex:none">−1</span><svg width="10" height="10" viewBox="0 0 16 16" style="color:var(--faint);transform:rotate({{ diffBChevDeg }})"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg></button>
+      <sc-if value="{{ diffBOpen }}" hint-placeholder-val="{{ false }}">
+      <div style="border-top:1px solid var(--border);background:var(--bg);overflow-x:auto">
+        <div style="display:flex;gap:10px;align-items:center;padding:5px 13px;font-family:var(--mono);font-size:10.5px;color:var(--dim);background:var(--surface2)"><span>@@ -84,4 +84,12 @@</span><span style="color:var(--faint)">describe("parser")</span></div>
+        <div style="font-family:var(--mono);font-size:11.5px;line-height:1.75;padding:2px 0;min-width:560px">
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr"><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">84</span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">84</span><span></span><span style="white-space:pre;color:var(--dim)">  it("parses adjacent expressions", () =&gt; {</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr"><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">85</span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">85</span><span></span><span style="white-space:pre;color:var(--dim)">    expect(parse("a(1) b(2)").children).toHaveLength(2);</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr"><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">86</span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">86</span><span></span><span style="white-space:pre;color:var(--dim)">  });</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">87</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre"> </span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">88</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  // regression: nested call arguments (#142)</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">89</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  it("parses nested call arguments", () =&gt; {</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">90</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">    const ast = parse("sum(len(xs), 2)");</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">91</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">    expect(ast.children).toHaveLength(1);</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">92</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">    expect(ast.children[0].kind).toBe("call");</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">93</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">    expect(ast.children[0].value).toBe("len(xs), 2");</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">94</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  });</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--del-bg)"><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">87</span><span></span><span style="text-align:center;color:var(--red)">−</span><span style="white-space:pre">});</span></div>
+          <div style="display:grid;grid-template-columns:40px 40px 16px 1fr;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:7px;color:var(--faint);font-size:10px">95</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">});</span></div>
+        </div>
+      </div>
+      </sc-if>
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">run_shell</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">npm test</span><span style="margin-left:auto;color:var(--green);font-weight:600;flex:none">24 passed</span><span style="color:var(--faint);flex:none">· 3.1s</span></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">git_diff</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">2 files changed</span><span style="margin-left:auto;color:var(--faint);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">+18 −6 · 0.1s</span></div>
+    </div>
+    </sc-if>
+  </div>
+  <div style="max-width:64ch;font-size:14px;line-height:1.62;color:var(--text)">Fixed. <code style="font-family:var(--mono);font-size:11.5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px">readCall</code> stopped at the first <code style="font-family:var(--mono);font-size:11.5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px">)</code> instead of tracking nesting, so <code style="font-family:var(--mono);font-size:11.5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px">sum(len(xs), 2)</code> truncated after <code style="font-family:var(--mono);font-size:11.5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px">len(xs</code>. The tokenizer now counts paren depth, and there's a regression test. The suite passes — 24 tests.</div>
+  <div style="border:1px solid color-mix(in oklab,var(--accent) 30%,var(--border));border-radius:8px;background:var(--surface);overflow:hidden" data-screen-label="What changed card">
+    <div style="display:flex;align-items:center;gap:9px;padding:9px 13px;border-bottom:1px solid var(--border)"><span style="font-weight:650;font-size:12.5px">What changed</span><span style="font-family:var(--mono);font-size:11px;color:var(--green)">+18</span><span style="font-family:var(--mono);font-size:11px;color:var(--red)">−6</span><span style="display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:var(--green);border:1px solid color-mix(in oklab,var(--green) 40%,var(--border));border-radius:10px;padding:1px 8px"><svg width="9" height="9" viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2.2"></path></svg>tests pass after</span><span style="margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)">14:33</span></div>
+    <button onClick="{{ pickAReview }}" style="display:flex;align-items:center;gap:9px;padding:7px 13px;width:100%;font-family:var(--mono);font-size:11.5px" style-hover="background:var(--surface2)"><svg width="12" height="12" viewBox="0 0 16 16" style="color:var(--faint);flex:none"><path d="M4 1.5h5l3 3v10h-8z" fill="none" stroke="currentColor" stroke-width="1.2"></path><path d="M9 1.5v3h3" fill="none" stroke="currentColor" stroke-width="1.2"></path></svg><span style="color:var(--faint)">src/</span><span style="margin-left:-9px">tokenizer.ts</span><span style="margin-left:auto;color:var(--green)">+9</span><span style="color:var(--red)">−5</span><svg width="10" height="10" viewBox="0 0 16 16" style="color:var(--faint);transform:rotate(-90deg)"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg></button>
+    <button onClick="{{ pickBReview }}" style="display:flex;align-items:center;gap:9px;padding:7px 13px;width:100%;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px" style-hover="background:var(--surface2)"><svg width="12" height="12" viewBox="0 0 16 16" style="color:var(--faint);flex:none"><path d="M4 1.5h5l3 3v10h-8z" fill="none" stroke="currentColor" stroke-width="1.2"></path><path d="M9 1.5v3h3" fill="none" stroke="currentColor" stroke-width="1.2"></path></svg><span style="color:var(--faint)">test/</span><span style="margin-left:-9px">parser.test.ts</span><span style="margin-left:auto;color:var(--green)">+9</span><span style="color:var(--red)">−1</span><svg width="10" height="10" viewBox="0 0 16 16" style="color:var(--faint);transform:rotate(-90deg)"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg></button>
+    <div style="display:flex;align-items:center;gap:8px;padding:9px 13px;border-top:1px solid var(--border)">
+      <button onClick="{{ goReview }}" style="height:28px;padding:0 13px;border-radius:6px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:12.5px" style-hover="opacity:.92">Review changes</button>
+      <button onClick="{{ reviewCommit }}" style="height:28px;padding:0 12px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;color:var(--dim)" style-hover="color:var(--text);border-color:var(--border2)">Commit…</button>
+      <span style="margin-left:auto;font-size:11px;color:var(--faint)">changes stay local until you commit</span>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sErr }}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:14px" data-screen-label="Thread — errors">
+  <div>
+    <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px"><span style="width:24px;height:24px;border-radius:7px;background:var(--surface2);border:1px solid var(--border2);display:grid;place-items:center;flex:none;font-family:var(--mono);font-size:13px;font-weight:700;color:var(--dim);line-height:1">&rsaquo;</span><span style="font-weight:650;font-size:12.5px;color:var(--text)">You</span><span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">15:04</span></div>
+    <div style="background:var(--sel);border:1px solid color-mix(in oklab,var(--accent) 20%,var(--border));border-left:2.5px solid var(--accent);border-radius:3px 9px 9px 3px;padding:10px 13px;font-size:14px;line-height:1.55;color:var(--text)">Run the full integration suite before we commit anything.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:9px;margin-bottom:-6px"><span style="width:24px;height:24px;border-radius:7px;background:var(--sel);display:grid;place-items:center;flex:none"><svg width="13" height="13" viewBox="0 0 16 16" style="color:var(--accent)"><rect x="4.9" y="4.9" width="6.2" height="6.2" rx="1.2" transform="rotate(45 8 8)" fill="currentColor"></rect></svg></span><span style="font-weight:650;font-size:12.5px;color:var(--text)">Forge</span><span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">15:04</span></div>
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden">
+    <div style="display:flex;align-items:center;gap:9px;padding:8px 13px;background:var(--surface2)"><svg width="12" height="12" viewBox="0 0 16 16" style="color:var(--red);flex:none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2"></path></svg><span style="font-weight:600;font-size:12.5px">Run failed</span><span style="color:var(--dim);font-size:12px">— step 2 of 3 · then a provider error</span><span style="margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)">8.7s</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px"><span style="width:6px;height:6px;border-radius:50%;background:var(--green);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">git_status</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">2 modified, staged nothing</span><span style="margin-left:auto;color:var(--faint);flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right">0.1s</span></div>
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px;background:var(--red-bg)"><span style="width:6px;height:6px;border-radius:50%;background:var(--red);flex:none"></span><span style="color:var(--dim);width:70px;flex:none">run_shell</span><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">npm run test:integration</span><span style="margin-left:auto;color:var(--red);font-weight:600;flex:none">2 failed</span><span style="color:var(--faint);flex:none">· 8.4s</span></div>
+    <div style="border-top:1px solid var(--border);background:var(--bg)">
+      <div style="font-family:var(--mono);font-size:11px;line-height:1.65;padding:9px 13px;overflow:auto;max-height:{{ outMax }}">
+        <div style="color:var(--red);font-weight:700">FAIL  test/integration/emit.test.ts &gt; emitter &gt; writes source maps</div>
+        <div>Error: Snapshot mismatch</div>
+        <div><span style="color:var(--green)">  Expected: "dist/maps/app.js.map"</span></div>
+        <div><span style="color:var(--red)">  Received: "dist\\maps\\app.js.map"</span></div>
+        <div style="color:var(--dim)"> ❯ src/emit/writer.ts:203:15</div>
+        <div style="color:var(--dim)"> ❯ test/integration/emit.test.ts:44:3</div>
+        <div style="color:var(--red);font-weight:700;margin-top:6px">FAIL  test/integration/emit.test.ts &gt; emitter &gt; resolves relative imports</div>
+        <div>Error: Snapshot mismatch</div>
+        <div><span style="color:var(--green)">  Expected: "../lib/util"</span></div>
+        <div><span style="color:var(--red)">  Received: "..\\lib\\util"</span></div>
+        <div style="color:var(--dim)"> ❯ src/emit/writer.ts:187:9</div>
+        <div style="color:var(--dim)"> ❯ test/integration/emit.test.ts:61:3</div>
+        <div style="margin-top:6px">Tests  <span style="color:var(--red);font-weight:700">2 failed</span> · 41 passed (43)</div>
+        <div style="color:var(--dim)">Duration  8.41s</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 13px;border-top:1px solid var(--border)">
+        <button onClick="{{ toggleOut }}" style="font-family:var(--mono);font-size:10.5px;color:var(--accent)" style-hover="text-decoration:underline">{{ outLabel }}</button>
+        <button style="font-family:var(--mono);font-size:10.5px;color:var(--dim)" style-hover="color:var(--text)">copy output</button>
+        <span style="margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--faint)">exit 1</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 13px;border-top:1px solid var(--border);font-family:var(--mono);font-size:11.5px;color:var(--faint)"><span style="width:6px;height:6px;border:1px solid var(--faint);border-radius:50%;flex:none"></span><span style="width:70px;flex:none">run_shell</span><span>npm run lint</span><span style="margin-left:auto;flex:none">skipped — run stopped</span></div>
+  </div>
+  <div style="max-width:64ch;font-size:14px;line-height:1.62;color:var(--text)">Two integration tests fail on Windows path handling — <code style="font-family:var(--mono);font-size:11.5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px">writer.ts</code> emits backslashes the snapshots don't expect. The cleanest fix is normalising in</div>
+  <div style="border:1px solid color-mix(in oklab,var(--red) 50%,var(--border));border-radius:8px;background:var(--surface);overflow:hidden" data-screen-label="Provider error card">
+    <div style="display:flex;align-items:center;gap:9px;padding:8px 13px;background:var(--red-bg)"><svg width="14" height="14" viewBox="0 0 16 16" style="color:var(--red);flex:none"><path d="M8 2.2L15 13.8H1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path><path d="M8 6.5v3.2" stroke="currentColor" stroke-width="1.4"></path><circle cx="8" cy="11.8" r=".9" fill="currentColor"></circle></svg><span style="font-weight:600;font-size:12.5px">Provider error — reply cut off</span><span style="margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--dim)">402 · deepseek</span></div>
+    <div style="padding:11px 13px;display:flex;flex-direction:column;gap:9px">
+      <div style="font-size:12.5px">DeepSeek rejected the request: <b>insufficient balance</b>. Nothing is lost — the session is saved and the run resumes from step 2.</div>
+      <div style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">POST /chat/completions → 402 · 214 ms · retried ×2</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <button style="height:28px;padding:0 13px;border-radius:6px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:12.5px" style-hover="opacity:.92">Retry</button>
+        <button style="height:28px;padding:0 12px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;color:var(--dim)" style-hover="color:var(--text)">Switch to glm-5-air</button>
+        <button style="font-size:11.5px;color:var(--dim)" style-hover="color:var(--text);text-decoration:underline">Open DeepSeek billing ↗</button>
+      </div>
+      <div style="display:flex;gap:7px;align-items:baseline;font-size:11px;color:var(--amber)"><svg width="10" height="10" viewBox="0 0 16 16" style="flex:none;transform:translateY(1px)"><path d="M8 2.2L15 13.8H1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"></path></svg><span>Switching models restarts the prompt cache — the first reply after a switch costs more, then it recovers.</span></div>
+    </div>
+  </div>
+</div>
+</sc-if>
+
+</div>
+</div>
+
+<div style="flex:none;border-top:1px solid var(--border);background:var(--surface)" data-screen-label="Composer">
+<div style="max-width:760px;margin:0 auto;padding:9px 36px 10px">
+  <sc-if value="{{ running }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;align-items:center;gap:9px;padding:0 2px 8px;font-size:11.5px">
+    <span style="width:6px;height:6px;border-radius:50%;background:{{ barColor }};animation:fpulse 1.6s ease-in-out infinite"></span>
+    <span style="font-weight:600;color:{{ barColor }}">{{ runLabel }}</span>
+    <span style="color:var(--faint)">·</span><span style="color:var(--dim)">step 4 of 6</span>
+    <span style="color:var(--faint)">·</span><span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)">{{ elapsed }}</span>
+    <span style="flex:1"></span>
+    <button onClick="{{ onStop }}" style="height:22px;padding:0 10px;border:1px solid var(--border);border-radius:5px;font-size:11.5px;color:var(--dim)" style-hover="color:var(--red);border-color:var(--red)">Stop</button>
+  </div>
+  </sc-if>
+  <div style="border:1px solid var(--border2);border-radius:8px;background:var(--bg)">
+    <textarea value="{{ draft }}" onChange="{{ onDraft }}" placeholder="{{ composerPh }}" rows="{{ composerRows }}" style="display:block;width:100%;padding:9px 12px;font-size:13px;resize:none;min-height:38px"></textarea>
+    <div style="display:flex;align-items:center;gap:8px;padding:5px 8px 7px">
+      <button onClick="{{ goSettings }}" title="Permission mode — change in Settings" style="display:flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:5px;font-size:11.5px;color:var(--dim)" style-hover="background:var(--surface2);color:var(--text)"><span>{{ permLabel }}</span><svg width="10" height="10" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg></button>
+      <button style="display:flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:5px;font-family:var(--mono);font-size:10.5px;color:var(--dim)" style-hover="background:var(--surface2);color:var(--text)">deepseek-v4-pro<svg width="10" height="10" viewBox="0 0 16 16"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5"></path></svg></button>
+      <span style="flex:1"></span>
+      <span style="font-family:var(--mono);font-size:10.5px;color:var(--faint)" title="Share of the model's context window in use">context {{ ctxPct }}%</span>
+      <span style="width:56px;height:3px;border-radius:2px;background:var(--surface2);overflow:hidden;display:inline-block"><span style="display:block;width:{{ ctxW }};height:3px;background:var(--border2)"></span></span>
+      <button onClick="{{ onSend }}" style="height:26px;padding:0 14px;border-radius:6px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:12.5px" style-hover="opacity:.92">Send</button>
+    </div>
+  </div>
+  <div style="display:flex;gap:14px;padding:6px 2px 0;font-size:10.5px;color:var(--faint)"><span>Enter to send · Shift+Enter for a new line</span><span style="margin-left:auto">Ctrl K for commands</span></div>
+</div>
+</div>
+</div>
+
+<sc-if value="{{ panelOpen }}" hint-placeholder-val="{{ true }}">
+<div style="width:392px;flex:none;border-left:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;min-height:0;animation:fslide .18s ease" data-screen-label="Working set / Changes panel">
+  <sc-if value="{{ panelLive }}" hint-placeholder-val="{{ true }}">
+  <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)"><span style="font-weight:650;font-size:13px">Working set</span><span style="width:6px;height:6px;border-radius:50%;background:var(--amber);animation:fpulse 1.6s ease-in-out infinite"></span><span style="font-size:11px;color:var(--faint)">live · this run</span></div>
+  <div style="padding:12px 14px;border-bottom:1px solid var(--border)">
+    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px"><span style="font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--faint)">PLAN</span><span style="font-family:var(--mono);font-size:10.5px;color:var(--dim)">3 of 6 done</span></div>
+    <div style="display:flex;flex-direction:column;gap:5px;font-size:12px">
+      <div style="display:flex;gap:8px;align-items:center;color:var(--dim)"><svg width="11" height="11" viewBox="0 0 16 16" style="color:var(--green);flex:none"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Reproduce the failing test</span></div>
+      <div style="display:flex;gap:8px;align-items:center;color:var(--dim)"><svg width="11" height="11" viewBox="0 0 16 16" style="color:var(--green);flex:none"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Read the parser and its test</span></div>
+      <div style="display:flex;gap:8px;align-items:center;color:var(--dim)"><svg width="11" height="11" viewBox="0 0 16 16" style="color:var(--green);flex:none"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Locate the bug in <span style="font-family:var(--mono);font-size:11px">readCall</span></span></div>
+      <div style="display:flex;gap:8px;align-items:center;font-weight:600"><span style="width:7px;height:7px;border-radius:50%;background:{{ barColor }};animation:fpulse 1.6s ease-in-out infinite;flex:none;margin:0 2px"></span><span>Fix depth tracking in the tokenizer</span></div>
+      <div style="display:flex;gap:8px;align-items:center;color:var(--faint)"><span style="width:7px;height:7px;border:1px solid var(--faint);border-radius:50%;flex:none;margin:0 2px"></span><span>Re-run the suite</span></div>
+      <div style="display:flex;gap:8px;align-items:center;color:var(--faint)"><span style="width:7px;height:7px;border:1px solid var(--faint);border-radius:50%;flex:none;margin:0 2px"></span><span>Commit the fix</span></div>
+    </div>
+  </div>
+  <div style="padding:12px 14px;flex:1;overflow-y:auto">
+    <div style="font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--faint);margin-bottom:8px">FILES THIS RUN</div>
+    <div style="display:flex;flex-direction:column;gap:2px">
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-family:var(--mono);font-size:11.5px" style-hover="background:var(--surface2)"><span style="color:var(--faint)">src/</span><span style="margin-left:-8px">parser.ts</span><span style="margin-left:auto;font-size:10.5px;color:var(--faint)">read</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-family:var(--mono);font-size:11.5px" style-hover="background:var(--surface2)"><span style="color:var(--faint)">test/</span><span style="margin-left:-8px">parser.test.ts</span><span style="margin-left:auto;font-size:10.5px;color:var(--faint)">read</span></div>
+      <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-family:var(--mono);font-size:11.5px" style-hover="background:var(--surface2)"><span style="color:var(--faint)">src/generated/grammar/</span><span style="margin-left:-8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">expression-tables.gen.ts</span><span style="margin-left:auto;font-size:10.5px;color:var(--faint);flex:none">read</span></div>
+      <sc-if value="{{ sMid }}" hint-placeholder-val="{{ true }}"><div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--sel);font-family:var(--mono);font-size:11.5px"><span style="color:var(--faint)">src/</span><span style="margin-left:-8px;font-weight:600">tokenizer.ts</span><span style="margin-left:auto;font-size:10.5px;color:var(--accent);font-weight:600">editing…</span></div></sc-if>
+      <sc-if value="{{ sPermAny }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;background:var(--amber-bg);font-family:var(--mono);font-size:11.5px"><span style="color:var(--faint)">src/</span><span style="margin-left:-8px;font-weight:600">tokenizer.ts</span><span style="margin-left:auto;font-size:10.5px;color:var(--amber);font-weight:600">edit pending · +9 −5</span></div></sc-if>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--faint);line-height:1.5">Edits land here as the run progresses — review, revert or commit per file when it finishes.</div>
+  </div>
+  <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10.5px;color:var(--dim)">
+    <span>ctx {{ ctxPct }}%</span><span style="width:44px;height:3px;border-radius:2px;background:var(--surface2);display:inline-block"><span style="display:block;width:{{ ctxW }};height:3px;background:var(--border2)"></span></span>
+    <span style="margin-left:auto;color:{{ cacheColor }};font-weight:700">cache {{ cachePct }}%</span>
+    <svg width="36" height="11" viewBox="0 0 36 11" style="color:{{ cacheColor }}"><polyline points="{{ cacheSpark }}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+    <span style="color:var(--text);font-weight:600">{{ cost }}</span>
+  </div>
+  </sc-if>
+  <sc-if value="{{ panelReview }}" hint-placeholder-val="{{ false }}">
+  <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)"><span style="font-weight:650;font-size:13px">Changes</span><span style="font-size:11px;color:var(--faint)">this run · 14:32</span><span style="margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--green)">+18</span><span style="font-family:var(--mono);font-size:11px;color:var(--red)">−6</span><button onClick="{{ goDone }}" title="Close — Esc" style="color:var(--faint);width:22px;height:22px;display:grid;place-items:center;border-radius:5px;margin-left:4px" style-hover="background:var(--surface2);color:var(--text)"><svg width="12" height="12" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5"></path></svg></button></div>
+  <div style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-bottom:1px solid var(--border);font-size:10.5px"><span style="display:inline-flex;align-items:center;gap:5px;color:var(--green);border:1px solid color-mix(in oklab,var(--green) 40%,var(--border));border-radius:10px;padding:1px 8px"><svg width="9" height="9" viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2.2"></path></svg>24 tests pass with these changes</span><span style="margin-left:auto;color:var(--faint)">2 files</span></div>
+  <div style="border-bottom:1px solid var(--border)">
+    <div style="display:flex;align-items:center;gap:4px;padding:6px 10px">
+      <button onClick="{{ pickA }}" style="flex:1;display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-family:var(--mono);font-size:11.5px;background:{{ selABg }}" style-hover="background:var(--surface2)"><span style="width:6px;height:6px;border-radius:50%;background:{{ selADot }};flex:none"></span><span style="color:var(--faint)">src/</span><span style="margin-left:-8px;text-decoration:{{ revADeco }}">tokenizer.ts</span><span style="margin-left:auto;color:var(--green)">+9</span><span style="color:var(--red)">−5</span></button>
+      <button onClick="{{ toggleRevA }}" title="{{ revATitle }}" style="width:24px;height:24px;display:grid;place-items:center;border-radius:5px;color:var(--faint);flex:none" style-hover="background:var(--surface2);color:var(--red)"><svg width="13" height="13" viewBox="0 0 16 16"><path d="M3 7h7a3.5 3.5 0 1 1 0 7H6" fill="none" stroke="currentColor" stroke-width="1.4"></path><path d="M6 4L3 7l3 3" fill="none" stroke="currentColor" stroke-width="1.4"></path></svg></button>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px;padding:0 10px 6px">
+      <button onClick="{{ pickB }}" style="flex:1;display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-family:var(--mono);font-size:11.5px;background:{{ selBBg }}" style-hover="background:var(--surface2)"><span style="width:6px;height:6px;border-radius:50%;background:{{ selBDot }};flex:none"></span><span style="color:var(--faint)">test/</span><span style="margin-left:-8px;text-decoration:{{ revBDeco }}">parser.test.ts</span><span style="margin-left:auto;color:var(--green)">+9</span><span style="color:var(--red)">−1</span></button>
+      <button onClick="{{ toggleRevB }}" title="{{ revBTitle }}" style="width:24px;height:24px;display:grid;place-items:center;border-radius:5px;color:var(--faint);flex:none" style-hover="background:var(--surface2);color:var(--red)"><svg width="13" height="13" viewBox="0 0 16 16"><path d="M3 7h7a3.5 3.5 0 1 1 0 7H6" fill="none" stroke="currentColor" stroke-width="1.4"></path><path d="M6 4L3 7l3 3" fill="none" stroke="currentColor" stroke-width="1.4"></path></svg></button>
+    </div>
+  </div>
+  <div style="flex:1;overflow:auto;background:var(--bg)">
+    <sc-if value="{{ revSelected }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;gap:8px;align-items:center;margin:10px 12px;padding:8px 11px;border:1px solid color-mix(in oklab,var(--amber) 45%,var(--border));border-radius:6px;background:var(--amber-bg);font-size:11.5px"><span>Reverted — file restored to last commit. Diff kept for reference.</span><button onClick="{{ restoreSel }}" style="margin-left:auto;color:var(--accent);font-weight:600;font-size:11.5px" style-hover="text-decoration:underline">Restore edit</button></div>
+    </sc-if>
+    <sc-if value="{{ selA }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:0 0 12px">
+      <div style="display:flex;gap:10px;align-items:center;padding:6px 14px;font-family:var(--mono);font-size:10.5px;color:var(--dim);background:var(--surface2);position:sticky;top:0"><span>@@ -126,7 +126,11 @@</span><span style="color:var(--faint)">readCall</span></div>
+      <div style="font-family:var(--mono);font-size:11px;line-height:1.75;overflow-x:auto">
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px"><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">126</span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">126</span><span></span><span style="white-space:pre;color:var(--dim)">function readCall(src, pos) {</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--del-bg)"><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">127</span><span></span><span style="text-align:center;color:var(--red)">−</span><span style="white-space:pre">  const end = consumeUntil(src, pos, ")");</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--del-bg)"><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">128</span><span></span><span style="text-align:center;color:var(--red)">−</span><span style="white-space:pre">  if (end === -1) {</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--del-bg)"><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">129</span><span></span><span style="text-align:center;color:var(--red)">−</span><span style="white-space:pre">    throw new ParseError("Unterminated…", pos);</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--del-bg)"><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">130</span><span></span><span style="text-align:center;color:var(--red)">−</span><span style="white-space:pre">  }</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--del-bg)"><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">131</span><span></span><span style="text-align:center;color:var(--red)">−</span><span style="white-space:pre">  return { kind: "call", value: src.slice(pos, end), end };</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">127</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  let depth = 1;</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">128</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  let i = pos;</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">129</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  while (i &lt; src.length &amp;&amp; depth &gt; 0) {</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">130</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">    if (src[i] === "(") depth++;</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">131</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">    if (src[i] === ")") depth--;</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">132</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">    i++;</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">133</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  }</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">134</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  if (depth &gt; 0) throw new ParseError("Unterminated…", pos);</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">135</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  return { kind: "call", value: src.slice(pos, i - 1), end: i };</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px"><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">132</span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">136</span><span></span><span style="white-space:pre;color:var(--dim)">}</span></div>
+      </div>
+    </div>
+    </sc-if>
+    <sc-if value="{{ selB }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:0 0 12px">
+      <div style="display:flex;gap:10px;align-items:center;padding:6px 14px;font-family:var(--mono);font-size:10.5px;color:var(--dim);background:var(--surface2);position:sticky;top:0"><span>@@ -84,4 +84,12 @@</span><span style="color:var(--faint)">describe("parser")</span></div>
+      <div style="font-family:var(--mono);font-size:11px;line-height:1.75;overflow-x:auto">
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px"><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">84</span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">84</span><span></span><span style="white-space:pre;color:var(--dim)">  it("parses adjacent expressions", () =&gt; {</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px"><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">85</span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">85</span><span></span><span style="white-space:pre;color:var(--dim)">    expect(parse("a(1) b(2)").children)…;</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px"><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">86</span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">86</span><span></span><span style="white-space:pre;color:var(--dim)">  });</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">88</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  // regression: nested call arguments (#142)</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">89</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  it("parses nested call arguments", () =&gt; {</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">90</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">    const ast = parse("sum(len(xs), 2)");</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">91</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">    expect(ast.children).toHaveLength(1);</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">92</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">    expect(ast.children[0].kind).toBe("call");</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">93</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">    expect(ast.children[0].value).toBe("len(xs), 2");</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">94</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">  });</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--del-bg)"><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">87</span><span></span><span style="text-align:center;color:var(--red)">−</span><span style="white-space:pre">});</span></div>
+        <div style="display:grid;grid-template-columns:34px 34px 14px 1fr;min-width:480px;background:var(--add-bg)"><span></span><span style="text-align:right;padding-right:6px;color:var(--faint);font-size:9.5px">95</span><span style="text-align:center;color:var(--green)">+</span><span style="white-space:pre">});</span></div>
+      </div>
+    </div>
+    </sc-if>
+  </div>
+  <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px">
+    <sc-if value="{{ commitOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;gap:8px;animation:ffade .15s ease">
+      <input value="{{ commitMsg }}" onChange="{{ onCommitMsg }}" style="flex:1;height:30px;padding:0 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);font-family:var(--mono);font-size:11.5px">
+      <button onClick="{{ doCommit }}" style="height:30px;padding:0 13px;border-radius:6px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:12px" style-hover="opacity:.92">Commit</button>
+    </div>
+    </sc-if>
+    <sc-if value="{{ committed }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;gap:8px;font-size:12px;animation:ffade .2s ease"><svg width="12" height="12" viewBox="0 0 16 16" style="color:var(--green)"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Committed</span><code style="font-family:var(--mono);font-size:11px;color:var(--dim)">a1f39c2</code><span style="color:var(--dim)">— 2 files</span><span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--faint)">git_commit · just now</span></div>
+    </sc-if>
+    <sc-if value="{{ notCommitted }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;align-items:center;gap:8px">
+      <button onClick="{{ reviewCommit }}" style="height:28px;padding:0 13px;border-radius:6px;background:var(--accent);color:var(--on-accent);font-weight:600;font-size:12.5px" style-hover="opacity:.92">Commit 2 files…</button>
+      <button style="height:28px;padding:0 12px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;color:var(--red)" style-hover="border-color:var(--red)">Revert all</button>
+      <span style="margin-left:auto;font-size:10.5px;color:var(--faint)">runs locally · nothing pushed</span>
+    </div>
+    </sc-if>
+  </div>
+  </sc-if>
+</div>
+</sc-if>
+</div>
+
+<sc-if value="{{ showScrim }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeOver }}" style="position:absolute;inset:0;background:var(--scrim);z-index:40;animation:ffade .15s ease"></div>
+</sc-if>
+
+<sc-if value="{{ showUsage }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;display:grid;place-items:center;z-index:50;pointer-events:none">
+<div data-screen-label="Usage &amp; cost panel" style="pointer-events:auto;width:560px;max-width:calc(100% - 48px);max-height:calc(100% - 56px);overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);animation:frise .18s ease">
+  <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border)"><span style="font-weight:650;font-size:13.5px">Usage &amp; cost</span><span style="font-size:11px;color:var(--faint)">meridian · today</span><button onClick="{{ closeOver }}" title="Close — Esc" style="margin-left:auto;color:var(--faint);width:22px;height:22px;display:grid;place-items:center;border-radius:5px" style-hover="background:var(--surface2);color:var(--text)"><svg width="12" height="12" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5"></path></svg></button></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border)">
+    <div style="background:var(--surface);padding:12px 16px"><div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--faint)">THIS SESSION</div><div style="font-family:var(--mono);font-size:17px;font-weight:700;margin-top:2px">$0.031</div></div>
+    <div style="background:var(--surface);padding:12px 16px"><div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--faint)">TOKENS</div><div style="font-family:var(--mono);font-size:12px;margin-top:7px">214k in · 8.2k out</div></div>
+    <div style="background:var(--surface);padding:12px 16px"><div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--faint)">REQUESTS</div><div style="font-family:var(--mono);font-size:17px;font-weight:700;margin-top:2px">38</div></div>
+  </div>
+  <div style="margin:14px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg);padding:13px 15px">
+    <div style="display:flex;align-items:center;gap:8px"><span style="font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--faint)">PROMPT CACHE</span><span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:var(--green);border:1px solid color-mix(in oklab,var(--green) 40%,var(--border));border-radius:10px;padding:1px 8px">healthy</span></div>
+    <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
+      <span style="font-family:var(--mono);font-size:27px;font-weight:700;color:var(--green)">87%</span>
+      <svg width="170" height="36" viewBox="0 0 170 36" style="color:var(--green)"><polyline points="0,26 12,21 24,23 36,17 48,19 60,13 72,15 84,10 96,20 108,12 120,9 132,11 144,7 158,9 170,6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></polyline></svg>
+      <span style="font-size:11px;color:var(--dim);line-height:1.45;max-width:150px">of input tokens re-read from the provider's cache this session</span>
+    </div>
+    <div style="font-size:12px;color:var(--dim);line-height:1.55;margin-top:10px">Every step resends the whole conversation. When the provider still holds it in cache, those tokens cost about a tenth of the normal price. <b style="color:var(--text)">70–95% is healthy.</b> Below 40%, cost climbs fast — usually an edited session, a model switch, or a gap longer than 5 minutes.</div>
+    <div style="font-size:12px;color:var(--green);margin-top:8px">Caching saved ≈ $0.27 this session (5.4× cheaper).</div>
+  </div>
+  <div style="margin:0 16px 14px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--faint);margin-bottom:6px">BY MODEL — TODAY</div>
+    <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;font-family:var(--mono);font-size:11px">
+      <div style="display:grid;grid-template-columns:1fr 70px 70px 60px;gap:8px;padding:6px 12px;background:var(--surface2);color:var(--faint);font-size:9.5px;letter-spacing:.06em"><span>MODEL</span><span style="text-align:right">REQS</span><span style="text-align:right">CACHE</span><span style="text-align:right">COST</span></div>
+      <div style="display:grid;grid-template-columns:1fr 70px 70px 60px;gap:8px;padding:7px 12px;border-top:1px solid var(--border)"><span>deepseek-v4-pro</span><span style="text-align:right;color:var(--dim)">31</span><span style="text-align:right;color:var(--green)">89%</span><span style="text-align:right">$0.027</span></div>
+      <div style="display:grid;grid-template-columns:1fr 70px 70px 60px;gap:8px;padding:7px 12px;border-top:1px solid var(--border)"><span>glm-5-air</span><span style="text-align:right;color:var(--dim)">7</span><span style="text-align:right;color:var(--green)">92%</span><span style="text-align:right">$0.004</span></div>
+      <div style="display:grid;grid-template-columns:1fr 70px 70px 60px;gap:8px;padding:7px 12px;border-top:1px solid var(--border);background:var(--surface2)"><span style="font-weight:700">today · 6 sessions</span><span></span><span></span><span style="text-align:right;font-weight:700">$0.042</span></div>
+    </div>
+  </div>
+  <div style="margin:0 16px 16px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--faint);margin-bottom:6px">WHAT RESETS THE CACHE</div>
+    <div style="font-size:12px;color:var(--dim);line-height:1.6">Switching models mid-session · editing earlier messages · idle gaps over ~5 minutes. Forge warns before the first two.</div>
+  </div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showHist }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;z-index:50;pointer-events:none">
+<div data-screen-label="Session history" style="pointer-events:auto;position:absolute;top:0;right:0;bottom:0;width:440px;max-width:92%;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow);display:flex;flex-direction:column;animation:fslide .18s ease">
+  <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--border)"><span style="font-weight:650;font-size:13.5px">Sessions</span><span style="font-size:11px;color:var(--faint)">meridian · 12 total</span><button onClick="{{ closeOver }}" title="Close — Esc" style="margin-left:auto;color:var(--faint);width:22px;height:22px;display:grid;place-items:center;border-radius:5px" style-hover="background:var(--surface2);color:var(--text)"><svg width="12" height="12" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5"></path></svg></button></div>
+  <div style="padding:10px 16px 0;border-bottom:1px solid var(--border)">
+    <div style="display:flex;align-items:center;gap:8px;height:30px;padding:0 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg)"><svg width="12" height="12" viewBox="0 0 16 16" style="color:var(--faint);flex:none"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.4"></circle><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.4"></path></svg><input value="{{ sq }}" onChange="{{ onSq }}" placeholder="Search titles and messages…" style="flex:1;min-width:0;font-size:12px"></div>
+    <div style="display:flex;gap:6px;padding:10px 0 11px">
+      <button onClick="{{ setHistActive }}" style="display:flex;align-items:center;gap:6px;height:26px;padding:0 11px;border-radius:6px;font-size:12px;background:{{ histActiveBg }};color:{{ histActiveColor }};border:{{ histActiveBorder }}"><span style="font-weight:600">Active</span><span style="font-family:var(--mono);font-size:10px">{{ histActiveCount }}</span></button>
+      <button onClick="{{ setHistArchived }}" style="display:flex;align-items:center;gap:6px;height:26px;padding:0 11px;border-radius:6px;font-size:12px;background:{{ histArchBg }};color:{{ histArchColor }};border:{{ histArchBorder }}"><span style="font-weight:600">Archived</span><span style="font-family:var(--mono);font-size:10px">{{ histArchivedCount }}</span></button>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:8px 8px 16px">
+    <sc-for list="{{ histRows }}" as="t" hint-placeholder-count="5">
+      <div class="trow" onContextMenu="{{ t.onCtx }}" style="position:relative;border-radius:7px;background:{{ t.bg }}" style-hover="background:var(--surface2)"><sc-if value="{{ t.renaming }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:6px;padding:7px 9px"><input value="{{ t.renameText }}" onChange="{{ t.onRenameInput }}" onKeyDown="{{ t.onRenameKey }}" onBlur="{{ t.onRenameCommit }}" autoFocus="{{ true }}" style="flex:1;min-width:0;height:26px;padding:0 8px;border:1px solid var(--accent);border-radius:5px;background:var(--bg);font-size:12.5px"><span style="font-family:var(--mono);font-size:9px;color:var(--faint);flex:none">↵ Esc</span></div></sc-if><sc-if value="{{ t.notRenaming }}" hint-placeholder-val="{{ true }}"><button onClick="{{ t.onPick }}" style="display:block;width:100%;padding:8px 30px 8px 10px"><span style="display:flex;align-items:center;gap:7px"><span style="font-size:12.5px;font-weight:{{ t.w }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.title }}</span><sc-if value="{{ t.current }}" hint-placeholder-val="{{ false }}"><span style="font-size:9px;font-weight:700;letter-spacing:.05em;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:0 5px;flex:none">CURRENT</span></sc-if><sc-if value="{{ t.archived }}" hint-placeholder-val="{{ false }}"><span style="font-size:8.5px;font-weight:700;letter-spacing:.05em;color:var(--faint);border:1px solid var(--border2);border-radius:3px;padding:0 4px;flex:none">ARCHIVED</span></sc-if></span><span style="display:block;font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.time }} · {{ t.cost }} · {{ t.msgs }}</span></button><button class="tkebab" onClick="{{ t.onKebab }}" title="Thread actions" style="position:absolute;top:9px;right:8px;width:22px;height:22px;display:grid;place-items:center;border-radius:5px;color:var(--faint)" style-hover="background:var(--border);color:var(--text)"><svg width="12" height="12" viewBox="0 0 16 16"><circle cx="8" cy="3.6" r="1.4" fill="currentColor"></circle><circle cx="8" cy="8" r="1.4" fill="currentColor"></circle><circle cx="8" cy="12.4" r="1.4" fill="currentColor"></circle></svg></button></sc-if></div>
+    </sc-for>
+    <sc-if value="{{ histNone }}" hint-placeholder-val="{{ false }}"><div style="padding:26px 10px;text-align:center;font-size:12px;color:var(--faint)">{{ histEmptyMsg }}</div></sc-if>
+  </div>
+  <div style="padding:9px 16px;border-top:1px solid var(--border);font-size:10.5px;color:var(--faint)">Stored locally · <span style="font-family:var(--mono);font-size:10px">%APPDATA%\Forge\sessions</span></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showProj }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;z-index:50;pointer-events:none">
+<div data-screen-label="Project switcher" style="pointer-events:auto;position:absolute;top:50px;left:60px;width:470px;max-width:88%;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;animation:frise .15s ease">
+  <div style="padding:12px 14px;background:var(--surface2)">
+    <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--faint);margin-bottom:6px">CURRENT</div>
+    <div style="display:flex;align-items:center;gap:10px"><svg width="15" height="15" viewBox="0 0 16 16" style="color:var(--accent)"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><div style="min-width:0"><div style="font-weight:650;font-size:13px">meridian</div><div style="font-family:var(--mono);font-size:10.5px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">C:\Users\rich\dev\meridian</div></div><span style="margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--dim);flex:none">main · clean <span style="color:var(--green)">✓</span></span></div>
+  </div>
+  <div style="padding:8px 6px 6px">
+    <div style="font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--faint);padding:2px 8px 6px">RECENT — ONE CLICK, NO DIALOG</div>
+    <button style="display:flex;align-items:center;gap:10px;width:100%;padding:7px 8px;border-radius:6px" style-hover="background:var(--surface2)"><svg width="14" height="14" viewBox="0 0 16 16" style="color:var(--dim);flex:none"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span style="min-width:0"><span style="display:block;font-size:12.5px;font-weight:600">forge-site</span><span style="display:block;font-family:var(--mono);font-size:10px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">C:\Users\rich\dev\forge-site</span></span><span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--faint);flex:none">yesterday</span></button>
+    <button style="display:flex;align-items:center;gap:10px;width:100%;padding:7px 8px;border-radius:6px" style-hover="background:var(--surface2)"><svg width="14" height="14" viewBox="0 0 16 16" style="color:var(--dim);flex:none"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span style="min-width:0"><span style="display:block;font-size:12.5px;font-weight:600">dotfiles</span><span style="display:block;font-family:var(--mono);font-size:10px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">C:\Users\rich\dotfiles</span></span><span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--faint);flex:none">3 days ago</span></button>
+    <button style="display:flex;align-items:center;gap:10px;width:100%;padding:7px 8px;border-radius:6px" style-hover="background:var(--surface2)"><svg width="14" height="14" viewBox="0 0 16 16" style="color:var(--dim);flex:none"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span style="min-width:0"><span style="display:block;font-size:12.5px;font-weight:600">invoice-cli</span><span style="display:block;font-family:var(--mono);font-size:10px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">C:\Users\rich\dev\invoice-cli</span></span><span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--faint);flex:none">Jul 9</span></button>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;padding:9px 14px;border-top:1px solid var(--border)">
+    <button style="display:flex;align-items:center;gap:7px;height:28px;padding:0 12px;border:1px solid var(--border);border-radius:6px;font-size:12.5px;color:var(--dim)" style-hover="color:var(--text);border-color:var(--border2)">Open folder…<span style="font-family:var(--mono);font-size:9.5px;border:1px solid var(--border);border-radius:3px;padding:0 4px">Ctrl O</span></button>
+    <span style="margin-left:auto;font-size:10.5px;color:var(--faint)">recents restore the last session</span>
+  </div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ showSettings }}" hint-placeholder-val="{{ false }}">
+<div style="position:absolute;inset:0;z-index:50;pointer-events:none">
+<div data-screen-label="Settings" style="pointer-events:auto;position:absolute;top:0;right:0;bottom:0;width:560px;max-width:94%;background:var(--surface);border-left:1px solid var(--border);box-shadow:var(--shadow);display:flex;flex-direction:column;animation:fslide .18s ease">
+  <div style="display:flex;align-items:center;gap:8px;padding:12px 18px;border-bottom:1px solid var(--border)"><span style="font-weight:650;font-size:13.5px">Settings</span><button onClick="{{ closeOver }}" title="Close — Esc" style="margin-left:auto;color:var(--faint);width:22px;height:22px;display:grid;place-items:center;border-radius:5px" style-hover="background:var(--surface2);color:var(--text)"><svg width="12" height="12" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5"></path></svg></button></div>
+  <div style="flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:22px">
+    <div>
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--faint)">PROVIDER KEYS</div>
+      <div style="font-size:11.5px;color:var(--dim);margin:3px 0 8px">Stored locally, sent only to the provider.</div>
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 12px"><span style="font-weight:600;font-size:12.5px;width:76px">DeepSeek</span><code style="font-family:var(--mono);font-size:10.5px;color:var(--dim)">sk-…d81f</code><span style="display:inline-flex;align-items:center;gap:4px;font-size:10.5px;color:var(--green)"><svg width="9" height="9" viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2.2"></path></svg>active</span><button style="margin-left:auto;font-size:11.5px;color:var(--dim)" style-hover="color:var(--text);text-decoration:underline">Replace</button></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 12px;border-top:1px solid var(--border)"><span style="font-weight:600;font-size:12.5px;width:76px">GLM</span><code style="font-family:var(--mono);font-size:10.5px;color:var(--dim)">glm-…9c22</code><span style="display:inline-flex;align-items:center;gap:4px;font-size:10.5px;color:var(--green)"><svg width="9" height="9" viewBox="0 0 16 16"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2.2"></path></svg>active</span><button style="margin-left:auto;font-size:11.5px;color:var(--dim)" style-hover="color:var(--text);text-decoration:underline">Replace</button></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 12px;border-top:1px solid var(--border)"><span style="font-weight:600;font-size:12.5px;width:76px;color:var(--dim)">Kimi</span><span style="font-size:11px;color:var(--faint)">no key</span><button style="margin-left:auto;font-size:11.5px;color:var(--accent)" style-hover="text-decoration:underline">Add key</button></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 12px;border-top:1px solid var(--border)"><span style="font-weight:600;font-size:12.5px;width:76px;color:var(--dim)">Custom</span><span style="font-size:11px;color:var(--faint)">any OpenAI-compatible endpoint</span><button style="margin-left:auto;font-size:11.5px;color:var(--accent)" style-hover="text-decoration:underline">Add</button></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--faint)">MODEL TIERS</div>
+      <div style="font-size:11.5px;color:var(--dim);margin:3px 0 8px">Forge routes each step to a tier — trivial steps go fast and cheap, hard reasoning goes strong.</div>
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 12px"><span style="font-weight:600;font-size:12.5px;width:60px">Fast</span><span style="font-size:11px;color:var(--faint);flex:1">summaries, titles, small lookups</span><button style="display:flex;align-items:center;gap:6px;height:26px;padding:0 10px;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:10.5px;color:var(--dim)" style-hover="border-color:var(--border2);color:var(--text)">glm-5-air ▾</button></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 12px;border-top:1px solid var(--border)"><span style="font-weight:600;font-size:12.5px;width:60px">Cheap</span><span style="font-size:11px;color:var(--faint);flex:1">most working steps</span><button style="display:flex;align-items:center;gap:6px;height:26px;padding:0 10px;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:10.5px;color:var(--dim)" style-hover="border-color:var(--border2);color:var(--text)">deepseek-v4 ▾</button></div>
+        <div style="display:flex;align-items:center;gap:9px;padding:9px 12px;border-top:1px solid var(--border)"><span style="font-weight:600;font-size:12.5px;width:60px">Strong</span><span style="font-size:11px;color:var(--faint);flex:1">planning, tricky debugging</span><button style="display:flex;align-items:center;gap:6px;height:26px;padding:0 10px;border:1px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:10.5px;color:var(--dim)" style-hover="border-color:var(--border2);color:var(--text)">deepseek-v4-pro ▾</button></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--faint);margin-bottom:8px">PERMISSIONS</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button onClick="{{ setPmRo }}" style="display:flex;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;align-items:flex-start" style-hover="border-color:var(--border2)"><span style="width:14px;height:14px;border-radius:50%;border:{{ pmRoRing }};flex:none;margin-top:1px"></span><span><span style="display:block;font-weight:600;font-size:12.5px">Read-only</span><span style="display:block;font-size:11.5px;color:var(--dim)">never writes or runs anything</span></span></button>
+        <button onClick="{{ setPmAsk }}" style="display:flex;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;align-items:flex-start" style-hover="border-color:var(--border2)"><span style="width:14px;height:14px;border-radius:50%;border:{{ pmAskRing }};flex:none;margin-top:1px"></span><span><span style="display:block;font-weight:600;font-size:12.5px">Ask for everything</span><span style="display:block;font-size:11.5px;color:var(--dim)">every write and command needs a yes</span></span></button>
+        <button onClick="{{ setPmEdits }}" style="display:flex;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;align-items:flex-start" style-hover="border-color:var(--border2)"><span style="width:14px;height:14px;border-radius:50%;border:{{ pmEditsRing }};flex:none;margin-top:1px"></span><span><span style="display:block;font-weight:600;font-size:12.5px">Auto-allow edits, ask for commands</span><span style="display:block;font-size:11.5px;color:var(--dim)">edits are logged and per-file revertible; shell still asks</span></span></button>
+        <button onClick="{{ setPmAll }}" style="display:flex;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;align-items:flex-start" style-hover="border-color:var(--border2)"><span style="width:14px;height:14px;border-radius:50%;border:{{ pmAllRing }};flex:none;margin-top:1px"></span><span><span style="display:block;font-weight:600;font-size:12.5px">Auto-allow everything</span><span style="display:block;font-size:11.5px;color:var(--red)">destructive commands still require typed confirmation — always</span></span></button>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--faint);margin-bottom:8px">APPEARANCE</div>
+      <div style="display:flex;gap:6px">
+        <button onClick="{{ setThSys }}" style="height:28px;padding:0 12px;border:1px solid {{ thSysB }};border-radius:6px;font-size:12px;color:{{ thSysC }}">Follow Windows</button>
+        <button onClick="{{ setThLight }}" style="height:28px;padding:0 12px;border:1px solid {{ thLightB }};border-radius:6px;font-size:12px;color:{{ thLightC }}">Light</button>
+        <button onClick="{{ setThDark }}" style="height:28px;padding:0 12px;border:1px solid {{ thDarkB }};border-radius:6px;font-size:12px;color:{{ thDarkC }}">Dark</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ anyMenu }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeMenu }}" style="position:fixed;inset:0;z-index:59"></div>
+<div data-screen-label="Thread actions menu" style="position:fixed;left:{{ menuX }}px;top:{{ menuY }}px;z-index:60;width:192px;background:var(--surface);border:1px solid var(--border2);border-radius:9px;box-shadow:var(--shadow);padding:5px;animation:frise .1s ease">
+  <div style="padding:4px 8px 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--faint);border-bottom:1px solid var(--border);margin-bottom:4px">{{ menuTitle }}</div>
+  <button onClick="{{ menuPin }}" style="display:flex;align-items:center;width:100%;padding:6px 8px;border-radius:6px;font-size:12.5px" style-hover="background:var(--surface2)"><span style="flex:1">{{ menuPinLabel }}</span><span style="font-family:var(--mono);font-size:9.5px;color:var(--faint);border:1px solid var(--border);border-radius:3px;padding:0 4px">P</span></button>
+  <button onClick="{{ menuRename }}" style="display:flex;align-items:center;width:100%;padding:6px 8px;border-radius:6px;font-size:12.5px" style-hover="background:var(--surface2)"><span style="flex:1">Rename</span><span style="font-family:var(--mono);font-size:9.5px;color:var(--faint);border:1px solid var(--border);border-radius:3px;padding:0 4px">R</span></button>
+  <button onClick="{{ menuArch }}" style="display:flex;align-items:center;width:100%;padding:6px 8px;border-radius:6px;font-size:12.5px" style-hover="background:var(--surface2)"><span style="flex:1">{{ menuArchLabel }}</span><span style="font-family:var(--mono);font-size:9.5px;color:var(--faint);border:1px solid var(--border);border-radius:3px;padding:0 4px">A</span></button>
+  <div style="height:1px;background:var(--border);margin:4px 6px"></div>
+  <button onClick="{{ menuDelete }}" style="display:flex;align-items:center;width:100%;padding:6px 8px;border-radius:6px;font-size:12.5px;color:{{ menuDelColor }};background:{{ menuDelBg }}" style-hover="background:{{ menuDelHover }}"><span style="flex:1">{{ menuDelLabel }}</span><span style="font-family:var(--mono);font-size:9.5px;opacity:.7;border:1px solid currentColor;border-radius:3px;padding:0 4px">D</span></button>
+</div>
+</sc-if>
+
+<sc-if value="{{ palOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closePal }}" style="position:absolute;inset:0;background:var(--scrim);z-index:60;animation:ffade .12s ease"></div>
+<div data-screen-label="Command palette" style="position:absolute;left:50%;top:78px;transform:translateX(-50%);width:520px;max-width:90%;z-index:61;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;animation:frise .14s ease">
+  <div style="display:flex;align-items:center;gap:9px;padding:11px 14px;border-bottom:1px solid var(--border)"><svg width="13" height="13" viewBox="0 0 16 16" style="color:var(--faint)"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.4"></circle><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.4"></path></svg><input value="{{ pq }}" onChange="{{ onPq }}" placeholder="Type a command…" style="flex:1;font-size:13px"><span style="font-family:var(--mono);font-size:9.5px;color:var(--faint);border:1px solid var(--border);border-radius:3px;padding:1px 5px">Esc</span></div>
+  <div style="max-height:300px;overflow-y:auto;padding:6px">
+    <sc-for list="{{ palItems }}" as="it" hint-placeholder-count="6">
+      <button onClick="{{ it.onPick }}" style="display:flex;align-items:center;gap:10px;width:100%;padding:7px 10px;border-radius:6px;font-size:12.5px" style-hover="background:var(--surface2)"><span>{{ it.label }}</span><span style="margin-left:auto;font-family:var(--mono);font-size:9.5px;color:var(--faint);border:1px solid var(--border);border-radius:3px;padding:1px 5px">{{ it.kbd }}</span></button>
+    </sc-for>
+    <sc-if value="{{ palEmpty }}" hint-placeholder-val="{{ false }}"><div style="padding:14px;text-align:center;color:var(--faint);font-size:12px">No matching commands</div></sc-if>
+  </div>
+</div>
+</sc-if>
+</sc-if>
+
+<div style="position:absolute;right:14px;bottom:14px;z-index:80;display:flex;flex-direction:column;align-items:flex-end;gap:8px" data-screen-label="Preview state switcher">
+  <sc-if value="{{ swOpen }}" hint-placeholder-val="{{ false }}">
+  <div style="width:240px;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;animation:frise .15s ease">
+    <div style="padding:8px 12px 4px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--faint)">PREVIEW · SCREENS</div>
+    <div style="padding:4px 6px 6px;display:flex;flex-direction:column">
+      <sc-for list="{{ swItems }}" as="it" hint-placeholder-count="4">
+        <button onClick="{{ it.onPick }}" style="display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;font-size:12px" style-hover="background:var(--surface2)"><span style="width:5px;height:5px;border-radius:50%;background:{{ it.dot }};flex:none"></span><span>{{ it.label }}</span></button>
+      </sc-for>
+    </div>
+    <div style="display:flex;gap:4px;padding:7px 10px;border-top:1px solid var(--border)">
+      <button onClick="{{ setThSys }}" style="flex:1;height:22px;border:1px solid {{ thSysB }};border-radius:5px;font-size:10.5px;text-align:center;color:{{ thSysC }}">System</button>
+      <button onClick="{{ setThLight }}" style="flex:1;height:22px;border:1px solid {{ thLightB }};border-radius:5px;font-size:10.5px;text-align:center;color:{{ thLightC }}">Light</button>
+      <button onClick="{{ setThDark }}" style="flex:1;height:22px;border:1px solid {{ thDarkB }};border-radius:5px;font-size:10.5px;text-align:center;color:{{ thDarkC }}">Dark</button>
+    </div>
+  </div>
+  </sc-if>
+  <button onClick="{{ toggleSw }}" style="display:flex;align-items:center;gap:8px;height:30px;padding:0 13px;border-radius:15px;background:var(--text);color:var(--bg);font-family:var(--mono);font-size:10.5px;font-weight:700;box-shadow:var(--shadow)"><span style="width:6px;height:6px;border-radius:50%;background:var(--accent)"></span>{{ sceneLabel }}<svg width="10" height="10" viewBox="0 0 16 16" style="transform:rotate(180deg)"><path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8"></path></svg></button>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:820},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;mid-run&quot;,&quot;options&quot;:[&quot;empty&quot;,&quot;mid-run&quot;,&quot;permission: routine&quot;,&quot;permission: dangerous&quot;,&quot;completed run&quot;,&quot;review changes&quot;,&quot;errors&quot;,&quot;usage + cache&quot;,&quot;history&quot;,&quot;projects&quot;,&quot;first run&quot;,&quot;settings&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Prototype&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;system&quot;,&quot;options&quot;:[&quot;system&quot;,&quot;light&quot;,&quot;dark&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Prototype&quot;}}">
+class Component extends DCLogic {
+  state = { scene: null, prevBase: null, themeOv: null, draft: '', secs: 0,
+    paState: 'pending', qState: 'pending', dbText: '', dbState: 'pending',
+    selFile: 'a', revA: false, revB: false, commitOpen: false, commitMsg: 'fix: track paren depth in readCall (nested call args)', committed: false,
+    turnsOpen: false, runOpen: true, diffAOpen: true, diffBOpen: false, outFull: false,
+    palOpen: false, pq: '', swOpen: false, permMode: 'edits',
+    sbOpen: true, sq: '', curProj: 'meridian', curThreadId: 't1',
+    threads: [
+      { id: 't9', title: 'Parser rewrite plan', time: 'Jul 10', cost: '$0.019', msgs: '7 msgs', pinned: true, archived: false },
+      { id: 't1', title: 'Fix failing parser test', time: '14:32', cost: '$0.031', msgs: '12 msgs', pinned: false, archived: false },
+      { id: 't2', title: 'Set up vitest fixtures', time: '14:02', cost: '$0.006', msgs: '8 msgs', pinned: false, archived: false },
+      { id: 't3', title: 'Add error recovery to the tokenizer for unterminated expressions', time: 'Wed', cost: '$0.041', msgs: '22 msgs', pinned: false, archived: false },
+      { id: 't4', title: 'Explain the AST walker', time: 'Mon', cost: '$0.008', msgs: '4 msgs', pinned: false, archived: false },
+      { id: 't5', title: 'Bootstrap tokenizer from spec', time: 'Jul 12', cost: '$0.110', msgs: '31 msgs', pinned: false, archived: false },
+      { id: 't6', title: 'Normalise Windows path separators in the emitter', time: 'Jul 11', cost: '$0.072', msgs: '19 msgs', pinned: false, archived: true },
+      { id: 't7', title: 'Wire up the CLI flag parser', time: 'Jul 9', cost: '$0.024', msgs: '6 msgs', pinned: false, archived: true }
+    ],
+    menuFor: null, menuX: 0, menuY: 0, armDel: false, renameFor: null, renameText: '', histArchived: false };
+
+  SCREEN_MAP = { 'empty': 'empty', 'mid-run': 'mid', 'permission: routine': 'perma', 'permission: dangerous': 'permb', 'completed run': 'done', 'review changes': 'review', 'errors': 'err', 'usage + cache': 'usage', 'history': 'hist', 'projects': 'proj', 'first run': 'first', 'settings': 'settings' };
+
+  key() { return this.state.scene || this.SCREEN_MAP[this.props.screen] || 'mid'; }
+
+  go(k) {
+    const bases = ['empty', 'mid', 'perma', 'permb', 'done', 'review', 'err', 'first'];
+    const cur = this.key();
+    this.setState({ scene: k, palOpen: false, swOpen: false, menuFor: null, armDel: false, prevBase: bases.includes(cur) ? cur : this.state.prevBase });
+  }
+
+  tOpenAt(id, x, y) {
+    const mx = Math.min(Math.max(8, x), (window.innerWidth || 1180) - 200);
+    const my = Math.min(Math.max(8, y), (window.innerHeight || 820) - 232);
+    this.setState(s => s.menuFor === id ? { menuFor: null, armDel: false } : { menuFor: id, menuX: mx, menuY: my, armDel: false });
+  }
+  tClose() { this.setState({ menuFor: null, armDel: false }); }
+  tPin(id) { this.setState(s => ({ threads: s.threads.map(z => z.id === id ? { ...z, pinned: !z.pinned } : z), menuFor: null, armDel: false })); }
+  tArch(id) { this.setState(s => ({ threads: s.threads.map(z => z.id === id ? { ...z, archived: !z.archived, pinned: false } : z), menuFor: null, armDel: false })); }
+  tRename(id) { this.setState(s => { const t = s.threads.find(z => z.id === id); return { renameFor: id, renameText: t ? t.title : '', menuFor: null, armDel: false }; }); }
+  tCommit() { this.setState(s => ({ threads: s.threads.map(z => z.id === s.renameFor ? { ...z, title: (s.renameText.trim() || z.title) } : z), renameFor: null })); }
+  tCancel() { this.setState({ renameFor: null }); }
+  tDel(id) { this.setState(s => s.armDel ? { threads: s.threads.filter(z => z.id !== id), menuFor: null, armDel: false, curThreadId: s.curThreadId === id ? ((s.threads.find(z => z.id !== id && !z.archived) || {}).id || null) : s.curThreadId } : { armDel: true }); }
+  tPick(id) { this.setState(s => ({ threads: s.threads.map(z => z.id === id ? { ...z, archived: false } : z), curThreadId: id, menuFor: null, renameFor: null })); this.go('done'); }
+
+  componentDidMount() {
+    this._t = setInterval(() => { if (this.key() === 'mid') this.setState(s => ({ secs: s.secs + 1 })); }, 1000);
+    this._kd = (e) => {
+      if (this.state.menuFor && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const id = this.state.menuFor, kk = e.key.toLowerCase();
+        if (e.key === 'Escape') { e.preventDefault(); this.tClose(); return; }
+        if (kk === 'p') { e.preventDefault(); this.tPin(id); return; }
+        if (kk === 'r') { e.preventDefault(); this.tRename(id); return; }
+        if (kk === 'a') { e.preventDefault(); this.tArch(id); return; }
+        if (kk === 'd') { e.preventDefault(); this.tDel(id); return; }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); this.setState(s => ({ palOpen: !s.palOpen })); return; }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') { e.preventDefault(); this.setState(s => ({ sbOpen: !s.sbOpen })); return; }
+      if (e.key === 'Escape') {
+        if (this.state.palOpen) { this.setState({ palOpen: false }); return; }
+        const k = this.key();
+        if (['usage', 'hist', 'proj', 'settings'].includes(k)) this.go(this.state.prevBase || 'done');
+        else if (k === 'review') this.go('done');
+      }
+    };
+    window.addEventListener('keydown', this._kd);
+  }
+  componentWillUnmount() { clearInterval(this._t); window.removeEventListener('keydown', this._kd); }
+  componentDidUpdate(p) { if (p.screen !== this.props.screen && this.state.scene) this.setState({ scene: null }); }
+
+  renderVals() {
+    const s = this.state, k = this.key();
+    const theme = s.themeOv || this.props.theme || 'system';
+    const running = k === 'mid' || k === 'perma' || k === 'permb';
+    const threadDone = ['done', 'review', 'usage', 'hist', 'proj', 'settings'].includes(k);
+    const cache = k === 'err' ? { pct: '63', color: 'var(--amber)', spark: '0,4 5,5 10,4 15,5 20,6 25,8 30,9 36,9' } : { pct: '87', color: 'var(--green)', spark: '0,8 5,6 10,7 15,5 20,6 25,4 30,5 36,3' };
+    const cost = { empty: '$0.00', mid: '$0.018', perma: '$0.018', permb: '$0.021', err: '$0.026' }[k] || '$0.031';
+    const ctx = { empty: '0', mid: '34', perma: '34', permb: '34', err: '41' }[k] || '38';
+    const mm = Math.floor((252 + s.secs) / 60), ss = String((252 + s.secs) % 60).padStart(2, '0');
+    const perm = k === 'permb' ? { tool: 'run_shell', target: 'rm -rf build' } : { tool: 'edit_file', target: 'src/tokenizer.ts' };
+    const go = (t) => () => this.go(t);
+    const toggleTheme = () => {
+      const cur = (s.themeOv || this.props.theme || 'system');
+      const dark = cur === 'system' ? window.matchMedia('(prefers-color-scheme: dark)').matches : cur === 'dark';
+      this.setState({ themeOv: dark ? 'light' : 'dark', palOpen: false });
+    };
+    const palDefs = [
+      ['New session', 'Ctrl N', go('empty')], ['Review changes', 'Ctrl D', go('review')],
+      ['Switch project…', 'Ctrl P', go('proj')], ['Session history', 'Ctrl H', go('hist')],
+      ['Usage & cost', 'Ctrl U', go('usage')], ['Search in session…', 'Ctrl F', () => this.setState({ palOpen: false })],
+      ['Toggle sidebar', 'Ctrl B', () => this.setState(x => ({ sbOpen: !x.sbOpen, palOpen: false }))],
+      ['Toggle light / dark', 'Ctrl Shift L', toggleTheme], ['Settings', 'Ctrl ,', go('settings')],
+      ['Stop the agent', 'Esc Esc', go('done')]
+    ];
+    const q = s.pq.trim().toLowerCase();
+    const palItems = palDefs.filter(d => !q || d[0].toLowerCase().includes(q)).map(d => ({ label: d[0], kbd: d[1], onPick: d[2] }));
+    const swDefs = [['Empty', 'empty'], ['Mid-run', 'mid'], ['Permission — routine', 'perma'], ['Permission — dangerous', 'permb'], ['Completed run', 'done'], ['Review changes', 'review'], ['Errors', 'err'], ['Usage + cache', 'usage'], ['History', 'hist'], ['Projects', 'proj'], ['First run', 'first'], ['Settings', 'settings']];
+    const tq = s.sq.trim().toLowerCase();
+    const onMeridian = s.curProj === 'meridian';
+    const rowVM = (t) => ({
+      id: t.id, title: t.title, time: t.time, cost: t.cost, msgs: t.msgs,
+      pinned: t.pinned, archived: t.archived,
+      renaming: s.renameFor === t.id, notRenaming: s.renameFor !== t.id,
+      bg: t.id === s.curThreadId ? 'var(--sel)' : 'transparent',
+      w: t.id === s.curThreadId ? '600' : '400',
+      renameText: s.renameText,
+      onPick: () => this.tPick(t.id),
+      onCtx: (e) => { e.preventDefault(); this.tOpenAt(t.id, e.clientX, e.clientY); },
+      onKebab: (e) => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); this.tOpenAt(t.id, r.right - 2, r.bottom + 4); },
+      onRenameInput: (e) => this.setState({ renameText: e.target.value }),
+      onRenameKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); this.tCommit(); } else if (e.key === 'Escape') { e.preventDefault(); this.tCancel(); } },
+      onRenameCommit: () => this.tCommit()
+    });
+    const visible = onMeridian ? s.threads.filter(t => !t.archived && (!tq || t.title.toLowerCase().includes(tq))) : [];
+    const pinnedRows = visible.filter(t => t.pinned).map(rowVM);
+    const recentRows = visible.filter(t => !t.pinned).map(rowVM);
+    const archivedCount = onMeridian ? s.threads.filter(t => t.archived).length : 0;
+    const mt = s.threads.find(t => t.id === s.menuFor);
+    const histBase = s.histArchived ? s.threads.filter(t => t.archived) : s.threads.filter(t => !t.archived);
+    const histRows = histBase.filter(t => !tq || t.title.toLowerCase().includes(tq)).map(t => ({ ...rowVM(t), current: t.id === s.curThreadId }));
+    const sbProjects = ['meridian', 'forge-site', 'dotfiles', 'invoice-cli'].map(name => ({
+      name,
+      bg: s.curProj === name ? 'var(--sel)' : 'transparent',
+      w: s.curProj === name ? '600' : '400',
+      dot: s.curProj === name ? 'var(--green)' : 'transparent',
+      onPick: () => this.setState({ curProj: name, curThreadId: name === 'meridian' ? 't1' : null, menuFor: null })
+    }));
+    const ringOn = '4px solid var(--accent)', ringOff = '1px solid var(--border2)';
+    const thB = (v) => (theme === v ? '1px solid var(--accent)' : '1px solid var(--border)');
+    const thC = (v) => (theme === v ? 'var(--accent)' : 'var(--dim)');
+    return {
+      theme, sceneLabel: (swDefs.find(d => d[1] === k) || ['?'])[0],
+      sbOpen: s.sbOpen, toggleSb: () => this.setState(x => ({ sbOpen: !x.sbOpen })),
+      sq: s.sq, onSq: (e) => this.setState({ sq: e.target.value }),
+      curProj: s.curProj, sbProjects, pinnedRows, recentRows,
+      sbPinnedShow: pinnedRows.length > 0,
+      sbRecentCount: String(recentRows.length),
+      sbNone: pinnedRows.length + recentRows.length === 0,
+      sbNoneMsg: onMeridian ? (tq ? 'No threads match “' + s.sq.trim() + '”' : 'No sessions yet — send a message to start one.') : 'No sessions yet in this folder — send a message to start one.',
+      archivedShow: archivedCount > 0, archivedCount: String(archivedCount),
+      showArchived: () => { this.setState({ histArchived: true }); this.go('hist'); },
+      anyMenu: !!mt, menuX: s.menuX, menuY: s.menuY, closeMenu: () => this.tClose(),
+      menuTitle: mt ? mt.title : '',
+      menuPinLabel: mt && mt.pinned ? 'Unpin' : 'Pin to top',
+      menuArchLabel: mt && mt.archived ? 'Restore' : 'Archive',
+      menuDelLabel: s.armDel ? 'Click again to delete' : 'Delete',
+      menuDelColor: s.armDel ? '#fff' : 'var(--red)',
+      menuDelBg: s.armDel ? 'var(--red)' : 'transparent',
+      menuDelHover: s.armDel ? 'var(--red)' : 'var(--red-bg)',
+      menuPin: () => mt && this.tPin(mt.id),
+      menuRename: () => mt && this.tRename(mt.id),
+      menuArch: () => mt && this.tArch(mt.id),
+      menuDelete: () => mt && this.tDel(mt.id),
+      histRows, histNone: histRows.length === 0,
+      histEmptyMsg: s.histArchived ? 'Nothing archived — archived threads land here.' : 'No active sessions yet.',
+      histActive: !s.histArchived, histIsArchived: s.histArchived,
+      setHistActive: () => this.setState({ histArchived: false }), setHistArchived: () => this.setState({ histArchived: true }),
+      histActiveCount: String(s.threads.filter(t => !t.archived).length), histArchivedCount: String(s.threads.filter(t => t.archived).length),
+      histActiveBg: s.histArchived ? 'transparent' : 'var(--sel)', histActiveColor: s.histArchived ? 'var(--dim)' : 'var(--accent)', histActiveBorder: s.histArchived ? '1px solid var(--border)' : '1px solid var(--accent)',
+      histArchBg: s.histArchived ? 'var(--sel)' : 'transparent', histArchColor: s.histArchived ? 'var(--accent)' : 'var(--dim)', histArchBorder: s.histArchived ? '1px solid var(--accent)' : '1px solid var(--border)',
+      sFirst: k === 'first', notFirst: k !== 'first',
+      sEmpty: k === 'empty', sMid: k === 'mid', sPermA: k === 'perma', sPermB: k === 'permb',
+      sPermAny: k === 'perma' || k === 'permb', sErr: k === 'err',
+      threadMid: running, threadDone, running,
+      panelOpen: running || k === 'review', panelLive: running, panelReview: k === 'review',
+      hasChangesBtn: threadDone,
+      showUsage: k === 'usage', showHist: k === 'hist', showProj: k === 'proj', showSettings: k === 'settings',
+      showScrim: ['usage', 'hist', 'proj', 'settings'].includes(k),
+      cachePct: cache.pct, cacheColor: cache.color, cacheSpark: cache.spark, cost,
+      ctxPct: ctx, ctxW: ctx + '%',
+      elapsed: k === 'mid' ? mm + ':' + ss : '4:12',
+      barColor: k === 'mid' ? 'var(--accent)' : 'var(--amber)',
+      runLabel: k === 'mid' ? 'Working — fixing the tokenizer' : 'Paused — a request needs you',
+      composerPh: running ? 'Queue a follow-up — it sends when the run finishes…' : 'Ask Forge to explain, change, or fix something…',
+      composerRows: 1,
+      permTool: perm.tool, permTarget: perm.target,
+      permLabel: { ro: 'Read-only', ask: 'Ask for everything', edits: 'Edits auto · commands ask', all: 'Auto-allow all' }[s.permMode],
+      draft: s.draft, onDraft: (e) => this.setState({ draft: e.target.value }),
+      onSend: () => this.go('mid'), onStop: () => this.go('done'),
+      sug1: () => this.setState({ draft: 'What does the tokenizer hand the parser?' }),
+      sug2: () => this.setState({ draft: 'Add error recovery to unterminated expressions' }),
+      sug3: () => this.setState({ draft: 'The parser test is failing on nested calls — work out why' }),
+      goEmpty: go('empty'), goDone: go('done'), goReview: go('review'), goHist: go('hist'),
+      goUsage: go('usage'), goProj: go('proj'), goSettings: go('settings'),
+      closeOver: () => this.go(this.state.prevBase || 'done'),
+      paPending: s.paState === 'pending', paAllowed: s.paState === 'allowed', paDenied: s.paState === 'denied',
+      paAllow: () => this.setState({ paState: 'allowed' }), paAlways: () => this.setState({ paState: 'allowed', permMode: 'edits' }), paDeny: () => this.setState({ paState: 'denied' }),
+      qPending: s.paState === 'allowed' && s.qState === 'pending', qAllowed: s.qState === 'allowed', qDenied: s.qState === 'denied',
+      qAllow: () => this.setState({ qState: 'allowed' }), qDeny: () => this.setState({ qState: 'denied' }),
+      dbText: s.dbText, onDbText: (e) => this.setState({ dbText: e.target.value }),
+      dbPending: s.dbState === 'pending', dbAllowed: s.dbState === 'allowed', dbDenied: s.dbState === 'denied',
+      dbOk: s.dbText.trim().toLowerCase() === 'build', dbNotOk: s.dbText.trim().toLowerCase() !== 'build',
+      dbAllow: () => this.setState({ dbState: 'allowed' }), dbDeny: () => this.setState({ dbState: 'denied' }),
+      turnsOpen: s.turnsOpen, toggleTurns: () => this.setState(x => ({ turnsOpen: !x.turnsOpen })), turnsChev: s.turnsOpen ? '▾' : '▸',
+      runOpen: s.runOpen, toggleRun: () => this.setState(x => ({ runOpen: !x.runOpen })), runChevDeg: s.runOpen ? '180deg' : '0deg',
+      diffAOpen: s.diffAOpen, toggleDiffA: () => this.setState(x => ({ diffAOpen: !x.diffAOpen })), diffAChevDeg: s.diffAOpen ? '180deg' : '0deg',
+      diffBOpen: s.diffBOpen, toggleDiffB: () => this.setState(x => ({ diffBOpen: !x.diffBOpen })), diffBChevDeg: s.diffBOpen ? '180deg' : '0deg',
+      outMax: s.outFull ? 'none' : '232px', outLabel: s.outFull ? 'collapse output' : 'show all 187 lines',
+      toggleOut: () => this.setState(x => ({ outFull: !x.outFull })),
+      selA: s.selFile === 'a', selB: s.selFile === 'b',
+      pickA: () => this.setState({ selFile: 'a' }), pickB: () => this.setState({ selFile: 'b' }),
+      pickAReview: () => { this.setState({ selFile: 'a' }); this.go('review'); },
+      pickBReview: () => { this.setState({ selFile: 'b' }); this.go('review'); },
+      selABg: s.selFile === 'a' ? 'var(--sel)' : 'transparent', selBBg: s.selFile === 'b' ? 'var(--sel)' : 'transparent',
+      selADot: s.selFile === 'a' ? 'var(--accent)' : 'var(--border2)', selBDot: s.selFile === 'b' ? 'var(--accent)' : 'var(--border2)',
+      revADeco: s.revA ? 'line-through' : 'none', revBDeco: s.revB ? 'line-through' : 'none',
+      revATitle: s.revA ? 'Restore this edit' : 'Revert this file', revBTitle: s.revB ? 'Restore this edit' : 'Revert this file',
+      toggleRevA: () => this.setState(x => ({ revA: !x.revA, selFile: 'a' })),
+      toggleRevB: () => this.setState(x => ({ revB: !x.revB, selFile: 'b' })),
+      revSelected: s.selFile === 'a' ? s.revA : s.revB,
+      restoreSel: () => this.setState(x => (x.selFile === 'a' ? { revA: false } : { revB: false })),
+      commitOpen: s.commitOpen && !s.committed, notCommitted: !s.committed,
+      reviewCommit: () => { this.setState({ commitOpen: true }); this.go('review'); },
+      commitMsg: s.commitMsg, onCommitMsg: (e) => this.setState({ commitMsg: e.target.value }),
+      doCommit: () => this.setState({ committed: true, commitOpen: false }), committed: s.committed,
+      palOpen: s.palOpen, closePal: () => this.setState({ palOpen: false }),
+      pq: s.pq, onPq: (e) => this.setState({ pq: e.target.value }),
+      palItems, palEmpty: palItems.length === 0,
+      swOpen: s.swOpen, toggleSw: () => this.setState(x => ({ swOpen: !x.swOpen })),
+      swItems: swDefs.map(d => ({ label: d[0], onPick: go(d[1]), dot: d[1] === k ? 'var(--accent)' : 'var(--border2)' })),
+      pmRoRing: s.permMode === 'ro' ? ringOn : ringOff, pmAskRing: s.permMode === 'ask' ? ringOn : ringOff,
+      pmEditsRing: s.permMode === 'edits' ? ringOn : ringOff, pmAllRing: s.permMode === 'all' ? ringOn : ringOff,
+      setPmRo: () => this.setState({ permMode: 'ro' }), setPmAsk: () => this.setState({ permMode: 'ask' }),
+      setPmEdits: () => this.setState({ permMode: 'edits' }), setPmAll: () => this.setState({ permMode: 'all' }),
+      setThSys: () => this.setState({ themeOv: 'system' }), setThLight: () => this.setState({ themeOv: 'light' }), setThDark: () => this.setState({ themeOv: 'dark' }),
+      thSysB: thB('system'), thLightB: thB('light'), thDarkB: thB('dark'),
+      thSysC: thC('system'), thLightC: thC('light'), thDarkC: thC('dark')
+    };
+  }
+}
+</script>
+</body>
+</html>

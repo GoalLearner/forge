@@ -1,0 +1,87 @@
+{
+  "name": "forge-agent",
+  "version": "0.1.0",
+  "description": "A cheap-first coding agent CLI. Claude Code-style UX, driven by GLM / Kimi / DeepSeek / local models, with frontier models as an opt-in strong tier.",
+  "type": "module",
+  "main": "dist/desktop/main.cjs",
+  "bin": {
+    "forge": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "build": "tsup && node scripts/copy-renderer.mjs",
+    "dev": "tsup --watch",
+    "app": "npm run build && electron .",
+    "app:quick": "electron .",
+    "icon": "node scripts/make-icon.mjs",
+    "dist:app": "npm run build && npm run icon && electron-builder --win",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --experimental-strip-types \"src/**/*.test.ts\"",
+    "verify": "npm run typecheck && npm test && npm run build",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.68.0",
+    "@vscode/ripgrep": "^1.15.14",
+    "diff": "^8.0.2",
+    "fast-glob": "^3.3.3",
+    "ink": "^6.4.0",
+    "ink-text-input": "^6.0.0",
+    "openai": "^6.9.0",
+    "react": "^19.2.0",
+    "smol-toml": "^1.4.2",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "@types/react": "^19.2.0",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  },
+  "build": {
+    "appId": "dev.forge.desktop",
+    "productName": "Forge",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "!dist/**/*.map",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "**/node_modules/@vscode/ripgrep*/**"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "Forge-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Forge",
+      "uninstallDisplayName": "Forge ${version}",
+      "deleteAppDataOnUninstall": false
+    }
+  }
+}

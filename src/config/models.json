@@ -1,0 +1,161 @@
+{
+  "$comment": [
+    "Model catalog. THIS IS DATA, NOT CODE — edit it freely.",
+    "",
+    "Prices are USD per 1,000,000 tokens, verified 2026-07-25. They WILL go stale:",
+    "DeepSeek deprecated `deepseek-chat` and `deepseek-reasoner` on 2026-07-24, GLM",
+    "went 4.6 -> 4.7 -> 5.2 during 2026, and the legacy Kimi K2 family EOL'd in May.",
+    "Check the provider's live pricing page before trusting a number here.",
+    "",
+    "Override or add entries under [models.\"<key>\"] in your config.toml — you never",
+    "need to edit this file in place, and an unknown model still works (forge just",
+    "reports $0.00 for it and warns once).",
+    "",
+    "cachedInput = price of an input token served from the provider's prompt cache.",
+    "That column is the whole point of forge: see README 'Why this is cheap'.",
+    "cacheWrite  = Anthropic only; other providers cache automatically and free.",
+    "minCacheable = Anthropic only; prefixes shorter than this silently do not cache."
+  ],
+
+  "deepseek/deepseek-v4-flash": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-flash",
+    "contextWindow": 1000000,
+    "maxOutput": 65536,
+    "pricing": { "input": 0.14, "cachedInput": 0.0028, "output": 0.28 },
+    "autoCache": true
+  },
+  "deepseek/deepseek-v4-pro": {
+    "provider": "deepseek",
+    "model": "deepseek-v4-pro",
+    "contextWindow": 1000000,
+    "maxOutput": 65536,
+    "pricing": { "input": 0.435, "cachedInput": 0.003625, "output": 0.87 },
+    "autoCache": true
+  },
+
+  "zai/glm-4.7": {
+    "provider": "zai",
+    "model": "glm-4.7",
+    "contextWindow": 204800,
+    "maxOutput": 65536,
+    "pricing": { "input": 0.4, "cachedInput": 0.11, "output": 1.75 },
+    "autoCache": true
+  },
+  "zai/glm-5.2": {
+    "provider": "zai",
+    "model": "glm-5.2",
+    "contextWindow": 1048576,
+    "maxOutput": 65536,
+    "pricing": { "input": 0.76, "cachedInput": 0.15, "output": 2.42 },
+    "autoCache": true
+  },
+  "zai/glm-4.6": {
+    "provider": "zai",
+    "model": "glm-4.6",
+    "contextWindow": 200000,
+    "maxOutput": 32768,
+    "pricing": { "input": 0.6, "cachedInput": 0.11, "output": 2.2 },
+    "autoCache": true
+  },
+  "zai/glm-4.5-air": {
+    "provider": "zai",
+    "model": "glm-4.5-air",
+    "contextWindow": 128000,
+    "maxOutput": 32768,
+    "pricing": { "input": 0.2, "cachedInput": 0.03, "output": 1.1 },
+    "autoCache": true
+  },
+
+  "moonshot/kimi-k2.5": {
+    "provider": "moonshot",
+    "model": "kimi-k2.5",
+    "contextWindow": 262144,
+    "maxOutput": 32768,
+    "pricing": { "input": 0.6, "cachedInput": 0.1, "output": 3.0 },
+    "autoCache": true
+  },
+  "moonshot/kimi-k2.6": {
+    "provider": "moonshot",
+    "model": "kimi-k2.6",
+    "contextWindow": 262144,
+    "maxOutput": 32768,
+    "pricing": { "input": 0.95, "cachedInput": 0.16, "output": 4.0 },
+    "autoCache": true
+  },
+  "moonshot/kimi-k2.7-code": {
+    "provider": "moonshot",
+    "model": "kimi-k2.7-code",
+    "contextWindow": 262144,
+    "maxOutput": 32768,
+    "pricing": { "input": 0.95, "cachedInput": 0.16, "output": 4.0 },
+    "autoCache": true
+  },
+  "moonshot/kimi-k3": {
+    "provider": "moonshot",
+    "model": "kimi-k3",
+    "contextWindow": 1000000,
+    "maxOutput": 65536,
+    "pricing": { "input": 3.0, "cachedInput": 0.3, "output": 15.0 },
+    "autoCache": true
+  },
+
+  "anthropic/claude-opus-5": {
+    "provider": "anthropic",
+    "model": "claude-opus-5",
+    "contextWindow": 1000000,
+    "maxOutput": 64000,
+    "pricing": { "input": 5.0, "cachedInput": 0.5, "cacheWrite": 6.25, "output": 25.0 },
+    "autoCache": false,
+    "minCacheable": 512
+  },
+  "anthropic/claude-sonnet-5": {
+    "provider": "anthropic",
+    "model": "claude-sonnet-5",
+    "contextWindow": 1000000,
+    "maxOutput": 64000,
+    "pricing": { "input": 3.0, "cachedInput": 0.3, "cacheWrite": 3.75, "output": 15.0 },
+    "autoCache": false,
+    "minCacheable": 1024
+  },
+  "anthropic/claude-haiku-4-5": {
+    "provider": "anthropic",
+    "model": "claude-haiku-4-5",
+    "contextWindow": 200000,
+    "maxOutput": 32000,
+    "pricing": { "input": 1.0, "cachedInput": 0.1, "cacheWrite": 1.25, "output": 5.0 },
+    "autoCache": false,
+    "minCacheable": 4096
+  },
+
+  "zai-coding-plan/glm-4.7": {
+    "$comment": "GLM Coding Plan — a flat monthly subscription over an Anthropic-shaped endpoint. Marginal token cost is zero, so pricing is all zeros on purpose.",
+    "provider": "zai-coding-plan",
+    "model": "glm-4.7",
+    "contextWindow": 204800,
+    "maxOutput": 65536,
+    "pricing": { "input": 0.0, "cachedInput": 0.0, "output": 0.0 },
+    "autoCache": true,
+    "subscription": true
+  },
+  "zai-coding-plan/glm-4.5-air": {
+    "provider": "zai-coding-plan",
+    "model": "glm-4.5-air",
+    "contextWindow": 128000,
+    "maxOutput": 32768,
+    "pricing": { "input": 0.0, "cachedInput": 0.0, "output": 0.0 },
+    "autoCache": true,
+    "subscription": true
+  },
+
+  "ollama/qwen3-coder": {
+    "$comment": "Local inference — free. Adjust the model id to whatever you pulled.",
+    "provider": "ollama",
+    "model": "qwen3-coder",
+    "contextWindow": 128000,
+    "maxOutput": 16384,
+    "pricing": { "input": 0.0, "cachedInput": 0.0, "output": 0.0 },
+    "autoCache": false,
+    "local": true
+  }
+}

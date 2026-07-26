@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<!-- Drop-in CSP (uncomment in the Electron renderer):
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'; font-src 'self'; img-src 'self' data:">
+-->
+<title>Forge</title>
+<link rel="stylesheet" href="./forge.css">
+</head>
+<body data-screen="mid">
+<div class="app">
+
+  <header class="hdr">
+    <button class="hamburger" id="sb-toggle" title="Toggle sidebar — Ctrl B"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg></button>
+    <div class="hdr-brand"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><rect x="4.9" y="4.9" width="6.2" height="6.2" rx="1.2" transform="rotate(45 8 8)" fill="currentColor"></rect></svg><span>Forge</span></div>
+    <div class="chip--proj" title="Current project — switch in the sidebar"><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span class="name">meridian</span><span class="branch">main</span><span class="dot dot--ok"></span></div>
+    <div class="hdr-spacer"></div>
+    <div class="btn" data-when="mid perma permb"><span class="dot dot--warn"></span><span class="name">Working set</span><span class="branch mono">3 files</span></div>
+    <button class="btn" data-go="review" data-when="done review usage hist proj settings" title="Review changes — Ctrl D"><span class="name">Changes</span><span class="stat-add">+18</span><span class="stat-del">−6</span><span class="badge">2</span></button>
+    <button class="usage-chip" data-go="usage" title="Usage &amp; cost — Ctrl U"><span class="cost" id="hdr-cost">$0.018</span><span class="div"></span><svg class="cache-ok" id="hdr-spark" width="36" height="11" viewBox="0 0 36 11" aria-hidden="true"><polyline points="0,8 5,6 10,7 15,5 20,6 25,4 30,5 36,3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"></polyline></svg><span class="pct cache-ok" id="hdr-cache">87%</span><span>cache</span></button>
+    <button class="icon-btn" data-go="settings" title="Settings — Ctrl ,"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12" stroke="currentColor" stroke-width="1.3"></path><circle cx="5.5" cy="4.5" r="1.7" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></circle><circle cx="10.5" cy="8" r="1.7" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></circle><circle cx="6.5" cy="11.5" r="1.7" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></circle></svg></button>
+  </header>
+
+  <div class="main">
+    <aside class="sidebar" id="sidebar" data-when="empty mid perma permb done review err usage hist proj settings" data-screen-label="Sidebar — projects &amp; threads">
+      <div class="sb-top">
+        <button class="sb-new" data-go="empty"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"></path></svg>New session<span class="kbd">Ctrl N</span></button>
+        <div class="sb-search"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.4"></circle><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.4"></path></svg><input id="sb-search" type="text" placeholder="Search threads…" autocomplete="off"></div>
+      </div>
+      <div class="sb-scroll">
+        <div class="sb-label">PINNED</div>
+        <button class="sb-thread" data-go="done"><span class="tt"><svg width="10" height="10" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2l1.8 3.9 4.2.5-3.1 2.9.8 4.2L8 11.4l-3.7 2.1.8-4.2L2 6.4l4.2-.5z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"></path></svg><span>Parser rewrite plan</span></span><span class="tm">notes · Jul 10</span></button>
+        <div class="sb-label">THREADS<span class="n">5</span></div>
+        <button class="sb-thread active" data-go="done"><span class="tt"><span>Fix failing parser test</span></span><span class="tm">14:32 · $0.031 · 2 files</span></button>
+        <button class="sb-thread" data-go="done"><span class="tt"><span>Set up vitest fixtures</span></span><span class="tm">14:02 · $0.006 · 1 file</span></button>
+        <button class="sb-thread" data-go="done"><span class="tt"><span>Add error recovery to tokenizer</span></span><span class="tm">yesterday · $0.041 · 3 files</span></button>
+        <button class="sb-thread" data-go="done"><span class="tt"><span>Explain the AST walker</span></span><span class="tm">Mon · $0.008 · read-only</span></button>
+        <button class="sb-thread" data-go="done"><span class="tt"><span>Bootstrap tokenizer from spec</span></span><span class="tm">Jul 12 · $0.110 · 8 files</span></button>
+        <div class="pal-empty" id="sb-empty" hidden>No matching threads</div>
+        <div class="sb-label">PROJECTS</div>
+        <button class="sb-proj active"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span>meridian</span><span class="dot dot--ok"></span></button>
+        <button class="sb-proj"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span>forge-site</span></button>
+        <button class="sb-proj"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span>dotfiles</span></button>
+        <button class="sb-proj"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span>invoice-cli</span></button>
+        <button class="sb-proj" data-go="proj"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path></svg><span>Open folder…</span></button>
+      </div>
+      <div class="sb-foot"><button class="sb-proj" data-go="settings"><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5h12M2 8h12M2 11.5h12" stroke="currentColor" stroke-width="1.3"></path><circle cx="5.5" cy="4.5" r="1.7" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></circle><circle cx="10.5" cy="8" r="1.7" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></circle><circle cx="6.5" cy="11.5" r="1.7" fill="var(--surface)" stroke="currentColor" stroke-width="1.3"></circle></svg><span>Settings</span><span class="kbd dot">Ctrl ,</span></button></div>
+    </aside>
+    <div class="thread-col">
+      <div class="thread-scroll">
+        <div class="thread">
+
+          <!-- EMPTY -->
+          <section data-when="empty" data-screen-label="Empty state">
+            <p class="mono sec-label">C:\Users\rich\dev</p>
+            <h1>meridian <span class="mono branch-meta">main · clean · last commit 2h ago</span></h1>
+            <p class="ask-h">What are we working on?</p>
+            <div class="suggest-list">
+              <button class="msg-user suggest"><b>Ask about the code</b> <span>“what does the tokenizer hand the parser?”</span></button>
+              <button class="msg-user suggest"><b>Make a change</b> <span>“add error recovery to unterminated expressions”</span></button>
+              <button class="msg-user suggest"><b>Fix something</b> <span>“the parser test is failing on nested calls — work out why”</span></button>
+            </div>
+          </section>
+
+          <!-- MID-RUN (shared by mid / perma / permb) -->
+          <section data-when="mid perma permb" data-screen-label="Thread — mid-run">
+            <div class="msg-user"><div class="msg-meta"><span class="who">YOU</span><span class="t">14:32</span></div><p>The parser test is failing on nested call expressions — work out why and fix it.</p></div>
+            <div class="prose"><p>Reproducing the failure first, then tracing it through the tokenizer.</p></div>
+            <div class="run">
+              <div class="run-hdr" data-when="mid"><span class="spinner"></span><span class="title">Working</span><span class="sub">— step 4 of 6 · fixing the tokenizer</span><span class="t" data-elapsed>4:12</span></div>
+              <div class="run-hdr" data-when="perma permb"><span class="dot dot--warn"></span><span class="title">Working</span><span class="sub">— step 4 of 6 · paused on a request</span><span class="t">4:12</span></div>
+              <div class="run-progress" data-when="mid"><i class="w58"></i></div>
+              <div class="run-progress paused" data-when="perma permb"><i class="w58"></i></div>
+              <div class="trow"><span class="dot dot--fail"></span><span class="tool">run_shell</span><span class="what">npm test</span><span class="meta">23 passed · 1 failed · 2.4s</span></div>
+              <div class="trow"><span class="dot dot--ok"></span><span class="tool">read_file</span><span class="what">src/parser.ts</span><span class="meta">412 lines · 0.3s</span></div>
+              <div class="trow"><span class="dot dot--ok"></span><span class="tool">read_file</span><span class="what">test/parser.test.ts</span><span class="meta">96 lines · 0.2s</span></div>
+              <div class="trow"><span class="dot dot--ok"></span><span class="tool">grep</span><span class="what">"consumeUntil(" — 6 matches in 3 files</span><span class="meta">0.1s</span></div>
+              <div class="trow"><span class="dot dot--ok"></span><span class="tool">read_file</span><span class="what">src/generated/grammar/expression-tables.gen.ts</span><span class="meta">1,204 lines · 0.4s</span></div>
+              <div class="trow trow--active" data-when="mid"><span class="dot dot--busy"></span><span class="tool">edit_file</span><span class="what">src/tokenizer.ts</span><span class="meta">applying edit…</span></div>
+              <div class="trow trow--needs-you" data-when="perma"><span class="dot dot--warn"></span><span class="tool">edit_file</span><span class="what">src/tokenizer.ts</span><span class="meta">awaiting approval</span></div>
+              <div class="trow trow--needs-you" data-when="permb"><span class="dot dot--warn"></span><span class="tool">run_shell</span><span class="what">rm -rf build</span><span class="meta">awaiting approval</span></div>
+            </div>
+            <div class="prose" data-when="mid"><p>Found it. <code class="inline">readCall</code> uses <code class="inline">consumeUntil(src, pos, ")")</code>, which stops at the <em>first</em> closing paren — so <code class="inline">sum(len(xs), 2)</code> truncates to <code class="inline">len(xs</code>. Switching to a depth-tracking scan<span class="caret"></span></p></div>
+
+            <!-- routine approval -->
+            <div data-when="perma" data-screen-label="Permission — routine">
+              <div class="approve" id="approve-a">
+                <div class="approve-hdr"><span class="dot dot--warn"></span><span class="q">Allow Forge to edit</span><code class="inline">src/tokenizer.ts</code><span class="q">?</span><span class="risk">low risk — undoable per file</span></div>
+                <div class="approve-body">
+                  <p class="why">Replace <code class="inline">consumeUntil</code> with a depth-tracking scan — the fix for the failing nested-call test.</p>
+                  <div class="mini-diff"><div class="del">-  const end = consumeUntil(src, pos, ")");</div><div class="add">+  let depth = 1;</div><div class="add">+  while (i &lt; src.length &amp;&amp; depth &gt; 0) {</div><div class="more">   … +6 more added lines · net +9 −5</div></div>
+                  <div class="approve-actions">
+                    <button class="btn btn--primary" data-approve="a-allow">Allow once <span class="kbd">Enter</span></button>
+                    <button class="btn" data-approve="a-allow">Always allow edits in meridian</button>
+                    <button class="btn btn--danger-text" data-approve="a-deny">Don't allow</button>
+                    <span class="queue">1 waiting behind · <span class="mono">run_shell npm test</span></span>
+                  </div>
+                </div>
+              </div>
+              <div class="resolved-row" id="resolved-a" hidden><svg class="ico-ok" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Allowed — edit applied to</span><code class="inline">src/tokenizer.ts</code><span class="stat-add">+9</span><span class="stat-del">−5</span><span class="t">0.4s</span></div>
+              <div class="resolved-row denied" id="denied-a" hidden><svg class="ico-no" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8"></path></svg><span>Not allowed — Forge will propose the change as a patch in chat instead.</span></div>
+              <div class="approve" id="approve-q" hidden>
+                <div class="approve-hdr"><span class="dot dot--warn"></span><span class="q">Run</span><code class="inline">npm test</code><span class="q">?</span><span class="risk">was queued — next in line</span></div>
+                <div class="approve-body">
+                  <p class="why">Verify the fix — expecting 24 passed.</p>
+                  <div class="approve-actions">
+                    <button class="btn btn--primary" data-approve="q-allow">Allow once <span class="kbd">Enter</span></button>
+                    <button class="btn" data-approve="q-allow">Always allow npm test</button>
+                    <button class="btn btn--danger-text" data-approve="q-deny">Don't allow</button>
+                  </div>
+                </div>
+              </div>
+              <div class="resolved-row" id="resolved-q" hidden><svg class="ico-ok" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Allowed —</span><code class="inline">npm test</code><span class="stat-add">24 passed</span><span class="t">3.1s</span></div>
+              <div class="resolved-row denied" id="denied-q" hidden><svg class="ico-no" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8"></path></svg><span>Not allowed — Forge will wait; run tests yourself when ready.</span></div>
+            </div>
+
+            <!-- dangerous approval -->
+            <div data-when="permb" data-screen-label="Permission — dangerous">
+              <div class="prose"><p>The stale build output under <code class="inline">build\</code> is shadowing the new tokenizer. A clean rebuild avoids that:</p></div>
+              <div class="approve approve--danger" id="approve-d">
+                <div class="approve-hdr"><svg class="ico-warn" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2L15 13.8H1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path><path d="M8 6.5v3.2" stroke="currentColor" stroke-width="1.4"></path><circle cx="8" cy="11.8" r=".9" fill="currentColor"></circle></svg><span class="q">DESTRUCTIVE COMMAND</span><span class="risk">will not run without you</span></div>
+                <div class="approve-body">
+                  <div class="cmd-block">rm -rf build</div>
+                  <p class="impact">Deletes <b>build\</b> — 214 files. Not tracked by git; <b>cannot be undone</b>.</p>
+                  <div class="approve-actions">
+                    <input class="arm-input" id="arm-input" type="text" placeholder="Type build to arm" autocomplete="off">
+                    <button class="btn btn--neutral-solid" data-approve="d-deny">Don't allow</button>
+                    <button class="btn btn--danger-solid" id="arm-btn" data-approve="d-allow" disabled>Delete build — allow once</button>
+                  </div>
+                  <p class="arm-note">No keyboard shortcut here — typing the folder name is deliberate, so this can't be approved by muscle memory. “Always allow” is never offered for destructive commands.</p>
+                </div>
+              </div>
+              <div class="resolved-row" id="resolved-d" hidden><svg class="ico-ok" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Ran</span><code class="inline">rm -rf build</code><span>— 214 files removed</span><span class="t">0.6s</span></div>
+              <div class="resolved-row denied" id="denied-d" hidden><svg class="ico-no" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8"></path></svg><span>Declined —</span><code class="inline">build\</code><span>kept. Forge will exclude it via tsconfig instead.</span></div>
+            </div>
+          </section>
+
+          <!-- COMPLETED / REVIEW -->
+          <section data-when="done review usage hist proj settings" data-screen-label="Thread — completed run">
+            <button class="turns-fold"><span class="mono">▸</span><span><b>2 earlier turns</b> · “Set up vitest fixtures” · “Explain the AST walker”</span><span class="t">14:02–14:19</span></button>
+            <div class="msg-user"><div class="msg-meta"><span class="who">YOU</span><span class="t">14:32</span></div><p>The parser test is failing on nested call expressions — work out why and fix it.</p></div>
+            <div class="run">
+              <button class="run-hdr"><svg class="ico-ok" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span class="title">Ran 9 actions</span><span class="sub">in 34s</span><span class="mono sub">4 reads · 2 edits ·</span><span class="mono stat-add">npm test ✓</span><span class="t">▾</span></button>
+              <div class="trow"><span class="dot dot--fail"></span><span class="tool">run_shell</span><span class="what">npm test</span><span class="meta">23 passed · 1 failed · 2.4s</span></div>
+              <div class="trow"><span class="dot dot--ok"></span><span class="tool">read_file</span><span class="what">src/parser.ts</span><span class="meta">412 lines · 0.3s</span></div>
+              <div class="trow"><span class="dot dot--ok"></span><span class="tool">grep</span><span class="what">"consumeUntil(" — 6 matches in 3 files</span><span class="meta">0.1s</span></div>
+              <div class="trow"><span class="dot dot--ok"></span><span class="tool">read_file</span><span class="what">src/tokenizer.ts</span><span class="meta">188 lines · 0.2s</span></div>
+              <div class="trow"><span class="dot dot--ok"></span><span class="tool">edit_file</span><span class="what">src/tokenizer.ts</span><span class="meta"><span class="stat-add">+9</span> <span class="stat-del">−5</span></span></div>
+              <div class="diff">
+                <div class="diff-hunk"><span>@@ -126,7 +126,11 @@</span><span class="fn">function readCall(src, pos)</span></div>
+                <div class="diff-body">
+                  <div class="diff-line ctx"><span class="gut">126</span><span class="gut">126</span><span class="mark"></span><span class="code">function readCall(src: string, pos: number): Token {</span></div>
+                  <div class="diff-line del"><span class="gut">127</span><span class="gut"></span><span class="mark">−</span><span class="code">  const end = <span class="hl-del">consumeUntil(src, pos, ")")</span>;</span></div>
+                  <div class="diff-line del"><span class="gut">128</span><span class="gut"></span><span class="mark">−</span><span class="code">  if (end === -1) {</span></div>
+                  <div class="diff-line del"><span class="gut">129</span><span class="gut"></span><span class="mark">−</span><span class="code">    throw new ParseError("Unterminated call expression", pos);</span></div>
+                  <div class="diff-line del"><span class="gut">130</span><span class="gut"></span><span class="mark">−</span><span class="code">  }</span></div>
+                  <div class="diff-line del"><span class="gut">131</span><span class="gut"></span><span class="mark">−</span><span class="code">  return { kind: "call", value: src.slice(pos, end), end };</span></div>
+                  <div class="diff-line add"><span class="gut"></span><span class="gut">127</span><span class="mark">+</span><span class="code">  let <span class="hl-add">depth</span> = 1;</span></div>
+                  <div class="diff-line add"><span class="gut"></span><span class="gut">128</span><span class="mark">+</span><span class="code">  let i = pos;</span></div>
+                  <div class="diff-line add"><span class="gut"></span><span class="gut">129</span><span class="mark">+</span><span class="code">  while (i &lt; src.length &amp;&amp; depth &gt; 0) {</span></div>
+                  <div class="diff-line add"><span class="gut"></span><span class="gut">130</span><span class="mark">+</span><span class="code">    if (src[i] === "(") depth++;</span></div>
+                  <div class="diff-line add"><span class="gut"></span><span class="gut">131</span><span class="mark">+</span><span class="code">    if (src[i] === ")") depth--;</span></div>
+                  <div class="diff-line add"><span class="gut"></span><span class="gut">132</span><span class="mark">+</span><span class="code">    i++;</span></div>
+                  <div class="diff-line add"><span class="gut"></span><span class="gut">133</span><span class="mark">+</span><span class="code">  }</span></div>
+                  <div class="diff-line add"><span class="gut"></span><span class="gut">134</span><span class="mark">+</span><span class="code">  if (depth &gt; 0) throw new ParseError("Unterminated call expression", pos);</span></div>
+                  <div class="diff-line add"><span class="gut"></span><span class="gut">135</span><span class="mark">+</span><span class="code">  return { kind: "call", value: src.slice(pos, i - 1), end: i };</span></div>
+                  <div class="diff-line ctx"><span class="gut">132</span><span class="gut">136</span><span class="mark"></span><span class="code">}</span></div>
+                </div>
+              </div>
+              <div class="trow"><span class="dot dot--ok"></span><span class="tool">edit_file</span><span class="what">test/parser.test.ts</span><span class="meta"><span class="stat-add">+9</span> <span class="stat-del">−1</span></span></div>
+              <div class="trow"><span class="dot dot--ok"></span><span class="tool">run_shell</span><span class="what">npm test</span><span class="meta"><span class="stat-add">24 passed</span> · 3.1s</span></div>
+              <div class="trow"><span class="dot dot--ok"></span><span class="tool">git_diff</span><span class="what">2 files changed</span><span class="meta">+18 −6 · 0.1s</span></div>
+            </div>
+            <div class="prose"><p>Fixed. <code class="inline">readCall</code> stopped at the first <code class="inline">)</code> instead of tracking nesting, so <code class="inline">sum(len(xs), 2)</code> truncated after <code class="inline">len(xs</code>. The tokenizer now counts paren depth, and there's a regression test. The suite passes — 24 tests.</p></div>
+            <div class="changes-card" data-screen-label="What changed card">
+              <div class="changes-card-hdr"><span class="title">What changed</span><span class="stat-add">+18</span><span class="stat-del">−6</span><span class="tests-tag"><svg width="9" height="9" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2.2"></path></svg>tests pass after</span><span class="t">14:33</span></div>
+              <button class="file-row" data-go="review"><span class="dir">src/</span><span>tokenizer.ts</span><span class="stats"><span class="stat-add">+9</span><span class="stat-del">−5</span></span></button>
+              <button class="file-row" data-go="review"><span class="dir">test/</span><span>parser.test.ts</span><span class="stats"><span class="stat-add">+9</span><span class="stat-del">−1</span></span></button>
+              <div class="changes-card-foot"><button class="btn btn--primary" data-go="review">Review changes</button><button class="btn" data-go="review">Commit…</button><span class="note">changes stay local until you commit</span></div>
+            </div>
+          </section>
+
+          <!-- ERRORS -->
+          <section data-when="err" data-screen-label="Thread — errors">
+            <div class="msg-user"><div class="msg-meta"><span class="who">YOU</span><span class="t">15:04</span></div><p>Run the full integration suite before we commit anything.</p></div>
+            <div class="run">
+              <div class="run-hdr"><svg class="ico-no" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="2"></path></svg><span class="title">Run failed</span><span class="sub">— step 2 of 3 · then a provider error</span><span class="t">8.7s</span></div>
+              <div class="trow"><span class="dot dot--ok"></span><span class="tool">git_status</span><span class="what">2 modified, staged nothing</span><span class="meta">0.1s</span></div>
+              <div class="trow trow--fail"><span class="dot dot--fail"></span><span class="tool">run_shell</span><span class="what">npm run test:integration</span><span class="meta">2 failed · 8.4s</span></div>
+              <div class="shell-out" id="shell-out">
+                <pre><span class="fail-line">FAIL  test/integration/emit.test.ts &gt; emitter &gt; writes source maps</span>
+Error: Snapshot mismatch
+<span class="exp">  Expected: "dist/maps/app.js.map"</span>
+<span class="rcv">  Received: "dist\\maps\\app.js.map"</span>
+<span class="stack"> ❯ src/emit/writer.ts:203:15
+ ❯ test/integration/emit.test.ts:44:3</span>
+<span class="fail-line">FAIL  test/integration/emit.test.ts &gt; emitter &gt; resolves relative imports</span>
+Error: Snapshot mismatch
+<span class="exp">  Expected: "../lib/util"</span>
+<span class="rcv">  Received: "..\\lib\\util"</span>
+<span class="stack"> ❯ src/emit/writer.ts:187:9
+ ❯ test/integration/emit.test.ts:61:3</span>
+Tests  2 failed · 41 passed (43)
+<span class="stack">Duration  8.41s</span></pre>
+                <div class="shell-out-foot"><button class="expand" id="shell-expand">show all 187 lines</button><button class="mono">copy output</button><span class="exit">exit 1</span></div>
+              </div>
+              <div class="trow trow--skipped"><span class="dot dot--pend"></span><span class="tool">run_shell</span><span class="what">npm run lint</span><span class="meta">skipped — run stopped</span></div>
+            </div>
+            <div class="prose"><p>Two integration tests fail on Windows path handling — <code class="inline">writer.ts</code> emits backslashes the snapshots don't expect. The cleanest fix is normalising in</p></div>
+            <div class="approve approve--danger" data-screen-label="Provider error card">
+              <div class="approve-hdr"><svg class="ico-warn" width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.2L15 13.8H1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path><path d="M8 6.5v3.2" stroke="currentColor" stroke-width="1.4"></path><circle cx="8" cy="11.8" r=".9" fill="currentColor"></circle></svg><span class="q">PROVIDER ERROR — REPLY CUT OFF</span><span class="risk mono">402 · deepseek</span></div>
+              <div class="approve-body">
+                <p class="impact">DeepSeek rejected the request: <b>insufficient balance</b>. Nothing is lost — the session is saved and the run resumes from step 2.</p>
+                <p class="arm-note mono">POST /chat/completions → 402 · 214 ms · retried ×2</p>
+                <div class="approve-actions"><button class="btn btn--primary">Retry</button><button class="btn">Switch to glm-5-air</button><button class="btn">Open DeepSeek billing ↗</button></div>
+                <p class="arm-note">⚠ Switching models restarts the prompt cache — the first reply after a switch costs more, then it recovers.</p>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+      <!-- COMPOSER -->
+      <div class="composer">
+        <div class="composer-inner">
+          <div class="composer-strip" data-when="mid"><span class="dot dot--busy"></span><span class="label">Working — fixing the tokenizer</span><span class="step">· step 4 of 6 ·</span><span class="t" data-elapsed>4:12</span><span class="spacer"></span><button class="stop-btn" data-go="done">Stop</button></div>
+          <div class="composer-strip paused" data-when="perma permb"><span class="dot dot--warn"></span><span class="label">Paused — a request needs you</span><span class="step">· step 4 of 6 ·</span><span class="t">4:12</span><span class="spacer"></span><button class="stop-btn" data-go="done">Stop</button></div>
+          <div class="composer-box">
+            <textarea id="composer-input" rows="1" placeholder="Ask Forge to explain, change, or fix something…"></textarea>
+            <div class="composer-foot">
+              <button class="statuschip" data-go="settings" title="Permission mode — change in Settings">Edits auto · commands ask ▾</button>
+              <button class="statuschip mono">deepseek-v4-pro ▾</button>
+              <span class="spacer"></span>
+              <span class="ctx-label" title="Share of the model's context window in use">context 34%</span>
+              <span class="meter"><i class="w34"></i></span>
+              <button class="send-btn" data-go="mid">Send</button>
+            </div>
+          </div>
+          <div class="composer-hints"><span>Enter to send · Shift+Enter for a new line</span><span class="right">Ctrl K for commands</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORKING SET (live) -->
+    <aside class="panel" data-when="mid perma permb" data-screen-label="Working set panel">
+      <div class="panel-hdr"><span class="title">Working set</span><span class="dot dot--warn"></span><span class="sub">live · this run</span></div>
+      <div class="panel-sec">
+        <div class="msg-meta"><span class="sec-label">PLAN</span><span class="mono t">3 of 6 done</span></div>
+        <div class="plan-item done"><svg class="ico-ok" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Reproduce the failing test</span></div>
+        <div class="plan-item done"><svg class="ico-ok" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Read the parser and its test</span></div>
+        <div class="plan-item done"><svg class="ico-ok" width="11" height="11" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Locate the bug in <span class="mono">readCall</span></span></div>
+        <div class="plan-item active"><span class="dot dot--warn"></span><span>Fix depth tracking in the tokenizer</span></div>
+        <div class="plan-item todo"><span class="dot dot--pend"></span><span>Re-run the suite</span></div>
+        <div class="plan-item todo"><span class="dot dot--pend"></span><span>Commit the fix</span></div>
+      </div>
+      <div class="panel-sec panel-fill">
+        <p class="sec-label">FILES THIS RUN</p>
+        <div class="file-item"><span class="dir">src/</span><span>parser.ts</span><span class="tag">read</span></div>
+        <div class="file-item"><span class="dir">test/</span><span>parser.test.ts</span><span class="tag">read</span></div>
+        <div class="file-item"><span class="dir">src/generated/grammar/</span><span class="what">expression-tables.gen.ts</span><span class="tag">read</span></div>
+        <div class="file-item file-item--pending"><span class="dir">src/</span><span><b>tokenizer.ts</b></span><span class="tag">edit pending · +9 −5</span></div>
+        <p class="arm-note">Edits land here as the run progresses — review, revert or commit per file when it finishes.</p>
+      </div>
+      <div class="panel-foot"><span>ctx 34%</span><span class="meter"><i class="w34"></i></span><span class="spacer"></span><span class="cache-ok"><b>cache 87%</b></span><span class="cost"><b>$0.018</b></span></div>
+    </aside>
+
+    <!-- CHANGES (review) -->
+    <aside class="panel" data-when="review" data-screen-label="Changes panel">
+      <div class="panel-hdr"><span class="title">Changes</span><span class="sub">this run · 14:32</span><span class="spacer"></span><span class="stat-add">+18</span><span class="stat-del">−6</span><button class="close" data-go="done" title="Close — Esc"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5"></path></svg></button></div>
+      <div class="panel-sec"><span class="tests-tag"><svg width="9" height="9" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2.2"></path></svg>24 tests pass with these changes</span></div>
+      <div class="panel-sec">
+        <div class="file-pick-row"><button class="file-item file-item--selected" id="file-a" data-file="a"><span class="dir">src/</span><span class="fname">tokenizer.ts</span><span class="stats"><span class="stat-add">+9</span> <span class="stat-del">−5</span></span></button><button class="revert-btn" id="revert-a" title="Revert this file"><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7h7a3.5 3.5 0 1 1 0 7H6" fill="none" stroke="currentColor" stroke-width="1.4"></path><path d="M6 4L3 7l3 3" fill="none" stroke="currentColor" stroke-width="1.4"></path></svg></button></div>
+        <div class="file-pick-row"><button class="file-item" id="file-b" data-file="b"><span class="dir">test/</span><span class="fname">parser.test.ts</span><span class="stats"><span class="stat-add">+9</span> <span class="stat-del">−1</span></span></button><button class="revert-btn" id="revert-b" title="Revert this file"><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 7h7a3.5 3.5 0 1 1 0 7H6" fill="none" stroke="currentColor" stroke-width="1.4"></path><path d="M6 4L3 7l3 3" fill="none" stroke="currentColor" stroke-width="1.4"></path></svg></button></div>
+      </div>
+      <div class="panel-fill diff-host">
+        <div class="revert-note" id="revert-note" hidden><span>Reverted — file restored to last commit. Diff kept for reference.</span><button class="expand" id="restore-btn">Restore edit</button></div>
+        <div id="diff-a">
+          <div class="diff-hunk"><span>@@ -126,7 +126,11 @@</span><span class="fn">readCall</span></div>
+          <div class="diff-body">
+            <div class="diff-line ctx"><span class="gut">126</span><span class="gut">126</span><span class="mark"></span><span class="code">function readCall(src, pos) {</span></div>
+            <div class="diff-line del"><span class="gut">127</span><span class="gut"></span><span class="mark">−</span><span class="code">  const end = consumeUntil(src, pos, ")");</span></div>
+            <div class="diff-line del"><span class="gut">128</span><span class="gut"></span><span class="mark">−</span><span class="code">  if (end === -1) {</span></div>
+            <div class="diff-line del"><span class="gut">129</span><span class="gut"></span><span class="mark">−</span><span class="code">    throw new ParseError("Unterminated…", pos);</span></div>
+            <div class="diff-line del"><span class="gut">130</span><span class="gut"></span><span class="mark">−</span><span class="code">  }</span></div>
+            <div class="diff-line del"><span class="gut">131</span><span class="gut"></span><span class="mark">−</span><span class="code">  return { kind: "call", value: src.slice(pos, end), end };</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">127</span><span class="mark">+</span><span class="code">  let depth = 1;</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">128</span><span class="mark">+</span><span class="code">  let i = pos;</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">129</span><span class="mark">+</span><span class="code">  while (i &lt; src.length &amp;&amp; depth &gt; 0) {</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">130</span><span class="mark">+</span><span class="code">    if (src[i] === "(") depth++;</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">131</span><span class="mark">+</span><span class="code">    if (src[i] === ")") depth--;</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">132</span><span class="mark">+</span><span class="code">    i++;</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">133</span><span class="mark">+</span><span class="code">  }</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">134</span><span class="mark">+</span><span class="code">  if (depth &gt; 0) throw new ParseError("Unterminated…", pos);</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">135</span><span class="mark">+</span><span class="code">  return { kind: "call", value: src.slice(pos, i - 1), end: i };</span></div>
+            <div class="diff-line ctx"><span class="gut">132</span><span class="gut">136</span><span class="mark"></span><span class="code">}</span></div>
+          </div>
+        </div>
+        <div id="diff-b" hidden>
+          <div class="diff-hunk"><span>@@ -84,4 +84,12 @@</span><span class="fn">describe("parser")</span></div>
+          <div class="diff-body">
+            <div class="diff-line ctx"><span class="gut">84</span><span class="gut">84</span><span class="mark"></span><span class="code">  it("parses adjacent expressions", () =&gt; {</span></div>
+            <div class="diff-line ctx"><span class="gut">85</span><span class="gut">85</span><span class="mark"></span><span class="code">    expect(parse("a(1) b(2)").children)…;</span></div>
+            <div class="diff-line ctx"><span class="gut">86</span><span class="gut">86</span><span class="mark"></span><span class="code">  });</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">88</span><span class="mark">+</span><span class="code">  // regression: nested call arguments (#142)</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">89</span><span class="mark">+</span><span class="code">  it("parses nested call arguments", () =&gt; {</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">90</span><span class="mark">+</span><span class="code">    const ast = parse("sum(len(xs), 2)");</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">91</span><span class="mark">+</span><span class="code">    expect(ast.children).toHaveLength(1);</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">92</span><span class="mark">+</span><span class="code">    expect(ast.children[0].kind).toBe("call");</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">93</span><span class="mark">+</span><span class="code">    expect(ast.children[0].value).toBe("len(xs), 2");</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">94</span><span class="mark">+</span><span class="code">  });</span></div>
+            <div class="diff-line del"><span class="gut">87</span><span class="gut"></span><span class="mark">−</span><span class="code">});</span></div>
+            <div class="diff-line add"><span class="gut"></span><span class="gut">95</span><span class="mark">+</span><span class="code">});</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="panel-sec panel-actions">
+        <div class="commit-row" id="commit-row" hidden><input class="commit-msg" id="commit-msg" type="text" value="fix: track paren depth in readCall (nested call args)"><button class="btn btn--primary" id="commit-do">Commit</button></div>
+        <div class="committed" id="committed" hidden><svg class="ico-ok" width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg><span>Committed</span><code class="inline">a1f39c2</code><span>— 2 files</span></div>
+        <div class="approve-actions" id="commit-actions"><button class="btn btn--primary" id="commit-open">Commit 2 files…</button><button class="btn btn--danger-text">Revert all</button><span class="queue">runs locally · nothing pushed</span></div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- overlays -->
+  <button class="scrim" data-when="usage hist proj settings" data-go="done" aria-label="Close"></button>
+
+  <div class="modal-wrap" data-when="usage">
+    <div class="modal" data-screen-label="Usage &amp; cost">
+      <div class="overlay-hdr"><span class="title">Usage &amp; cost</span><span class="sub">meridian · today</span><button class="close" data-go="done" title="Close — Esc"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5"></path></svg></button></div>
+      <div class="stat-grid">
+        <div class="stat-cell"><span class="sec-label">THIS SESSION</span><div class="v">$0.031</div></div>
+        <div class="stat-cell"><span class="sec-label">TOKENS</span><div class="v v--small mono">214k in · 8.2k out</div></div>
+        <div class="stat-cell"><span class="sec-label">REQUESTS</span><div class="v">38</div></div>
+      </div>
+      <div class="cache-hero">
+        <div class="row"><span class="sec-label">PROMPT CACHE</span><span class="state-tag">healthy</span></div>
+        <div class="spark-row"><span class="big">87%</span><svg class="cache-ok" width="170" height="36" viewBox="0 0 170 36" aria-hidden="true"><polyline points="0,26 12,21 24,23 36,17 48,19 60,13 72,15 84,10 96,20 108,12 120,9 132,11 144,7 158,9 170,6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></polyline></svg><span class="arm-note">of input tokens re-read from the provider's cache this session</span></div>
+        <p class="expl">Every step resends the whole conversation. When the provider still holds it in cache, those tokens cost about a tenth of the normal price. <b>70–95% is healthy.</b> Below 40%, cost climbs fast — usually an edited session, a model switch, or a gap longer than 5 minutes.</p>
+        <p class="saved">Caching saved ≈ $0.27 this session (5.4× cheaper).</p>
+      </div>
+      <div class="model-table">
+        <div class="r"><span>MODEL</span><span class="num">REQS</span><span class="num">CACHE</span><span class="num">COST</span></div>
+        <div class="r"><span>deepseek-v4-pro</span><span class="num">31</span><span class="num cache-ok">89%</span><span class="num">$0.027</span></div>
+        <div class="r"><span>glm-5-air</span><span class="num">7</span><span class="num cache-ok">92%</span><span class="num">$0.004</span></div>
+        <div class="r"><span>today · 6 sessions</span><span class="num"></span><span class="num"></span><span class="num">$0.042</span></div>
+      </div>
+    </div>
+  </div>
+
+  <aside class="sheet" data-when="hist" data-screen-label="Session history">
+    <div class="overlay-hdr"><span class="title">Sessions</span><span class="sub">meridian · 12 total</span><button class="close" data-go="done"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5"></path></svg></button></div>
+    <div class="panel-sec"><input class="arm-input" type="search" placeholder="Search titles and messages…"></div>
+    <div class="panel-fill sess-list">
+      <p class="sec-label">TODAY</p>
+      <button class="sess-row sess-row--current"><span class="title-row"><b>Fix failing parser test</b><span class="tag-current">CURRENT</span></span><span class="meta">14:32 · 12 turns · $0.031 · 2 files changed</span></button>
+      <button class="sess-row"><span class="title-row">Set up vitest fixtures</span><span class="meta">14:02 · 6 turns · $0.006 · 1 file</span></button>
+      <p class="sec-label">YESTERDAY</p>
+      <button class="sess-row"><span class="title-row">Add error recovery to tokenizer</span><span class="meta">18:20 · 9 turns · $0.041 · 3 files</span></button>
+      <p class="sec-label">EARLIER</p>
+      <button class="sess-row"><span class="title-row">Explain the AST walker</span><span class="meta">Mon · 4 turns · $0.008 · read-only</span></button>
+      <button class="sess-row"><span class="title-row">Bootstrap tokenizer from spec</span><span class="meta">Jul 12 · 22 turns · $0.110 · 8 files</span></button>
+    </div>
+  </aside>
+
+  <div class="popover" data-when="proj" data-screen-label="Project switcher">
+    <div class="panel-sec current-proj">
+      <p class="sec-label">CURRENT</p>
+      <div class="proj-row"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span><span class="pname">meridian</span><span class="ppath">C:\Users\rich\dev\meridian</span></span><span class="when">main · clean ✓</span></div>
+    </div>
+    <div class="panel-sec">
+      <p class="sec-label">RECENT — ONE CLICK, NO DIALOG</p>
+      <button class="proj-row"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span><span class="pname">forge-site</span><span class="ppath">C:\Users\rich\dev\forge-site</span></span><span class="when">yesterday</span></button>
+      <button class="proj-row"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span><span class="pname">dotfiles</span><span class="ppath">C:\Users\rich\dotfiles</span></span><span class="when">3 days ago</span></button>
+      <button class="proj-row"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span><span class="pname">invoice-cli</span><span class="ppath">C:\Users\rich\dev\invoice-cli</span></span><span class="when">Jul 9</span></button>
+    </div>
+    <div class="changes-card-foot"><button class="btn">Open folder… <span class="kbd">Ctrl O</span></button><span class="note">recents restore the last session</span></div>
+  </div>
+
+  <aside class="sheet sheet--wide" data-when="settings" data-screen-label="Settings">
+    <div class="overlay-hdr"><span class="title">Settings</span><button class="close" data-go="done"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5"></path></svg></button></div>
+    <div class="panel-fill settings-body">
+      <div class="set-sec">
+        <p class="sec-label">PROVIDER KEYS</p><p class="set-desc">Stored locally, sent only to the provider.</p>
+        <div class="set-card">
+          <div class="set-row"><span class="k">DeepSeek</span><code class="inline">sk-…d81f</code><span class="stat-add">✓ active</span><button class="link">Replace</button></div>
+          <div class="set-row"><span class="k">GLM</span><code class="inline">glm-…9c22</code><span class="stat-add">✓ active</span><button class="link">Replace</button></div>
+          <div class="set-row"><span class="k">Kimi</span><span class="set-desc">no key</span><button class="link link--add">Add key</button></div>
+          <div class="set-row"><span class="k">Custom</span><span class="set-desc">any OpenAI-compatible endpoint</span><button class="link link--add">Add</button></div>
+        </div>
+      </div>
+      <div class="set-sec">
+        <p class="sec-label">MODEL TIERS</p><p class="set-desc">Forge routes each step to a tier — trivial steps go fast and cheap, hard reasoning goes strong.</p>
+        <div class="set-card">
+          <div class="set-row"><span class="k">Fast</span><span class="set-desc">summaries, titles, small lookups</span><button class="btn mono link">glm-5-air ▾</button></div>
+          <div class="set-row"><span class="k">Cheap</span><span class="set-desc">most working steps</span><button class="btn mono link">deepseek-v4 ▾</button></div>
+          <div class="set-row"><span class="k">Strong</span><span class="set-desc">planning, tricky debugging</span><button class="btn mono link">deepseek-v4-pro ▾</button></div>
+        </div>
+      </div>
+      <div class="set-sec">
+        <p class="sec-label">PERMISSIONS</p>
+        <button class="radio-row" role="radio" aria-checked="false" data-pm="ro"><span class="radio-dot"></span><span><span class="rl">Read-only</span><span class="rd">never writes or runs anything</span></span></button>
+        <button class="radio-row" role="radio" aria-checked="false" data-pm="ask"><span class="radio-dot"></span><span><span class="rl">Ask for everything</span><span class="rd">every write and command needs a yes</span></span></button>
+        <button class="radio-row" role="radio" aria-checked="true" data-pm="edits"><span class="radio-dot"></span><span><span class="rl">Auto-allow edits, ask for commands</span><span class="rd">edits are logged and per-file revertible; shell still asks</span></span></button>
+        <button class="radio-row" role="radio" aria-checked="false" data-pm="all"><span class="radio-dot"></span><span><span class="rl">Auto-allow everything</span><span class="rd rd--danger">destructive commands still require typed confirmation — always</span></span></button>
+      </div>
+      <div class="set-sec">
+        <p class="sec-label">APPEARANCE</p>
+        <div class="seg" id="theme-seg"><button data-theme-set="system" aria-pressed="true">Follow Windows</button><button data-theme-set="light" aria-pressed="false">Light</button><button data-theme-set="dark" aria-pressed="false">Dark</button></div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- first run -->
+  <div class="firstrun" data-when="first" data-screen-label="First run">
+    <div class="firstrun-col">
+      <div class="firstrun-hero"><svg width="26" height="26" viewBox="0 0 16 16" aria-hidden="true"><rect x="4.9" y="4.9" width="6.2" height="6.2" rx="1.2" transform="rotate(45 8 8)" fill="var(--accent)"></rect></svg><p class="h">Welcome to Forge</p><p class="sub">A coding agent that runs on cheap models. Bring an API key, point it at a folder — a full working day should cost well under a dollar.</p></div>
+      <div class="firstrun-card">
+        <div class="step">
+          <div class="step-hdr"><span class="step-num">1</span><span class="h">Choose a provider</span><span class="aside">add more later in Settings</span></div>
+          <div class="provider-grid">
+            <button class="provider" role="radio" aria-checked="true"><span class="top"><span class="pn">DeepSeek</span><span class="rec-tag">RECOMMENDED</span><span class="radio"></span></span><span class="pd">cheapest overall, strong prompt caching</span></button>
+            <button class="provider" role="radio" aria-checked="false"><span class="top"><span class="pn">GLM</span><span class="radio"></span></span><span class="pd">fast, generous free tier</span></button>
+            <button class="provider" role="radio" aria-checked="false"><span class="top"><span class="pn">Kimi</span><span class="radio"></span></span><span class="pd">best long-context handling</span></button>
+            <button class="provider" role="radio" aria-checked="false"><span class="top"><span class="pn">Custom</span><span class="radio"></span></span><span class="pd">any OpenAI-compatible endpoint</span></button>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-hdr"><span class="step-num">2</span><span class="h">Add your DeepSeek key</span></div>
+          <div class="key-row"><span class="key-input">sk-••••••••••••••••d81f</span><button class="btn">Test key</button></div>
+          <p class="key-ok"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.5 3.5L13 5" fill="none" stroke="currentColor" stroke-width="2"></path></svg>Key works — caching enabled on this account</p>
+          <p class="key-note">Stored locally in <span class="mono">%APPDATA%\Forge</span> — sent only to DeepSeek, never anywhere else.</p>
+        </div>
+        <div class="step">
+          <div class="step-hdr"><span class="step-num">3</span><span class="h">Pick a project folder</span></div>
+          <div class="folder-pick"><svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 3.5h4.2l1.6 2h7.2v7h-13z" fill="none" stroke="currentColor" stroke-width="1.3"></path></svg><span class="d">Forge works inside one folder at a time — reads, edits and commits stay in it.</span><button class="btn btn--primary" data-go="empty">Choose folder…</button></div>
+        </div>
+      </div>
+      <p class="firstrun-foot">Everything here can change later in Settings <span class="kbd">Ctrl ,</span></p>
+    </div>
+  </div>
+
+  <!-- command palette (Ctrl+K) -->
+  <button class="scrim scrim--pal" id="pal-scrim" hidden aria-label="Close palette"></button>
+  <div class="palette" id="palette" hidden data-screen-label="Command palette">
+    <div class="palette-input"><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.4"></circle><path d="M10.5 10.5L14 14" stroke="currentColor" stroke-width="1.4"></path></svg><input id="pal-input" type="text" placeholder="Type a command…" autocomplete="off"><span class="kbd">Esc</span></div>
+    <div class="pal-list" id="pal-list">
+      <button class="pal-item" data-go="empty"><span>New session</span><span class="kbd k">Ctrl N</span></button>
+      <button class="pal-item" data-go="review"><span>Review changes</span><span class="kbd k">Ctrl D</span></button>
+      <button class="pal-item" data-go="proj"><span>Switch project…</span><span class="kbd k">Ctrl P</span></button>
+      <button class="pal-item" data-go="hist"><span>Session history</span><span class="kbd k">Ctrl H</span></button>
+      <button class="pal-item" data-go="usage"><span>Usage &amp; cost</span><span class="kbd k">Ctrl U</span></button>
+      <button class="pal-item" data-theme-set="toggle"><span>Toggle light / dark</span><span class="kbd k">Ctrl Shift L</span></button>
+      <button class="pal-item" data-go="settings"><span>Settings</span><span class="kbd k">Ctrl ,</span></button>
+      <button class="pal-item" data-go="done"><span>Stop the agent</span><span class="kbd k">Esc Esc</span></button>
+      <div class="pal-empty" id="pal-empty" hidden>No matching commands</div>
+    </div>
+  </div>
+
+  <!-- demo-only screen switcher: DELETE in production -->
+  <div class="demo-bar"><span>demo</span>
+    <select id="demo-screen">
+      <option value="empty">Empty</option><option value="mid" selected>Mid-run</option>
+      <option value="perma">Permission — routine</option><option value="permb">Permission — dangerous</option>
+      <option value="done">Completed run</option><option value="review">Review changes</option>
+      <option value="err">Errors</option><option value="usage">Usage + cache</option>
+      <option value="hist">History</option><option value="proj">Projects</option>
+      <option value="first">First run</option><option value="settings">Settings</option>
+    </select>
+  </div>
+</div>
+<script src="./forge.js"></script>
+</body>
+</html>
