@@ -63,6 +63,14 @@ export type CheckResult =
 /** Where a check came from — used in reporting so the user can audit it. */
 export type CheckSource = 'package_script' | 'repository_check' | 'project_configuration';
 
+/**
+ * How a package script came to be selected.
+ *
+ * Optional so summaries written before qualified fallback existed still load —
+ * an absent value means "not recorded", never "exact".
+ */
+export type CheckMatchType = 'exact' | 'qualified_fallback';
+
 export interface VerificationCheck {
   name: string;
   command: string;
@@ -71,6 +79,11 @@ export interface VerificationCheck {
   /** Only required checks can fail a run. Optional ones are informational. */
   required: boolean;
   timeoutMs: number;
+  /** Which canonical category this check satisfies (`typecheck`/`test`/…). */
+  category?: string;
+  matchType?: CheckMatchType;
+  /** Why this script was chosen — shown so the selection can be audited. */
+  selectionReason?: string;
 }
 
 export interface CheckOutcome extends VerificationCheck {
@@ -284,6 +297,9 @@ export class MutationState {
         exitCode: c.exitCode,
         durationMs: c.durationMs,
         ...(c.reason ? { reason: c.reason } : {}),
+        ...(c.category ? { category: c.category } : {}),
+        ...(c.matchType ? { matchType: c.matchType } : {}),
+        ...(c.selectionReason ? { selectionReason: c.selectionReason } : {}),
       })),
     };
   }
@@ -306,6 +322,17 @@ export interface VerificationSummary {
     exitCode: number | null;
     durationMs: number;
     reason?: string;
+    /**
+     * Which canonical category this satisfied, and whether the script name
+     * matched exactly or stood in as a qualified variant.
+     *
+     * Both optional: summaries written before qualified fallback existed have
+     * neither, and an absent `matchType` means "not recorded" rather than
+     * "exact". Readers must not infer coverage from their absence.
+     */
+    category?: string;
+    matchType?: CheckMatchType;
+    selectionReason?: string;
   }>;
 }
 
@@ -370,10 +397,109 @@ const FORBIDDEN_PATTERNS: RegExp[] = [
   /\bgit\s+push\b/i,
   /\brm\s+-rf\b/i,
   /\bprod(uction)?\b/i,
+
+  // Browser and end-to-end suites. Excluded from AUTOMATIC verification in
+  // this slice for reasons unrelated to correctness: they need a browser
+  // binary that may not be installed, they are slow enough to dominate a
+  // repair cycle, and a failure usually says something about the environment
+  // rather than about the model's edit. A run that cannot tell those apart
+  // would spend both repair rounds chasing a missing Chromium.
+  //
+  // `headed` is rejected while `headless` is deliberately not: the former is
+  // interactive by definition, the latter is a normal CI shape. Both still
+  // have to clear the body filters, so a headless script that shells out to
+  // playwright is rejected on its body regardless of its name.
+  /\be2e\b/i,
+  /\bend[-_]?to[-_]?end\b/i,
+  /\bplaywright\b/i,
+  /\bcypress\b/i,
+  /\bwebdriver\b/i,
+  /\bselenium\b/i,
+  /\bpuppeteer\b/i,
+  /\bbrowser\b/i,
+  /\bheaded\b/i,
 ];
 
 function isForbidden(name: string, body: string): boolean {
   return FORBIDDEN_PATTERNS.some((re) => re.test(name) || re.test(body));
+}
+
+/**
+ * Preferred qualifiers per category, most wanted first.
+ *
+ * Consulted only when no exact canonical script exists. The ordering is a
+ * judgement about which variant is most likely to be the fast, deterministic,
+ * CI-shaped one — `test:unit` before `test:all` because a unit suite is the
+ * cheapest useful signal for a repair loop. Anything not listed still competes,
+ * lexicographically, so an unusual name is ranked rather than ignored.
+ */
+const FALLBACK_PREFERENCE: Record<string, readonly string[]> = {
+  typecheck: ['ci', 'all', 'app', 'server'],
+  test: ['unit', 'ci', 'fast', 'headless', 'all'],
+  build: ['ci', 'app', 'client', 'server', 'all'],
+};
+
+interface FallbackCandidate {
+  name: string;
+  /** 0 = `category:qualifier`, 1 = `qualifier:category`. Prefix form wins. */
+  form: 0 | 1;
+  rank: number;
+}
+
+/**
+ * Find the one qualified script to stand in for a missing canonical one.
+ *
+ * Matching is on colon-delimited SEGMENTS, never substrings. `test:unit` and
+ * `server:test` qualify; `contest`, `latest`, `pretest-data` and
+ * `testing-server` do not, because none of them has a segment that IS the
+ * category. Substring matching would have picked up all four, and running
+ * `npm run contest` as a verification check is exactly the kind of surprise an
+ * automatic gate must never produce.
+ *
+ * Selection is total-ordered and independent of key order in package.json, so
+ * the same manifest always yields the same plan.
+ */
+export function findQualifiedFallback(
+  category: string,
+  scripts: Record<string, string>,
+): { name: string; reason: string } | null {
+  const preference = FALLBACK_PREFERENCE[category] ?? [];
+  const candidates: FallbackCandidate[] = [];
+
+  for (const [name, body] of Object.entries(scripts)) {
+    const segs = name.split(':');
+    if (segs.length < 2) continue;
+
+    let form: 0 | 1;
+    let qualifier: string;
+    if (segs[0] === category) {
+      form = 0;
+      qualifier = segs.slice(1).join(':');
+    } else if (segs[segs.length - 1] === category) {
+      form = 1;
+      qualifier = segs.slice(0, -1).join(':');
+    } else {
+      continue;
+    }
+
+    // A fallback earns no leniency: same name and body filters as an exact one.
+    if (isForbidden(name, body)) continue;
+
+    const idx = preference.indexOf(qualifier);
+    candidates.push({ name, form, rank: idx === -1 ? Number.MAX_SAFE_INTEGER : idx });
+  }
+
+  if (candidates.length === 0) return null;
+
+  candidates.sort(
+    (a, b) => a.form - b.form || a.rank - b.rank || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0),
+  );
+
+  const winner = candidates[0]!;
+  return {
+    name: winner.name,
+    reason: `no exact "${category}" script is declared — selected from declared qualified script ${winner.name}`,
+  };
 }
 
 /** `npm test` is special-cased; everything else goes through `run`. */
@@ -464,15 +590,41 @@ export function buildVerificationPlan(
   // change, and reporting that as a verification failure would be a lie.
   const hasModules = deps.exists(join(cwd, 'node_modules'));
 
-  const selected: string[] = [];
-  for (const name of CANDIDATE_SCRIPTS) {
-    const body = scripts[name];
-    if (body === undefined) continue;
-    if (isForbidden(name, body)) {
-      unavailable.push(`script "${name}" skipped — it looks like a long-running or deploying task`);
+  /** One entry per category, in run order. Never two from the same category. */
+  const selected: Array<{
+    name: string;
+    category: string;
+    matchType: CheckMatchType;
+    reason?: string;
+  }> = [];
+
+  for (const category of CANDIDATE_SCRIPTS) {
+    const body = scripts[category];
+
+    // Exact wins outright. A declared `test` is what the project means by
+    // testing; a qualified variant must never displace it, and only ever one
+    // command per category is selected.
+    if (body !== undefined && !isForbidden(category, body)) {
+      selected.push({ name: category, category, matchType: 'exact' });
       continue;
     }
-    selected.push(name);
+    if (body !== undefined) {
+      unavailable.push(
+        `script "${category}" skipped — it looks like a long-running or deploying task`,
+      );
+      // An unsafe exact script does not block a safe qualified one: the project
+      // may well declare `test` as a watcher and `test:unit` as the real suite.
+    }
+
+    const fallback = findQualifiedFallback(category, scripts);
+    if (fallback) {
+      selected.push({
+        name: fallback.name,
+        category,
+        matchType: 'qualified_fallback',
+        reason: fallback.reason,
+      });
+    }
   }
 
   for (const name of OPTIONAL_SCRIPTS) {
@@ -481,26 +633,31 @@ export function buildVerificationPlan(
     if (isForbidden(name, body)) continue;
     // Lint never displaces a real check; it rides along only when one exists.
     if (selected.length === 0) continue;
-    selected.push(name);
+    selected.push({ name, category: name, matchType: 'exact' });
   }
 
   if (selected.length === 0) {
-    unavailable.push('package.json declares no typecheck, test or build script');
+    unavailable.push(
+      'package.json declares no safe typecheck, test or build script (exact or qualified)',
+    );
   }
 
-  for (const name of selected) {
+  for (const s of selected) {
     if (!hasModules) {
-      unavailable.push(`script "${name}" cannot run — node_modules is absent and forge never installs`);
+      unavailable.push(`script "${s.name}" cannot run — node_modules is absent and forge never installs`);
       continue;
     }
     checks.push({
-      name,
-      command: scriptCommand(manager, name),
+      name: s.name,
+      command: scriptCommand(manager, s.name),
       cwd,
       source: 'package_script',
       // Lint is advisory; the rest gate the run.
-      required: !OPTIONAL_SCRIPTS.includes(name as (typeof OPTIONAL_SCRIPTS)[number]),
+      required: !OPTIONAL_SCRIPTS.includes(s.category as (typeof OPTIONAL_SCRIPTS)[number]),
       timeoutMs,
+      category: s.category,
+      matchType: s.matchType,
+      ...(s.reason ? { selectionReason: s.reason } : {}),
     });
   }
 

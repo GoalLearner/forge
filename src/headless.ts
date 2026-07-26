@@ -181,10 +181,23 @@ export async function runHeadless(opts: HeadlessOptions): Promise<number> {
     const required = verification.checks.filter((c) => c.required);
     const advisory = verification.checks.filter((c) => !c.required);
     for (const c of required) {
+      // A qualified selection is called out so the reader can see that
+      // `test:unit` stood in for a `test` script the project never declared.
+      const note = c.matchType === 'qualified_fallback' ? ' [qualified declared script]' : '';
       log(
-        `    ${c.result === 'passed' ? 'ok  ' : 'FAIL'} ${c.name} — ${c.command} (exit ${c.exitCode ?? 'none'})`,
+        `    ${c.result === 'passed' ? 'ok  ' : 'FAIL'} ${c.name} — ${c.command} (exit ${c.exitCode ?? 'none'})${note}`,
       );
     }
+    // Which categories were covered at all. An absent category is stated as
+    // "not declared" rather than left out, so a passing run never implies that
+    // typechecking happened when no typecheck script exists.
+    const coverage = ['typecheck', 'test', 'build']
+      .map((cat) => {
+        const hit = verification.checks.find((c) => c.category === cat);
+        return `${cat}: ${hit ? hit.command : 'not declared'}`;
+      })
+      .join(' · ');
+    log(`    coverage — ${coverage}`);
     for (const c of advisory) {
       log(
         `    ${c.result === 'passed' ? 'ok  ' : 'warn'} ${c.name} — ${c.command} (exit ${c.exitCode ?? 'none'}) [advisory]`,

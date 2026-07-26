@@ -179,7 +179,10 @@ describe('plan discovery', () => {
   test('a project with none of the three scripts is unavailable, not passing', () => {
     const p = plan({ 'package.json': pkg({ format: 'prettier -w .' }), 'node_modules': '' });
     assert.deepEqual(names(p), []);
-    assert.match(p.unavailableReasons.join(' '), /declares no typecheck, test or build/);
+    // Wording widened when qualified fallback landed: the reason now says
+    // "no SAFE ... script (exact or qualified)", because a project can declare
+    // a typecheck script and still end up here if it is a watcher.
+    assert.match(p.unavailableReasons.join(' '), /no safe typecheck, test or build script/);
   });
 
   test('watch and dev-server scripts are refused', () => {
