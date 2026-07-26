@@ -176,12 +176,24 @@ export async function runHeadless(opts: HeadlessOptions): Promise<number> {
   // correctness fact, not a display preference.
   if (verification.status !== 'not_required') {
     log(`  ${describeVerification(verification)}`);
-    for (const c of verification.checks) {
-      log(`    ${c.result === 'passed' ? 'ok  ' : 'FAIL'} ${c.name} — ${c.command} (exit ${c.exitCode ?? 'none'})`);
+    // Required and advisory are listed separately so a failing advisory can
+    // never be mistaken for the thing that decided the run.
+    const required = verification.checks.filter((c) => c.required);
+    const advisory = verification.checks.filter((c) => !c.required);
+    for (const c of required) {
+      log(
+        `    ${c.result === 'passed' ? 'ok  ' : 'FAIL'} ${c.name} — ${c.command} (exit ${c.exitCode ?? 'none'})`,
+      );
     }
-    if (verification.repairsUsed > 0) {
-      log(`    repair rounds used: ${verification.repairsUsed}/${verification.repairAllowance}`);
+    for (const c of advisory) {
+      log(
+        `    ${c.result === 'passed' ? 'ok  ' : 'warn'} ${c.name} — ${c.command} (exit ${c.exitCode ?? 'none'}) [advisory]`,
+      );
     }
+    if (advisory.some((c) => c.result !== 'passed')) {
+      log('    advisory checks report on the whole working tree and are not attributed to this run');
+    }
+    log(`    repair rounds used: ${verification.repairsUsed}/${verification.repairAllowance}`);
     if (verification.changedPaths.length > 0) {
       log(`    files changed: ${verification.changedPaths.join(', ')}`);
     }

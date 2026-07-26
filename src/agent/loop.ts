@@ -1257,9 +1257,14 @@ export async function* verifyAndMaybeRepair(
     timeoutMs: config.limits.toolTimeoutMs,
   });
 
-  // Nothing runnable. The change is real but unproven, and saying so is the
-  // whole point — this must never read as a pass.
-  if (plan.checks.filter((c) => c.required).length === 0) {
+  // Nothing at all to run. The change is real but unproven, and saying so is
+  // the whole point — this must never read as a pass.
+  //
+  // Note the condition is "no checks", not "no REQUIRED checks": when only
+  // advisory checks exist they are still worth running and reporting, and
+  // `executeVerification` returns `unavailable` for that case so an advisory
+  // result can never masquerade as verification.
+  if (plan.checks.length === 0) {
     mutations.recordVerification({
       status: 'unavailable',
       checks: [],
@@ -1280,11 +1285,18 @@ export async function* verifyAndMaybeRepair(
   if (outcome.status === 'cancelled' || signal.aborted) return 'cancelled';
 
   if (outcome.status === 'unavailable') {
+    // Two distinct causes reach here: a required check that could not execute,
+    // and a project that declares no required check at all (advisory results
+    // may still have run). Both leave the change unverified; saying which is
+    // what lets the user act on it.
     const bad = outcome.checks.find((c) => c.result === 'unavailable');
+    const why = bad
+      ? `${bad.name} could not run${bad.reason ? `: ${bad.reason}` : ''}`
+      : 'no required project checks are declared — only advisory diagnostics ran';
     yield {
       type: 'notice',
       level: 'warn',
-      message: `Files changed but could not be automatically verified — ${bad?.name ?? 'a check'} could not run${bad?.reason ? `: ${bad.reason}` : ''}.`,
+      message: `Files changed but could not be automatically verified — ${why}.`,
     };
     return 'unavailable';
   }

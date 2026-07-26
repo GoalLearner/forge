@@ -17,6 +17,7 @@ import {
   scriptCommand,
   describeVerification,
   buildRepairMessage,
+  advisoryWarnings,
   type VerificationPlan,
 } from './verification.ts';
 
@@ -228,16 +229,20 @@ describe('plan discovery', () => {
     assert.deepEqual(names(lintOnly), [], 'lint alone is not verification');
   });
 
-  test('a git repository contributes a required whitespace/conflict check', () => {
+  test('a git repository contributes an ADVISORY whitespace/conflict check', () => {
     const p = buildVerificationPlan('/proj', {
       timeoutMs: 1000,
       isGitRepo: true,
       deps: fs({ 'package.json': pkg({}), 'node_modules': '' }),
     });
     const git = p.checks.find((c) => c.source === 'repository_check');
-    assert.ok(git, 'git diff --check catches the conflict markers a mangled edit leaves behind');
+    assert.ok(git, 'git diff --check still catches conflict markers and whitespace damage');
     assert.equal(git.command, 'git diff --check');
-    assert.equal(git.required, true);
+    assert.equal(
+      git.required,
+      false,
+      'it reports on the whole working tree and cannot tell which hunks this run produced, so it must not gate the run',
+    );
   });
 
   test('unparseable package.json is unavailable, never a pass', () => {
@@ -436,5 +441,199 @@ describe('reporting', () => {
     assert.match(msg, /src\/unrelated\.ts/, 'collateral paths are surfaced, not hidden');
     assert.match(msg, /Repair attempts remaining after this one: 1/);
     assert.match(msg, /Do not start unrelated work/);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Advisory checks (F1) and repair-path baseline (F3)
+// ---------------------------------------------------------------------------
+
+describe('advisory checks never gate the run', () => {
+  const plan2 = (required: boolean): VerificationPlan => ({
+    checks: [
+      { name: 'typecheck', command: 'npm run typecheck', cwd: '/p', source: 'package_script', required: true, timeoutMs: 100 },
+      { name: 'git diff --check', command: 'git diff --check', cwd: '/p', source: 'repository_check', required, timeoutMs: 100 },
+    ],
+    packageManager: 'npm',
+    projectRoot: '/p',
+    unavailableReasons: [],
+  });
+
+  test('a failing advisory with passing required checks still verifies', async () => {
+    // The user's own unstaged whitespace fails git diff --check. Forge's work
+    // is fine. Before this fix that combination failed the run and spent both
+    // repair rounds on a file Forge never touched.
+    const { run, calls } = fakeRun({
+      'npm run typecheck': { code: 0 },
+      'git diff --check': { code: 1, out: 'src/user-owned.ts:1: trailing whitespace.' },
+    });
+    const out = await executeVerification(plan2(false), 1, {
+      signal: new AbortController().signal,
+      run,
+    });
+
+    assert.equal(out.status, 'passed', 'an advisory failure cannot fail the run');
+    assert.deepEqual(calls, ['npm run typecheck', 'git diff --check'], 'and it still runs');
+    const git = out.checks.find((c) => c.name === 'git diff --check')!;
+    assert.equal(git.result, 'failed', 'the nonzero result is retained, not discarded');
+    assert.equal(git.exitCode, 1);
+    assert.match(git.stdout, /user-owned/, 'and its diagnostic is kept for display');
+  });
+
+  test('a failing advisory does not stop later required checks', async () => {
+    const p: VerificationPlan = {
+      ...plan2(false),
+      checks: [plan2(false).checks[1]!, plan2(false).checks[0]!], // advisory first
+    };
+    const { run, calls } = fakeRun({
+      'git diff --check': { code: 1, out: 'noise' },
+      'npm run typecheck': { code: 0 },
+    });
+    const out = await executeVerification(p, 1, { signal: new AbortController().signal, run });
+    assert.equal(out.status, 'passed');
+    assert.equal(calls.length, 2, 'the advisory failure did not short-circuit the plan');
+  });
+
+  test('advisory results alone can never establish verified status', async () => {
+    const advisoryOnly: VerificationPlan = {
+      checks: [
+        { name: 'git diff --check', command: 'git diff --check', cwd: '/p', source: 'repository_check', required: false, timeoutMs: 100 },
+      ],
+      packageManager: null,
+      projectRoot: '/p',
+      unavailableReasons: ['no declared scripts'],
+    };
+    const { run, calls } = fakeRun({ 'git diff --check': { code: 0 } });
+    const out = await executeVerification(advisoryOnly, 1, {
+      signal: new AbortController().signal,
+      run,
+    });
+    assert.equal(out.status, 'unavailable', 'a clean advisory is not verification');
+    assert.deepEqual(calls, ['git diff --check'], 'it still ran and can be reported');
+  });
+
+  test('a required failure still fails even when an advisory also failed', async () => {
+    const { run } = fakeRun({
+      'npm run typecheck': { code: 2, out: 'error TS0001' },
+      'git diff --check': { code: 1, out: 'src/user-owned.ts:1: trailing whitespace.' },
+    });
+    const out = await executeVerification(plan2(false), 1, {
+      signal: new AbortController().signal,
+      run,
+    });
+    assert.equal(out.status, 'failed');
+    assert.equal(advisoryWarnings(out).length, 0, 'the run stopped before the advisory ran');
+  });
+
+  test('repair feedback names only required failures, never advisory paths', () => {
+    const m = new MutationState(2);
+    m.recordMutation('src/forge-edit.ts');
+    const msg = buildRepairMessage(
+      {
+        status: 'failed',
+        generation: 1,
+        checks: [
+          {
+            name: 'typecheck', command: 'npm run typecheck', cwd: '/p', source: 'package_script',
+            required: true, timeoutMs: 1, result: 'failed', exitCode: 2, startedAt: 0, endedAt: 1,
+            durationMs: 1, stdout: 'error TS0001: in src/forge-edit.ts', stderr: '',
+          },
+          {
+            name: 'git diff --check', command: 'git diff --check', cwd: '/p',
+            source: 'repository_check', required: false, timeoutMs: 1, result: 'failed',
+            exitCode: 1, startedAt: 0, endedAt: 1, durationMs: 1,
+            stdout: 'src/user-owned.ts:1: trailing whitespace.', stderr: '',
+          },
+        ],
+      },
+      m,
+      [],
+    );
+    assert.match(msg, /npm run typecheck/, 'the required failure is the repair target');
+    assert.doesNotMatch(
+      msg,
+      /user-owned/,
+      "a file the run never touched must never be handed to the model as something to fix",
+    );
+    assert.doesNotMatch(msg, /git diff --check/, 'advisory checks are not repair work');
+  });
+
+  test('a verified run with an advisory failure does not claim a clean repository', () => {
+    const m = new MutationState(2);
+    m.recordMutation('src/forge-edit.ts');
+    m.recordVerification({
+      status: 'passed',
+      generation: 1,
+      checks: [
+        {
+          name: 'typecheck', command: 'npm run typecheck', cwd: '/p', source: 'package_script',
+          required: true, timeoutMs: 1, result: 'passed', exitCode: 0, startedAt: 0, endedAt: 1,
+          durationMs: 1, stdout: '', stderr: '',
+        },
+        {
+          name: 'git diff --check', command: 'git diff --check', cwd: '/p',
+          source: 'repository_check', required: false, timeoutMs: 1, result: 'failed',
+          exitCode: 1, startedAt: 0, endedAt: 1, durationMs: 1, stdout: 'ws', stderr: '',
+        },
+      ],
+    });
+    const text = describeVerification(m.summary());
+    assert.match(text, /advisory warnings/i);
+    assert.match(text, /unattributed working-tree/i);
+    assert.doesNotMatch(text, /^Verified — /, 'not an unqualified all-clear');
+  });
+});
+
+describe('repair-path baseline', () => {
+  test('the first repair does not label the intended edit as collateral', () => {
+    const m = new MutationState(2);
+    m.recordMutation('src/a.ts'); // the requested change
+
+    // Round 1: nothing has been added during a repair, because no repair has
+    // happened yet. Before this fix this returned ['src/a.ts'] — telling the
+    // model its own intended edit was unexplained.
+    assert.deepEqual(m.pathsAddedSinceRepair(), []);
+
+    m.consumeRepair(); // snapshot taken here
+    assert.deepEqual(m.pathsAddedSinceRepair(), [], 'still nothing new right after the snapshot');
+  });
+
+  test('a path introduced during repair one is surfaced', () => {
+    const m = new MutationState(2);
+    m.recordMutation('src/a.ts');
+    m.consumeRepair();
+    m.recordMutation('src/collateral.ts');
+    assert.deepEqual(m.pathsAddedSinceRepair(), ['src/collateral.ts']);
+  });
+
+  test('the baseline advances so round two compares against round one', () => {
+    const m = new MutationState(2);
+    m.recordMutation('src/a.ts');
+
+    m.consumeRepair(); // round 1 baseline = [a]
+    m.recordMutation('src/collateral.ts');
+    assert.deepEqual(m.pathsAddedSinceRepair(), ['src/collateral.ts']);
+
+    m.consumeRepair(); // round 2 baseline = [a, collateral]
+    assert.deepEqual(m.pathsAddedSinceRepair(), [], 'round one damage is no longer "new"');
+
+    m.recordMutation('src/second.ts');
+    assert.deepEqual(m.pathsAddedSinceRepair(), ['src/second.ts'], 'only round two damage');
+  });
+
+  test('a fresh run starts with an empty baseline', () => {
+    const m = new MutationState(2);
+    assert.deepEqual(m.pathsAddedSinceRepair(), []);
+    m.recordMutation('src/x.ts');
+    assert.deepEqual(m.pathsAddedSinceRepair(), [], 'no repair yet, so nothing is collateral');
+  });
+
+  test('a finalized run rejects late path updates', () => {
+    const m = new MutationState(2);
+    m.recordMutation('src/a.ts');
+    m.consumeRepair();
+    m.finalize();
+    m.recordMutation('src/late.ts');
+    assert.deepEqual(m.pathsAddedSinceRepair(), [], 'a reported result cannot be rewritten');
   });
 });

@@ -137,8 +137,17 @@ export class MutationState {
   private repairs = 0;
   private frozen = false;
   private last: VerificationOutcome | null = null;
-  /** Paths already changed when the most recent repair round began. */
-  private preRepairPaths: string[] = [];
+  /**
+   * The changed-path set as it stood when the most recent repair round began,
+   * or null while no repair has happened yet.
+   *
+   * `null` rather than `[]` is load-bearing. With an empty array as the initial
+   * value, the first repair round compared the current paths against nothing and
+   * reported every INTENDED edit as unexplained collateral — telling the model
+   * its own requested change was suspicious, which invites it to undo correct
+   * work. Nothing can have been "added during a repair" before a repair exists.
+   */
+  private preRepairPaths: string[] | null = null;
 
   /**
    * Declared as a field rather than a constructor parameter property: Node runs
@@ -234,13 +243,17 @@ export class MutationState {
   }
 
   /**
-   * Paths that appeared only after the last repair began.
+   * Paths that appeared only after the last repair round began.
    *
    * Deliberately a set difference and nothing more: the goal is visibility into
    * blind repair damage (N8 mangled a route block nobody asked it to touch),
    * not semantic relevance scoring.
+   *
+   * Empty until a repair has actually been consumed — before that there is no
+   * "during a repair" to be after.
    */
   pathsAddedSinceRepair(): string[] {
+    if (this.preRepairPaths === null) return [];
     const before = new Set(this.preRepairPaths);
     return this.changedPaths().filter((p) => !before.has(p));
   }
@@ -397,16 +410,22 @@ export function buildVerificationPlan(
   const timeoutMs = opts.timeoutMs;
 
   // --- repository checks -------------------------------------------------
-  // `git diff --check` is the cheapest possible catch for the N8 damage class:
-  // conflict markers and whitespace errors introduced by a mangled edit. It
-  // reads the working diff only and changes nothing.
+  // `git diff --check` catches conflict markers and whitespace errors, which is
+  // the cheapest signal for the N8 damage class. It is ADVISORY, not a gate.
+  //
+  // It reports on the whole working diff, and cannot tell which hunks this run
+  // produced. Treating it as required meant a user's own unstaged trailing
+  // whitespace failed a correct run, burned both repair rounds, and handed the
+  // model the user's file to "fix" — a false failure in the most ordinary
+  // development state there is. Until attribution is scoped to the run's own
+  // changes, this reports and never blocks.
   if (opts.isGitRepo ?? deps.exists(join(cwd, '.git'))) {
     checks.push({
       name: 'git diff --check',
       command: 'git diff --check',
       cwd,
       source: 'repository_check',
-      required: true,
+      required: false,
       timeoutMs: Math.min(timeoutMs, 30_000),
     });
   }
@@ -530,10 +549,7 @@ export async function executeVerification(
   const shell = opts.shell ?? resolveShell({ kind: 'auto' });
   const outcomes: CheckOutcome[] = [];
 
-  const required = plan.checks.filter((c) => c.required);
-  if (required.length === 0) {
-    return { status: 'unavailable', checks: outcomes, generation };
-  }
+  const hasRequired = plan.checks.some((c) => c.required);
 
   for (const check of plan.checks) {
     if (opts.signal.aborted) {
@@ -589,8 +605,20 @@ export async function executeVerification(
     }
   }
 
+  // With no required check there is nothing that could establish correctness.
+  // An advisory result alone must never read as verified — it is reported, and
+  // the run is still "changed but not verified".
+  if (!hasRequired) {
+    return { status: 'unavailable', checks: outcomes, generation };
+  }
+
   const anyRequiredFailed = outcomes.some((o) => o.required && o.result !== 'passed');
   return { status: anyRequiredFailed ? 'failed' : 'passed', checks: outcomes, generation };
+}
+
+/** Advisory checks that came back non-passing. Never gates, always reported. */
+export function advisoryWarnings(outcome: VerificationOutcome | null): CheckOutcome[] {
+  return (outcome?.checks ?? []).filter((c) => !c.required && c.result !== 'passed');
 }
 
 function blank(
@@ -629,6 +657,11 @@ export function buildRepairMessage(
   state: MutationState,
   extraPaths: string[],
 ): string {
+  // ONLY required failures. Advisory results — notably `git diff --check`,
+  // which reports on the whole working tree — are deliberately withheld here:
+  // their output names files this run may never have touched, and putting them
+  // under "fix only what is reported here" is how the model ends up editing the
+  // user's own uncommitted work. They belong in the final summary instead.
   const failed = outcome.checks.filter((c) => c.result !== 'passed' && c.required);
   const lines: string[] = [];
 
@@ -680,8 +713,18 @@ export function describeVerification(summary: VerificationSummary): string {
     case 'not_required':
       return 'No project files changed — no verification was required.';
     case 'passed': {
-      const names = summary.checks.filter((c) => c.result === 'passed').map((c) => c.name);
-      return `Verified — ${names.join(', ') || 'all checks'} passed.`;
+      const names = summary.checks
+        .filter((c) => c.required && c.result === 'passed')
+        .map((c) => c.name);
+      const advisory = summary.checks.filter((c) => !c.required && c.result !== 'passed');
+      const base = `Verified — ${names.join(', ') || 'all required checks'} passed.`;
+      if (advisory.length === 0) return base;
+      // Never claim an entirely clean repository on the strength of the
+      // required checks alone: the advisory result is real information, it just
+      // cannot be attributed to this run.
+      return `Verified with advisory warnings — required checks passed; ${advisory
+        .map((c) => c.name)
+        .join(', ')} reported existing or unattributed working-tree issues.`;
     }
     case 'failed': {
       const bad = summary.checks.filter((c) => c.required && c.result !== 'passed');
