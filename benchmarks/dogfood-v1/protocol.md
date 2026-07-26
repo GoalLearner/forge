@@ -121,3 +121,37 @@ incident disclosed here and in the final integrity statement rather than hidden.
 Corrective control: every subsequent evaluator git write in awakened-app is
 prefixed with `NO_AUTOPUSH=1`, and origin refs are re-verified after each seeded
 task.
+
+**2026-07-26 ~11:00 PDT — N10 re-execution after an OPERATOR-CAUSED interruption.**
+The first N10 invocation was cut off when the operator's Claude Code session
+ended mid-run. Evidence: `artifacts/N10/stdout.txt` is 144 bytes and terminates
+mid-sentence ("Let me run the tests to see the current state."), there is no
+terminal reason, no ledger block in stderr, and **no result row was ever written
+to results.jsonl**. No official outcome existed for N10.
+
+Decision: N10 is executed once, using the byte-identical frozen prompt from
+`prompts/N10.txt` (verified to match `tasks.jsonl`). This is a reconstruction of
+an attempt that never produced a result, not a retry of a failed one — the
+protocol forbids retrying after failure and forbids improving prompts; neither
+applies. The prompt, acceptance criteria and validation commands are unchanged,
+and the interrupted partial stdout is preserved as `stdout.interrupted.txt`.
+
+**2026-07-26 ~10:47 PDT — evaluator validation environment (no criteria changed).**
+Fresh git worktrees contain no `node_modules` (gitignored), so the projects' own
+`tsc`/`vitest` could not run from inside them. The evaluator linked the canonical
+`awakened-app/backend/node_modules` into the task worktree AND into an ada9252
+baseline worktree as directory junctions, so every validation is measured against
+an identically-equipped baseline. This happens strictly AFTER each Forge run and
+never alters task output. Pre-existing baseline failures are reported as such.
+
+**2026-07-26 ~11:35 PDT — N7 stderr artifact collision (operator harness, disclosed).**
+`artifacts/N7/stderr.txt` contains TWO complete ledger blocks (10 req/11 att/1 retry,
+then 15 req/15 att/0 retries). Line 20 of that file is a truncated fragment of an
+auto-deny message ("...ontent -Path ..."), which proves two writers interleaved into
+one redirect target rather than one process emitting two ledgers. Each block is
+internally self-consistent (11 = 10 + 1 retry; 15 = 15 + 0), so this is NOT evidence
+of duplicate provider attempts inside a run — Forge's headless path finalizes and
+prints exactly once per process. Provenance of the second writer could not be fully
+established. Scored using the final block (15/15/0, $0.00903 estimated); the anomaly
+is disclosed rather than smoothed over, and is attributed to evidence capture, not
+to Forge accounting.

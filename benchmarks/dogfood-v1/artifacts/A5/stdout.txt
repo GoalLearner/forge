@@ -1,0 +1,7 @@
+All five files each export a single numeric constant. I'll add a JSDoc comment block above each export, one at a time.mod1.ts done. Now mod2.ts.mod2.ts done. Now mod3.ts.mod3.ts done. Now mod4.ts.mod4.ts done. Now mod5.ts.All five files updated. Each now has a JSDoc comment describing its constant:
+
+- `mod1.ts` — `/** The numeric constant value one. */`
+- `mod2.ts` — `/** The numeric constant value two. */`
+- `mod3.ts` — `/** The numeric constant value three. */`
+- `mod4.ts` — `/** The numeric constant value four. */`
+- `mod5.ts` — `/** The numeric constant value five. */`

@@ -1,0 +1,8 @@
+We haven't started anything yet — this is the first message in our session. There's no task list or prior work to report.
+
+Let me get a quick lay of the land so I can help you figure out next steps:Here's the state of things:
+
+- **Repo**: 12 TypeScript modules (`mod1.ts` through `mod12.ts`), two commits on `master`
+- **Uncommitted changes**: `mod1.ts`, `mod2.ts`, and `mod3.ts` are modified
+
+No work has been done in this session. What would you like me to tackle?

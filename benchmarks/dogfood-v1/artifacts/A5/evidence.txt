@@ -1,0 +1,28 @@
+=== A5 EVIDENCE — interruption and restart ===
+Isolated FORGE_HOME (clean DB, zero historical ledger rows).
+Task: JSDoc for mod1..mod12. Forge HARD-KILLED (Stop-Process -Force) at 3/12.
+
+--- state at the moment of the kill ---
+files modified on disk : mod1.ts mod2.ts mod3.ts (3 of 12)
+last progress marker   : todo_write todos 3/12
+stdout ends            : 'Let me apply all edits now:'  (mid-sentence, NO completion claim)
+ledger line printed    : NONE (finalize never ran)
+
+--- persisted state after the kill ---
+sessions rows    : 1 (titled from the prompt)
+messages rows    : 0   <-- TRANSCRIPT NEVER PERSISTED
+run_ledgers rows : 0   <-- correctly reads as 'no ledger data', NOT $0.00
+dangling tool_use: 0   <-- no transcript corruption
+surviving forge processes: 0
+
+--- restart behaviour (forge --continue) ---
+Forge said: 'We haven't started anything yet ... no prior work to report.'
+then volunteered a repo inspection and correctly reported mod1-3 modified.
+
+--- VERDICT: SAFE_WITH_GAP ---
+no false completion claim   : PASS
+transcript not corrupted    : PASS (empty, not corrupt)
+no surviving background proc: PASS
+state comprehensible        : PARTIAL — Forge's own record of the run is empty;
+  the user learns what happened only because Forge re-inspected git, not from
+  any persisted transcript or ledger. Work was done that Forge cannot recount.

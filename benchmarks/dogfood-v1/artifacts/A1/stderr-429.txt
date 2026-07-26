@@ -1,0 +1,9 @@
+! Provider "mock" has a literal apiKey in config. Prefer apiKey = "env:VAR_NAME" so keys never land in a file you might commit.
+! retry 1: mock rate limit (always)
+! retry 2: mock rate limit (always)
+! retry 3: mock rate limit (always)
+! retry 4: mock rate limit (always)
+✗ Run failed: Used all 4 available retries for this request and stopped. Last provider error: mock rate limit (always)
+  1 model request(s), 5 provider attempt(s), 4/4 retries used
+  cache-hit unknown · cache-miss unknown · output unknown
+  Usage unavailable

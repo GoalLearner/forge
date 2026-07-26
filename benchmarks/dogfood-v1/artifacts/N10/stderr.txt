@@ -1,49 +1,51 @@
 ● todo_write todos 0/4
 ● list_dir list .
-● grep grep "cost" in *.ts
-● grep grep "deepseek|DeepSeek" in *.ts
-● read_file read src/providers/registry.ts
-● read_file read src/session/ledger.ts
-● read_file read src/session/cost.ts
-● read_file read src/config/schema.ts
-● glob glob **/models.json
-● grep grep "models\.json|modelsJson|MODELS_JSON|catalog" in *.ts
-● read_file read src/config/models.json
-● read_file read src/headless.ts
-● read_file read src/agent/loop.ts
-● read_file read src/agent/loop.ts from line 420
-● read_file read src/providers/types.ts
-● read_file read src/providers/openai.ts
-● read_file read src/session/report.ts
-● read_file read src/desktop/main.ts from line 500
-● grep grep "this\.totals"
-● grep grep "usage.*event|event\.usage|addUsage"
-● grep grep "\/cost|app:cost|cost.*command|costCommand" in *.ts
-● read_file read src/desktop/main.ts from line 805
-● grep grep "getCost|costReport|buildCostReport" in *.ts
-● read_file read src/agent/accounting-contract.test.ts
-● run_shell cd C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N1…
-● run_shell cd C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N1…
-  ✗ Exit code 1
-  ✗ Exit code 1
-! Auto-denied "Run shell command: cd C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10 ; npm install 2>&1" — nothing can answer a prompt in non-interactive mode.
-  Re-run with --permission-mode yolo to allow it, or use interactive mode.
-! Auto-denied "Run shell command: cd C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10 ; if (Test-Path node_modules/openai) { Write-Output "openai found" } else { Write-Output "openai NOT found" }" — nothing can answer a prompt in non-interactive mode.
-  Re-run with --permission-mode yolo to allow it, or use interactive mode.
-● read_file read src/session/store.ts
-● todo_write todos 2/4
-● read_file read src/config/load.ts
-● read_file read src/agent/loop.integration.test.ts from line 430
-● grep grep "class AgentRun|this\.model\b|this\.totals|entry\.pricing|cost.*display|showCost"
-● read_file read src/desktop/main.ts from line 380
-● grep grep "TODO|FIXME|HACK|XXX|BUG" in *.ts
+● grep grep "cost|Cost|pricing|Pricing" in *.ts
+● grep grep "deepseek|DeepSeek|DEEPSEEK" in *.ts
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\config\schema.ts from line 165
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\session\ledger.ts
+● grep grep "deepseek-v4|deepseek.*pricing|BUILTIN_MODELS|catalog""
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\config\schema.ts from line 1
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\config\models.json
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\agent\loop.ts from line 150
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\session\cost.ts
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\providers\openai.ts from line 250
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\desktop\main.ts from line 490
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\desktop\main.ts from line 1
+● grep grep "NormalizedUsage"
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\providers\types.ts from line 115
+● grep grep "addUsage|totals"
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\headless.ts from line 130
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\agent\loop.ts from line 290
+● grep grep "type: 'usage'|usage|ledgerUsage|detail"
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\providers\openai.ts from line 50
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\providers\registry.ts
+! retry 1: Connection error. (other side closed)
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\session\ledger.test.ts
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\agent\retry-budget.test.ts from line 310
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\agent\retry-budget.test.ts from line 1
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\providers\usage-detail.test.ts
+● grep grep "export.*function withRetry|export.*async function withRetry" in *.ts
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\providers\retry.ts from line 90
+● grep grep "usage|detail|ledger"
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\headless.ts from line 50
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\headless.ts from line 100
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\agent\run.ts
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\agent\loop.integration.test.ts from line 430
 ● git_log git log
-● git_diff git diff
-● run_shell cd C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N1…
-● run_shell cd C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N1…
+● git_diff git diff --staged
+● git_status git status
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\agent\loop.ts from line 489
+● read_file read C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10\src\session\report.ts
+● grep grep "case 'usage'|totals.*addUsage|event\.usage"
+● run_shell cd "C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N…
+  ✗ Exit code 1
+! Auto-denied "Run shell command: git -C "C:\Users\richm\AppData\Local\Temp\forge-bench-20260726\worktrees\N10" show --stat 7392a4b" — nothing can answer a prompt in non-interactive mode.
+  Re-run with --permission-mode yolo to allow it, or use interactive mode.
+● run_shell git show --stat 7392a4b
 ● todo_write todos 3/4
 ● todo_write todos 4/4
-deepseek/deepseek-v4-pro  $0.0680  33 request(s)  cache 96%
-  33 model request(s), 33 provider attempt(s), 0/4 retries used
-  cache-hit 2,269,568 · cache-miss 95,677 · output 20,820 · reasoning 16,972
-  $0.0680 estimated
+deepseek/deepseek-v4-pro  $0.0614  38 request(s)  cache 97%
+  38 model request(s), 39 provider attempt(s), 1/4 retries used
+  cache-hit 2,208,896 · cache-miss 76,895 · output 22,922 · reasoning 18,065
+  At least $0.0614 — usage incomplete

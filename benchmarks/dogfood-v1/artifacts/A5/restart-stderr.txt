@@ -1,0 +1,8 @@
+! Continuing session 2fc8635d (0 messages).
+● git_status git status
+● git_log git log
+● list_dir list .
+deepseek/deepseek-v4-pro  $0.00063  2 request(s)  cache 88%
+  2 model request(s), 2 provider attempt(s), 0/4 retries used
+  cache-hit 5,120 · cache-miss 686 · output 357 · reasoning 147
+  $0.00063 estimated

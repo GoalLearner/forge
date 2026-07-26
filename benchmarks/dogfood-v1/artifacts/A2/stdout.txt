@@ -1,0 +1,3 @@
+The command was blocked by the approval system. Let me first check what `spawn.sh` contains and whether it exists:The file `spawn.sh` exists and is a wrapper script that spawns a Node.js child process which heartbeats to a log file, then waits on the child. However, the shell command was declined by the approval system — it requires explicit approval to run because it would spawn a long-running descendant process.
+
+You can approve the command manually, or if you'd prefer, I can try an alternative approach. What would you like to do?

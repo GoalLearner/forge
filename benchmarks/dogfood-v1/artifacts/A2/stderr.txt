@@ -1,0 +1,8 @@
+! Auto-denied "Run shell command: sh ./spawn.sh --permission-mode yolo" — nothing can answer a prompt in non-interactive mode.
+  Re-run with --permission-mode yolo to allow it, or use interactive mode.
+● glob glob spawn.sh
+● read_file read spawn.sh
+deepseek/deepseek-v4-pro  $0.00167  4 request(s)  cache 76%
+  4 model request(s), 4 provider attempt(s), 0/4 retries used
+  cache-hit 8,832 · cache-miss 2,855 · output 452 · reasoning 166
+  $0.00167 estimated

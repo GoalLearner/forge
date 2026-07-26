@@ -1,0 +1,50 @@
+Now let me look at the schema and the default model catalog to see DeepSeek pricing configuration.Let me run the tests to see the current state.Let me look at the diff of the fix commit more closely to confirm what was changed.## Verdict: **Not reproducible in the current code — already fixed**
+
+The defect the user describes matches exactly what commit `7392a4b` ("fix: correct ledger confidence and attempt accounting") addressed. Here's the evidence:
+
+### Two bugs that produced "authoritative $0.00"
+
+**Bug 1 — Cost confidence (`src/session/ledger.ts`):**
+
+Before the fix, `priceUsage` determined state based on token-count provenance:
+
+```typescript
+// OLD (pre-fix) logic:
+const derived =
+  usage.sources.cacheHitInput !== 'reported' ||
+  usage.sources.cacheMissInput !== 'reported' ||
+  usage.sources.outputTokens !== 'reported';
+return { state: derived ? 'estimated' : 'known', nanos, tokens };
+```
+
+DeepSeek's API reports `prompt_cache_hit_tokens` AND `prompt_cache_miss_tokens` explicitly — every source was `'reported'`. So DeepSeek runs returned `known` state, making the cost look like an authoritative figure rather than an estimate (`src/session/ledger.ts:369-377` documents this explicitly).
+
+**Bug 2 — Billability (`src/session/ledger.ts`):**
+
+`NO_BILLABLE_USAGE` was applied to ANY dispatched request that produced no stream events (429, 5xx, connection resets). This treated failed-but-dispatched requests as provably free — `priceUsage` returned `{state: 'known', nanos: 0}`, rendering an authoritative `$0.00`. The commit message says: *"Five rejected requests displayed '$0.00' as fact."*
+
+### What the fix changed
+
+| Aspect | Before | After |
+|---|---|---|
+| **`known` state** | DeepSeek runs + any dispatched failure with no stream | Only calls that **never left the process** (`provenNoDispatch`) |
+| **`NO_BILLABLE_USAGE`** | Applied to dispatched-but-silent failures | Only for never-dispatched calls; carries `provenNoDispatch: true` |
+| **Dispatched failures** | `$0.00` (known) | `"Usage unavailable"` (incomplete) |
+| **DeepSeek successes** | `$0.14` (known — authoritative) | `$0.14 estimated` |
+
+The key change in `priceUsage` (`src/session/ledger.ts:345-378`):
+
+```typescript
+// Current code:
+if (usage.provenNoDispatch) return { state: 'known', nanos: 0, tokens: 0 };  // ← new gate
+// ... everything else is 'estimated'
+return { state: 'estimated', nanos: partialNanos(usage, pricing), tokens };
+```
+
+### DeepSeek pricing is intact
+
+The model catalog (`src/config/models.json:20-35`) has correct, non-zero pricing for both DeepSeek models. The `normalizeOpenAIUsage` function (`src/providers/openai.ts:274-295`) correctly handles DeepSeek's `prompt_cache_hit_tokens` / `prompt_cache_miss_tokens` dialect. I traced every code path from stream event → normalization → cost computation → display and found no chain that could produce a zero cost with non-zero tokens.
+
+### Conclusion
+
+No code change needed. The reported behavior was a genuine defect that was already fixed in the most recent commit. Both the "authoritative" confidence label and the false-zero for dispatched failures are now prevented: the ledger never claims `known` for anything beyond a truly never-sent request, and dispatched-but-silent failures are `incomplete` rather than zero.Done. No code changes needed — the bug was already fixed.

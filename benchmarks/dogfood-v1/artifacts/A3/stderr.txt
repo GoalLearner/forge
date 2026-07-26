@@ -1,0 +1,7 @@
+● grep grep "computeShippingTotal"
+● read_file read src\core\shipping.ts
+● edit_file edit src\core\shipping.ts
+deepseek/deepseek-v4-pro  $0.00159  4 request(s)  cache 77%
+  4 model request(s), 4 provider attempt(s), 0/4 retries used
+  cache-hit 9,344 · cache-miss 2,809 · output 382 · reasoning 143
+  $0.00159 estimated

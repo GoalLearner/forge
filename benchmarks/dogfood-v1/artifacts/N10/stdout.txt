@@ -1,50 +1,40 @@
-Now let me look at the schema and the default model catalog to see DeepSeek pricing configuration.Let me run the tests to see the current state.Let me look at the diff of the fix commit more closely to confirm what was changed.## Verdict: **Not reproducible in the current code — already fixed**
+## Conclusion: The defect has already been fixed
 
-The defect the user describes matches exactly what commit `7392a4b` ("fix: correct ledger confidence and attempt accounting") addressed. Here's the evidence:
+The user's report describes a real bug that existed in a prior revision, but it is **no longer reproducible in the current code**. Commit `7392a4b` ("fix: correct ledger confidence and attempt accounting") explicitly addressed this exact issue.
 
-### Two bugs that produced "authoritative $0.00"
+### Evidence
 
-**Bug 1 — Cost confidence (`src/session/ledger.ts`):**
+**The bug (prior behavior):** `src/session/ledger.ts:345-377` — `priceUsage()` used to inspect token-count provenance. When every count came back `reported` (which is DeepSeek's dialect — it states `prompt_cache_hit_tokens` and `prompt_cache_miss_tokens` outright), the cost was classified as `known`. An OpenAI-dialect provider would get `estimated` for the exact same spend. DeepSeek users saw an authoritative `$0.00` (no suffix) instead of `$0.00 estimated`.
 
-Before the fix, `priceUsage` determined state based on token-count provenance:
-
+**The fix (current code, `ledger.ts:365-377`):**
 ```typescript
-// OLD (pre-fix) logic:
-const derived =
-  usage.sources.cacheHitInput !== 'reported' ||
-  usage.sources.cacheMissInput !== 'reported' ||
-  usage.sources.outputTokens !== 'reported';
-return { state: derived ? 'estimated' : 'known', nanos, tokens };
-```
-
-DeepSeek's API reports `prompt_cache_hit_tokens` AND `prompt_cache_miss_tokens` explicitly — every source was `'reported'`. So DeepSeek runs returned `known` state, making the cost look like an authoritative figure rather than an estimate (`src/session/ledger.ts:369-377` documents this explicitly).
-
-**Bug 2 — Billability (`src/session/ledger.ts`):**
-
-`NO_BILLABLE_USAGE` was applied to ANY dispatched request that produced no stream events (429, 5xx, connection resets). This treated failed-but-dispatched requests as provably free — `priceUsage` returned `{state: 'known', nanos: 0}`, rendering an authoritative `$0.00`. The commit message says: *"Five rejected requests displayed '$0.00' as fact."*
-
-### What the fix changed
-
-| Aspect | Before | After |
-|---|---|---|
-| **`known` state** | DeepSeek runs + any dispatched failure with no stream | Only calls that **never left the process** (`provenNoDispatch`) |
-| **`NO_BILLABLE_USAGE`** | Applied to dispatched-but-silent failures | Only for never-dispatched calls; carries `provenNoDispatch: true` |
-| **Dispatched failures** | `$0.00` (known) | `"Usage unavailable"` (incomplete) |
-| **DeepSeek successes** | `$0.14` (known — authoritative) | `$0.14 estimated` |
-
-The key change in `priceUsage` (`src/session/ledger.ts:345-378`):
-
-```typescript
-// Current code:
-if (usage.provenNoDispatch) return { state: 'known', nanos: 0, tokens: 0 };  // ← new gate
-// ... everything else is 'estimated'
+// A previous revision promoted this to `known` when every count came back
+// `reported` (DeepSeek states both halves of the cache split; the OpenAI
+// dialect makes us subtract). But provenance of the token counts says nothing
+// about the provenance of the DOLLARS: both dialects were multiplied by the
+// same local models.json rates, so labelling one authoritative and the other
+// an estimate distinguished two figures that are equally derived — and would
+// present a stale price table as fact. `known` is reserved for a genuine
+// provider-quoted amount, which no supported provider returns today.
 return { state: 'estimated', nanos: partialNanos(usage, pricing), tokens };
 ```
 
-### DeepSeek pricing is intact
+All locally-calculated money is now `estimated`. The only warrant for `known` is `provenNoDispatch` (a call that never left the process), which is the one scenario where zero cost is a fact rather than an absence of data.
 
-The model catalog (`src/config/models.json:20-35`) has correct, non-zero pricing for both DeepSeek models. The `normalizeOpenAIUsage` function (`src/providers/openai.ts:274-295`) correctly handles DeepSeek's `prompt_cache_hit_tokens` / `prompt_cache_miss_tokens` dialect. I traced every code path from stream event → normalization → cost computation → display and found no chain that could produce a zero cost with non-zero tokens.
+**Additional defects fixed in the same commit:**
 
-### Conclusion
+1. **Billability assumption** (`loop.ts:222-253`): A dispatched request that returned no stream event (429, 5xx, reset socket) was treated as free. The line is now drawn at whether the outbound call was made — `dispatched=true` plus no observed usage yields `incomplete` ("Usage unavailable"), not `$0.00`.
 
-No code change needed. The reported behavior was a genuine defect that was already fixed in the most recent commit. Both the "authoritative" confidence label and the false-zero for dispatched failures are now prevented: the ledger never claims `known` for anything beyond a truly never-sent request, and dispatched-but-silent failures are `incomplete` rather than zero.Done. No code changes needed — the bug was already fixed.
+2. **Exact-once recording** (`loop.ts:181-276`): Attempt finalization had no identity tracking, so a cancellation during retry backoff could produce duplicate ledger rows from both the retry callback and the catch block. Attempts now carry a stable key and a `finalized` flag.
+
+**Verification — current behavior for DeepSeek V4 Flash with real usage:**
+- 100 cache-miss input × $0.14 = 14,000 nanos
+- 900 cache-hit input × $0.0028 = 2,520 nanos  
+- 50 output × $0.28 = 14,000 nanos
+- Total: 30,520 nanos → displays as `$0.00003 estimated`
+
+The suffix `estimated` and the sub-cent precision make it unambiguously non-authoritative.
+
+### No code changes needed
+
+The defect the user describes matches the pre-fix behavior exactly. The current code already contains the correction. No further changes are required.The investigation is complete. The defect the user reports was a real bug — `priceUsage()` used to return `known` for DeepSeek because DeepSeek reports every token count directly — but it was fixed in commit `7392a4b`. The current code always returns `estimated` for locally-computed costs regardless of token-count provenance. No code changes are needed.

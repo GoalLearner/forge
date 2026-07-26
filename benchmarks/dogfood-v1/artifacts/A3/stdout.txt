@@ -1,0 +1,1 @@
+Changed the VAT rate from `0.19` to `0.21` in the single function `computeShippingTotal` at `src/core/shipping.ts:3`. No other file or function was touched.

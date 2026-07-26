@@ -1,0 +1,24 @@
+=== A1 EVIDENCE — controlled LOCAL mock provider (127.0.0.1:8791) ===
+The real DeepSeek account was never contacted. Isolated FORGE_HOME profile.
+
+--- SCENARIO 1: 429 -> 503 -> mid-stream connection drop ---
+server ground-truth dispatches: 3
+forge ledger:
+✗ mock: terminated (other side closed)
+  1 model request(s), 3 provider attempt(s), 2/4 retries used
+  cache-hit unknown · cache-miss unknown · output unknown
+  Usage unavailable
+
+--- SCENARIO 2: always 429 (forces the aggregate ceiling) ---
+server ground-truth dispatches: 5
+forge ledger:
+✗ Run failed: Used all 4 available retries for this request and stopped. Last provider error: mock rate limit (always)
+  1 model request(s), 5 provider attempt(s), 4/4 retries used
+  cache-hit unknown · cache-miss unknown · output unknown
+  Usage unavailable
+
+--- VERDICT ---
+attempts recorded == attempts dispatched : 3==3 and 5==5  PASS
+retriesUsed never exceeds ceiling 4         : 2/4 and 4/4    PASS
+no bare $0.00 for a dispatched attempt      : 'Usage unavailable' PASS
+explicit terminal reason on exhaustion      : retry-limit message PASS

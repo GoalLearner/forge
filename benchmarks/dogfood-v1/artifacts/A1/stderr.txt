@@ -1,0 +1,7 @@
+! Provider "mock" has a literal apiKey in config. Prefer apiKey = "env:VAR_NAME" so keys never land in a file you might commit.
+! retry 1: mock rate limit
+! retry 2: mock unavailable
+✗ mock: terminated (other side closed)
+  1 model request(s), 3 provider attempt(s), 2/4 retries used
+  cache-hit unknown · cache-miss unknown · output unknown
+  Usage unavailable

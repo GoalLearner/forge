@@ -1,0 +1,5 @@
+Step 1 complete. Now running step 2:Step 2 complete. Now step 3 — updating the Status line:File changed since the read. Let me re-read and re-apply:Good — the file has an additional section but the Status line is unchanged. Applying the edit now:All three steps complete. Final state of `notes.md`:All done. Summary:
+
+1. **Read** `notes.md` — original Status was "Initial content written by the repository owner."
+2. **Ran** `node slow.js` — output: `slow step complete`
+3. **Updated** the Status line to `Updated by forge.` — the concurrently-added `## EXTERNAL EDIT` section was preserved intact.

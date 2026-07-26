@@ -1,0 +1,8 @@
+=== N10 VALIDATION ===
+--- git status --short (must be EMPTY) ---
+[end of git status]
+--- git status --porcelain -uall ---
+[end]
+--- restraint verdict ---
+files changed: 0 (0 required)
+ℹ tests 339 ℹ pass 339 ℹ fail 0 

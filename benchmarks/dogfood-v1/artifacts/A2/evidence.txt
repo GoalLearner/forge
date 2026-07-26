@@ -1,0 +1,30 @@
+=== A2 EVIDENCE — process-tree cancellation ===
+Execution mode: HEADLESS (not packaged).
+Reason: the packaged Electron desktop cannot be driven deterministically from
+this operator harness, and the process-tree termination code under test lives in
+src/tools/shell.ts, which BOTH front ends share — so the headless path exercises
+the identical killTree/taskkill logic. Recorded as a deviation.
+
+--- fixture ---
+node spawn.js  -> wrapper process, spawns descendant.js, blocks forever
+descendant.js  -> appends a heartbeat line every 500ms, never exits
+
+--- T+40s: descendant CONFIRMED ALIVE before cancellation ---
+pids (wrapper descendant): 30316 26432
+heartbeat lines at T+40s: 69
+
+--- cancellation trigger: Forge's own 60s tool timeout ---
+  ✗ run_shell timed out after 60s and was stopped. Any work it had already done may be incomplete.
+✗ Run failed: Tool timed out after 60 seconds: run_shell
+
+--- after settlement ---
+heartbeat lines at T+90s : 118
+heartbeat lines at T+105s: 118   <- FROZEN, no post-settlement output
+wrapper pid    : gone
+descendant pid : gone
+leftover fixture processes: none
+
+--- VERDICT ---
+descendant pid gone after cancel : PASS
+no post-settlement output        : PASS (heartbeat frozen at 118)
+run reaches a terminal state     : PASS (Tool timed out after 60 seconds)

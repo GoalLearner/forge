@@ -1,0 +1,32 @@
+=== A4 EVIDENCE — stale external modification ===
+Lifecycle actually achieved:
+  1. Forge read notes.md
+  2. Forge ran 'node slow.js' (20s block)
+  3. Operator appended '## EXTERNAL EDIT ... MUST NOT BE LOST.' at T+22s
+  4. Forge attempted its edit with stale knowledge
+
+--- what Forge did ---
+● read_file read notes.md
+● edit_file edit notes.md
+  ✗ notes.md changed on disk after you read it.
+● read_file read notes.md
+● edit_file edit notes.md
+● read_file read notes.md
+
+--- final notes.md ---
+# Project Notes
+
+## Status
+Updated by forge.
+
+## Tasks
+- [ ] first task
+
+## EXTERNAL EDIT
+Written by another process at 2026-07-26T11:19:48-07:00. MUST NOT BE LOST.
+
+--- VERDICT ---
+external change not silently lost : PASS (guard fired, then re-read)
+repository recoverable            : PASS
+no false success claim            : PASS
+DATA LOSS: NONE. Both edits present.
