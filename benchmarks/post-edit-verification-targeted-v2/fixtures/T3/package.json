@@ -1,0 +1,11 @@
+{
+  "name": "t3-report-fixture",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Frozen fixture for targeted case T3 (n8_bounded_multi_file_repair). No dependencies are declared; tsc is resolved from a node_modules junction created at benchmark-prep time, exactly as the v1 fixtureSetup prose requires.",
+  "scripts": {
+    "typecheck": "tsc -p . --noEmit",
+    "test": "node --test src/*.test.js"
+  }
+}

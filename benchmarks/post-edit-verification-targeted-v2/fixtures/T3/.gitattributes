@@ -1,0 +1,5 @@
+# Fixture bytes are frozen. Disable all line-ending translation so the
+# SHA-256 values in fixture-manifest.json hold on every platform and every
+# checkout — the manifest is worthless if git rewrites these files on the way
+# out of the object store.
+* -text

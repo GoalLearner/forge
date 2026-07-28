@@ -1,0 +1,175 @@
+{
+  "protocolRevision": 2,
+  "generatedFrom": "frozen v1 fixtureSetup prose at 25626db",
+  "fixtureProvenance": "authored_v2_from_frozen_prose",
+  "recoveryOutcome": "EXACT_FIXTURES_NOT_RECOVERED",
+  "node": "v24.15.0",
+  "npm": "11.12.1",
+  "cases": {
+    "T2": {
+      "fixtureRoot": "benchmarks/post-edit-verification-targeted-v2/fixtures/T2",
+      "baselineCommands": [
+        "npm run typecheck",
+        "npm test"
+      ],
+      "expectedBaselineExitCodes": {
+        "npm run typecheck": 0,
+        "npm test": 0
+      },
+      "expectedTestCount": 4,
+      "typecheckRequired": true,
+      "buildRequired": false,
+      "preparation": "Create a directory junction from the Forge repository node_modules into the fixture root (Windows: New-Item -ItemType Junction). Never run npm install; the fixture declares no dependencies.",
+      "fixtureTreeHash": "e48c4c4d3c2a1fae534337cfbe26a47e532d6ffc"
+    },
+    "T3": {
+      "fixtureRoot": "benchmarks/post-edit-verification-targeted-v2/fixtures/T3",
+      "baselineCommands": [
+        "npm run typecheck",
+        "npm test"
+      ],
+      "expectedBaselineExitCodes": {
+        "npm run typecheck": 0,
+        "npm test": 0
+      },
+      "expectedTestCount": 5,
+      "typecheckRequired": true,
+      "buildRequired": false,
+      "preparation": "Create a directory junction from the Forge repository node_modules into the fixture root (Windows: New-Item -ItemType Junction). Never run npm install; the fixture declares no dependencies.",
+      "fixtureTreeHash": "7ed511b4fe858135f89994ab05db0a16578d27d8"
+    }
+  },
+  "files": [
+    {
+      "caseId": "T2",
+      "path": ".gitattributes",
+      "gitBlob": "02becdbe9e419c975d7a53d63693f6d5bd64cd34",
+      "sha256": "620a5c275b39b2f27cf394fa96656c90167e2f80ee640f67ac7f522350f079e9",
+      "bytes": 261,
+      "lineEndings": "LF",
+      "purpose": "Disables line-ending translation so the committed bytes and their SHA-256 hold on every platform.",
+      "provenance": "authored_v2_from_frozen_prose"
+    },
+    {
+      "caseId": "T2",
+      "path": ".gitignore",
+      "gitBlob": "c2658d7d1b31848c3b71960543cb0368e56cd4c7",
+      "sha256": "4d56952b0fb13bf8f9b6c13a6d4c34a075bac3af447636a1df4335d7576e2f97",
+      "bytes": 14,
+      "lineEndings": "LF",
+      "purpose": "Keeps the prep-time node_modules junction untracked.",
+      "provenance": "authored_v2_from_frozen_prose"
+    },
+    {
+      "caseId": "T2",
+      "path": "package.json",
+      "gitBlob": "c8ccae9d8c4b3858228c8a50eacd0e3268250ec1",
+      "sha256": "208662552fecb7659c39125685eb6756222d31dfbf4edb2240c5bbb4533ae969",
+      "bytes": 432,
+      "lineEndings": "LF",
+      "purpose": "Declares the typecheck and test scripts the frozen fixtureSetup names. No dependencies, no install scripts.",
+      "provenance": "authored_v2_from_frozen_prose"
+    },
+    {
+      "caseId": "T2",
+      "path": "src/rates.test.js",
+      "gitBlob": "357ce0697c8e609c5d0022ac8c8b7617f2d3d4fd",
+      "sha256": "0f419fc94e2180f6136e542703ed4c842c3113db6d08e62d841c287c72ad6936",
+      "bytes": 775,
+      "lineEndings": "LF",
+      "purpose": "T2 baseline coverage of total() behaviour.",
+      "provenance": "authored_v2_from_frozen_prose"
+    },
+    {
+      "caseId": "T2",
+      "path": "src/rates.ts",
+      "gitBlob": "82c499e8fd1909dacb7edf725b58afd18a863288",
+      "sha256": "e98f6471b78bcd7a4adb0ed5184594974c06e964cf8c05f1fae4e812a836be9e",
+      "bytes": 412,
+      "lineEndings": "LF",
+      "purpose": "T2 production source: the frozen Rate interface and total() helper the prompt extends.",
+      "provenance": "authored_v2_from_frozen_prose"
+    },
+    {
+      "caseId": "T2",
+      "path": "tsconfig.json",
+      "gitBlob": "1c8e5ed151b7aac57813fbfa01d782771fd619f7",
+      "sha256": "a90a9bb735c3729c65077fc54db5ac9c272d1d45013db706bf37a06a78123582",
+      "bytes": 298,
+      "lineEndings": "LF",
+      "purpose": "Strict, noEmit TypeScript configuration required by the frozen prose.",
+      "provenance": "authored_v2_from_frozen_prose"
+    },
+    {
+      "caseId": "T3",
+      "path": ".gitattributes",
+      "gitBlob": "02becdbe9e419c975d7a53d63693f6d5bd64cd34",
+      "sha256": "620a5c275b39b2f27cf394fa96656c90167e2f80ee640f67ac7f522350f079e9",
+      "bytes": 261,
+      "lineEndings": "LF",
+      "purpose": "Disables line-ending translation so the committed bytes and their SHA-256 hold on every platform.",
+      "provenance": "authored_v2_from_frozen_prose"
+    },
+    {
+      "caseId": "T3",
+      "path": ".gitignore",
+      "gitBlob": "c2658d7d1b31848c3b71960543cb0368e56cd4c7",
+      "sha256": "4d56952b0fb13bf8f9b6c13a6d4c34a075bac3af447636a1df4335d7576e2f97",
+      "bytes": 14,
+      "lineEndings": "LF",
+      "purpose": "Keeps the prep-time node_modules junction untracked.",
+      "provenance": "authored_v2_from_frozen_prose"
+    },
+    {
+      "caseId": "T3",
+      "path": "package.json",
+      "gitBlob": "0fb2abed4eab1e4e82882636a1fea195d0bc80d6",
+      "sha256": "20bdce3af0ce95433c562d9bc5e31569c57673681b788cd93a8c442145fa58da",
+      "bytes": 435,
+      "lineEndings": "LF",
+      "purpose": "Declares the typecheck and test scripts the frozen fixtureSetup names. No dependencies, no install scripts.",
+      "provenance": "authored_v2_from_frozen_prose"
+    },
+    {
+      "caseId": "T3",
+      "path": "src/report.test.js",
+      "gitBlob": "02bffa80ca684aac5e511c2a6b500e51c6570aa8",
+      "sha256": "2e2da6e4b34bac81ddc8b7f81a4052fd0109ebfb72ab57beeb95163ee61cf2ca",
+      "bytes": 1102,
+      "lineEndings": "LF",
+      "purpose": "T3 baseline coverage of render() and load().",
+      "provenance": "authored_v2_from_frozen_prose"
+    },
+    {
+      "caseId": "T3",
+      "path": "src/report.ts",
+      "gitBlob": "db4288a73d356b8704389a679e9268f10e78c822",
+      "sha256": "f7fd5d6eba912c76fd57daffaac5eb9046029b02c5b97280116da781a3865231",
+      "bytes": 460,
+      "lineEndings": "LF",
+      "purpose": "T3 production source: render() consuming Entry from store.ts.",
+      "provenance": "authored_v2_from_frozen_prose"
+    },
+    {
+      "caseId": "T3",
+      "path": "src/store.ts",
+      "gitBlob": "a29aed82da7b4a2bc170e41503b760be20d0e544",
+      "sha256": "f4723008738a3f554209aaaa2ee35637301e256bfed6cca7f74e26da59197c5c",
+      "bytes": 597,
+      "lineEndings": "LF",
+      "purpose": "T3 production source: the Entry type and load() the prompt mutates.",
+      "provenance": "authored_v2_from_frozen_prose"
+    },
+    {
+      "caseId": "T3",
+      "path": "tsconfig.json",
+      "gitBlob": "1c8e5ed151b7aac57813fbfa01d782771fd619f7",
+      "sha256": "a90a9bb735c3729c65077fc54db5ac9c272d1d45013db706bf37a06a78123582",
+      "bytes": 298,
+      "lineEndings": "LF",
+      "purpose": "Strict, noEmit TypeScript configuration required by the frozen prose.",
+      "provenance": "authored_v2_from_frozen_prose"
+    }
+  ],
+  "fixturesTreeHash": "f2f4af3939924759d02b1aeddd561621cd5d0380"
+}
