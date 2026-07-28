@@ -21,6 +21,7 @@ import { dirname } from 'node:path';
 import { PathJail } from '../safety/paths.ts';
 import { AbortedError } from '../providers/types.ts';
 import { capPatch, computeDiff } from './diff.ts';
+import { applyStyle, findLogicalMatches, replacementStyle, spliceSpans } from './edit-match.ts';
 import {
   ToolError,
   type PermissionRequest,
@@ -192,34 +193,33 @@ function applyEdit(source: string, edit: EditSpec, display: string, index?: numb
     );
   }
 
-  const occurrences = countOccurrences(source, edit.old_string);
+  // Matching tolerates CRLF/LF differences and NOTHING else — see
+  // edit-match.ts. `read_file` hands the model a CRLF file with invisible
+  // carriage returns, so an `old_string` copied faithfully from what was
+  // displayed would otherwise never match, and the only way forward would be
+  // rewriting the whole file.
+  const matches = findLogicalMatches(source, edit.old_string);
 
-  if (occurrences === 0) {
+  if (matches.length === 0) {
     throw new ToolError(
       `${label}: old_string was not found in ${display}.`,
       'Re-read the file — the text may differ in whitespace or indentation from what you expected. Copy the exact text from the read_file output.',
     );
   }
-  if (occurrences > 1 && !edit.replace_all) {
+  if (matches.length > 1 && !edit.replace_all) {
     throw new ToolError(
-      `${label}: old_string appears ${occurrences} times in ${display}; the match must be unique.`,
+      `${label}: old_string appears ${matches.length} times in ${display}; the match must be unique.`,
       'Include more surrounding lines to make the match unique, or set replace_all: true to change every occurrence.',
     );
   }
 
-  return edit.replace_all
-    ? source.split(edit.old_string).join(edit.new_string)
-    : source.replace(edit.old_string, edit.new_string);
-}
-
-function countOccurrences(haystack: string, needle: string): number {
-  let count = 0;
-  let position = haystack.indexOf(needle);
-  while (position !== -1) {
-    count++;
-    position = haystack.indexOf(needle, position + needle.length);
-  }
-  return count;
+  // Splice at PHYSICAL offsets recovered from the match, so everything outside
+  // the replaced span — including unrelated line endings, a BOM and the
+  // presence or absence of a trailing newline — survives byte for byte.
+  const targets = edit.replace_all ? matches : [matches[0]!];
+  return spliceSpans(source, targets, (span) =>
+    applyStyle(edit.new_string, replacementStyle(source, span)),
+  );
 }
 
 function loadForEdit(ctx: ToolContext, rawPath: string): { path: string; display: string; source: string } {
@@ -277,7 +277,11 @@ export const editFileTool: Tool = {
       replace_all: Boolean(input.replace_all),
     }, display);
 
-    const finalContent = matchLineEndings(source, updated);
+    // NOT `matchLineEndings` — that restyles the WHOLE file to one ending, and
+    // `applyEdit` has already styled the replacement to match the span it
+    // replaced. Running both would flatten a mixed-ending file's unrelated
+    // lines, which is precisely the churn a surgical edit must not cause.
+    const finalContent = updated;
     assertNotAborted(ctx);
     ctx.checkpoints?.snapshot(path);
     writeFileSync(path, finalContent, 'utf8');
@@ -359,7 +363,9 @@ export const multiEditTool: Tool = {
       working = applyEdit(working, edit, display, index);
     });
 
-    const finalContent = matchLineEndings(source, working);
+    // Same reasoning as edit_file: each replacement is already styled to its
+    // own matched span, so a whole-file restyle here would undo that.
+    const finalContent = working;
     assertNotAborted(ctx);
     ctx.checkpoints?.snapshot(path);
     writeFileSync(path, finalContent, 'utf8');
