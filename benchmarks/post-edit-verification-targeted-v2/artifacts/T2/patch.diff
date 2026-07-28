@@ -1,0 +1,95 @@
+diff --git a/src/rates.test.js b/src/rates.test.js
+index 357ce06..978f982 100644
+--- a/src/rates.test.js
++++ b/src/rates.test.js
+@@ -1,7 +1,7 @@
+ import test from 'node:test';
+ import assert from 'node:assert/strict';
+ 
+-import { total } from './rates.ts';
++import { total, groupByRegion, totalByRegion } from './rates.ts';
+ 
+ test('total sums perMille across every rate', () => {
+   const rates = [
+@@ -29,3 +29,46 @@ test('total does not mutate its input', () => {
+   total(rates);
+   assert.equal(JSON.stringify(rates), before);
+ });
++
++test('groupByRegion buckets rates with regions', () => {
++  const rates = [
++    { code: 'a', perMille: 10, region: 'north' },
++    { code: 'b', perMille: 20, region: 'south' },
++    { code: 'c', perMille: 30, region: 'north' },
++  ];
++  const groups = groupByRegion(rates);
++  assert.equal(groups['north'].length, 2);
++  assert.equal(groups['south'].length, 1);
++});
++
++test('groupByRegion puts entries without region under "unknown"', () => {
++  const rates = [
++    { code: 'a', perMille: 10 },
++    { code: 'b', perMille: 20, region: 'east' },
++  ];
++  const groups = groupByRegion(rates);
++  assert.equal(groups['unknown'].length, 1);
++  assert.equal(groups['unknown'][0].code, 'a');
++  assert.equal(groups['east'].length, 1);
++});
++
++test('groupByRegion of an empty list returns empty object', () => {
++  assert.deepStrictEqual(groupByRegion([]), {});
++});
++
++test('totalByRegion sums perMille per region', () => {
++  const rates = [
++    { code: 'a', perMille: 100, region: 'north' },
++    { code: 'b', perMille: 200, region: 'north' },
++    { code: 'c', perMille: 300, region: 'south' },
++    { code: 'd', perMille: 50 },
++  ];
++  const totals = totalByRegion(rates);
++  assert.equal(totals['north'], 300);
++  assert.equal(totals['south'], 300);
++  assert.equal(totals['unknown'], 50);
++});
++
++test('totalByRegion of an empty list returns empty object', () => {
++  assert.deepStrictEqual(totalByRegion([]), {});
++});
+diff --git a/src/rates.ts b/src/rates.ts
+index 82c499e..f9d3ab5 100644
+--- a/src/rates.ts
++++ b/src/rates.ts
+@@ -8,9 +8,30 @@
+ export interface Rate {
+   code: string;
+   perMille: number;
++  region?: string;
+ }
+ 
+ /** Sum of every rate in the list. Returns 0 for an empty list. */
+ export function total(rs: Rate[]): number {
+   return rs.reduce((sum, r) => sum + r.perMille, 0);
+ }
++
++/** Bucket rates by region. Entries with no region go under "unknown". */
++export function groupByRegion(rs: Rate[]): Record<string, Rate[]> {
++  const groups: Record<string, Rate[]> = {};
++  for (const r of rs) {
++    const key = r.region ?? 'unknown';
++    (groups[key] ??= []).push(r);
++  }
++  return groups;
++}
++
++/** Sum of perMille for each region, using total(). */
++export function totalByRegion(rs: Rate[]): Record<string, number> {
++  const groups = groupByRegion(rs);
++  const totals: Record<string, number> = {};
++  for (const [region, rates] of Object.entries(groups)) {
++    totals[region] = total(rates);
++  }
++  return totals;
++}

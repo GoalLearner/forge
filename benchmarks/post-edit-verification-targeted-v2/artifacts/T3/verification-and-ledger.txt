@@ -1,0 +1,12 @@
+! Verified — typecheck, test passed.
+deepseek/deepseek-v4-pro  $0.00437  7 request(s)  cache 85%
+  Verified — typecheck, test passed.
+    ok   typecheck — npm run typecheck (exit 0)
+    ok   test — npm test (exit 0)
+    coverage — typecheck: npm run typecheck · test: npm test · build: not declared
+    ok   git diff --check — git diff --check (exit 0) [advisory]
+    repair rounds used: 0/2
+    files changed: src/report.test.js, src/report.ts, src/store.ts
+  7 model request(s), 7 provider attempt(s), 0/4 retries used
+  cache-hit 28,672 · cache-miss 5,024 · output 2,388 · reasoning 818
+  $0.00437 estimated

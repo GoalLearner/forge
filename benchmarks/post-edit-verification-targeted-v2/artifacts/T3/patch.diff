@@ -1,0 +1,50 @@
+diff --git a/src/report.test.js b/src/report.test.js
+index 02bffa8..863f5a8 100644
+--- a/src/report.test.js
++++ b/src/report.test.js
+@@ -11,9 +11,9 @@ test('render emits one row per entry', () => {
+ 
+ test('render emits id, label and amount for each row', () => {
+   const rows = render(load()).split('\n');
+-  assert.deepEqual(rows[0].split('\t'), ['a1', 'Coffee', '350']);
+-  assert.deepEqual(rows[1].split('\t'), ['b2', 'Books', '1299']);
+-  assert.deepEqual(rows[2].split('\t'), ['c3', 'Transit', '275']);
++  assert.deepEqual(rows[0].split('\t'), ['a1', 'Coffee', '350', '2025-01-15T08:00:00.000Z']);
++  assert.deepEqual(rows[1].split('\t'), ['b2', 'Books', '1299', '2025-01-16T12:00:00.000Z']);
++  assert.deepEqual(rows[2].split('\t'), ['c3', 'Transit', '275', '2025-01-17T16:00:00.000Z']);
+ });
+ 
+ test('render preserves the order load returned', () => {
+diff --git a/src/report.ts b/src/report.ts
+index db4288a..d4e2168 100644
+--- a/src/report.ts
++++ b/src/report.ts
+@@ -9,5 +9,5 @@ import type { Entry } from './store.ts';
+ 
+ /** One row per entry: id, label, amount. Empty input renders an empty string. */
+ export function render(entries: Entry[]): string {
+-  return entries.map((e) => `${e.id}\t${e.label}\t${e.amount}`).join('\n');
++  return entries.map((e) => `${e.id}\t${e.label}\t${e.amount}\t${e.createdAt.toISOString()}`).join('\n');
+ }
+diff --git a/src/store.ts b/src/store.ts
+index a29aed8..4f9210a 100644
+--- a/src/store.ts
++++ b/src/store.ts
+@@ -10,13 +10,14 @@ export interface Entry {
+   id: string;
+   label: string;
+   amount: number;
++  createdAt: Date;
+ }
+ 
+ /** Every stored entry, in insertion order. */
+ export function load(): Entry[] {
+   return [
+-    { id: 'a1', label: 'Coffee', amount: 350 },
+-    { id: 'b2', label: 'Books', amount: 1299 },
+-    { id: 'c3', label: 'Transit', amount: 275 },
++    { id: 'a1', label: 'Coffee', amount: 350, createdAt: new Date('2025-01-15T08:00:00Z') },
++    { id: 'b2', label: 'Books', amount: 1299, createdAt: new Date('2025-01-16T12:00:00Z') },
++    { id: 'c3', label: 'Transit', amount: 275, createdAt: new Date('2025-01-17T16:00:00Z') },
+   ];
+ }
