@@ -16,6 +16,8 @@
 
 import { platform } from 'node:os';
 
+import { renderConstitution, type ConstitutionMode } from './behavioral-constitution.ts';
+
 export interface PromptContext {
   cwd: string;
   shell: string;
@@ -25,12 +27,26 @@ export interface PromptContext {
   /** Names of the tools actually registered this session. */
   toolNames: string[];
   permissionMode: 'safe' | 'auto-edit' | 'yolo';
+  /**
+   * Behavioral constitution toggle (Forge Brain Phase 1). Defaults to `v1` so
+   * every front end that does not set it receives the same constitution through
+   * this one builder — there is no per-front-end policy divergence. `off` is for
+   * tests and for a config-level opt-out; complete rollback is `git revert`.
+   */
+  constitution?: ConstitutionMode;
 }
 
 export function buildSystemPrompt(ctx: PromptContext): string {
   const sections: string[] = [];
 
   sections.push(`You are forge, an expert software engineering assistant running as a CLI in the user's terminal. You have direct access to their filesystem and shell through tools.`);
+
+  // Behavioral constitution — the cognitive plane. Placed immediately after the
+  // identity and BEFORE any dynamic project content (projectDoc, below), so it
+  // stays inside the stable, reusable, cached prefix. It is static text with no
+  // per-turn or per-session variation, so it never invalidates the prompt cache.
+  const constitution = renderConstitution(ctx.constitution ?? 'v1');
+  if (constitution) sections.push(constitution);
 
   sections.push(`# Approach
 
