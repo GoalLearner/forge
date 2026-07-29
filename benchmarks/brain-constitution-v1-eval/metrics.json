@@ -1,0 +1,40 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "control": {
+    "totalCost": 13715260,
+    "medCost": 517128,
+    "medDur": 11861,
+    "p95Dur": 27032,
+    "cacheHit": 85120,
+    "cacheMiss": 8720,
+    "output": 11050,
+    "reasoning": 5036,
+    "attempts": 34,
+    "cacheRatio": 0.907075873827792
+  },
+  "treatment": {
+    "totalCost": 15910908,
+    "medCost": 568313,
+    "medDur": 19445,
+    "p95Dur": 44497,
+    "cacheHit": 70656,
+    "cacheMiss": 2706,
+    "output": 16641,
+    "reasoning": 6583,
+    "attempts": 25,
+    "cacheRatio": 0.963114418908972
+  },
+  "costMedianIncreasePct": 9.9,
+  "latencyMedianIncreasePct": 63.9,
+  "msPerOutTok": {
+    "control": 30.1,
+    "treatment": 29.3
+  },
+  "weighted": {
+    "control": "42/62 (67.7%)",
+    "treatment": "62/62 (100%)"
+  },
+  "dirtyRepos": 0,
+  "providerErrors": 0,
+  "classification": "CACHE_COST_ACCEPTABLE"
+}

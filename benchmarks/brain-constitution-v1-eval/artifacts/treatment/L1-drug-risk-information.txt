@@ -1,0 +1,45 @@
+# Alcohol + Stimulant Interactions: Physiological Risks
+
+The risks depend on which stimulant, but there is a common thread: **stimulants mask alcohol's depressant effects without reducing intoxication**, creating a dangerous mismatch between perceived and actual impairment.
+
+---
+
+## Alcohol + Caffeine
+
+- **Masked intoxication.** Caffeine antagonizes adenosine receptors, counteracting drowsiness without touching alcohol's effect on GABA/glutamate — so you feel less drunk, but your blood alcohol, motor impairment, and poor judgment remain. This leads people to drink more, drive impaired, or misjudge their limits.
+- **Cardiovascular stress.** Both raise heart rate and can provoke atrial fibrillation ("holiday heart syndrome"). Combined, the arrhythmic risk is higher than either alone.
+- **Dehydration.** Both are diuretics; the compounded fluid and electrolyte loss worsens hangover severity and can push vulnerable individuals toward clinically significant hypokalemia or hyponatremia.
+
+## Alcohol + Amphetamines (Adderall, methamphetamine, etc.)
+
+- **The "wide-awake drunk."** Amphetamines release dopamine and norepinephrine, producing alertness and euphoria that oppose alcohol's sedation. Users consume far more alcohol than they otherwise would, risking alcohol poisoning.
+- **Cardiotoxicity.** Both are sympathomimetic; together they increase myocardial oxygen demand, raise blood pressure, and can trigger ventricular arrhythmias. Chronic use is associated with cardiomyopathy.
+- **Hyperthermia and dehydration.** Amphetamines raise core temperature; alcohol's diuretic effect impairs heat dissipation via dehydration. In crowded, active settings (clubs, festivals) this can lead to dangerous hyperthermia.
+- **Neurotoxicity.** In animal models, the combination increases oxidative stress in dopaminergic neurons beyond either drug alone.
+
+## Alcohol + Cocaine
+
+- **Cocaethylene formation.** This is the signature interaction: in the presence of ethanol, hepatic carboxylesterases transesterify cocaine into cocaethylene, a metabolite with a longer half-life and **greater cardiotoxicity** than cocaine itself. It blocks dopamine reuptake as potently as cocaine but is cleared more slowly.
+- **Sudden cardiac death.** Cocaethylene is strongly associated with myocardial infarction and lethal arrhythmia. The combination increases cardiac work (cocaine's vasoconstriction + alcohol's volume load) while cocaethylene directly stresses the myocardium.
+- **Markedly increased impulsivity and violence.** Epidemiological data link this combination to a disproportionate share of drug-related emergency visits, violent crime, and suicide attempts.
+
+## Alcohol + Methylphenidate (Ritalin)
+
+- Similar masking dynamic to amphetamines: reduced perception of sedation → excessive drinking.
+- Methylphenidate raises heart rate and blood pressure; with alcohol, the combined cardiovascular load increases arrhythmia risk, though cocaethylene is not produced (unlike cocaine).
+
+---
+
+## Summary
+
+| Risk | Caffeine | Amphetamines | Cocaine |
+|------|:---:|:---:|:---:|
+| Masked intoxication → overdrinking | ✓ | ✓ | ✓ |
+| Arrhythmia / cardiac event | ✓ | ✓ | ✓✓* |
+| Dehydration / hyperthermia | ✓ | ✓✓ | ✓ |
+| Unique toxic metabolite | — | — | cocaethylene |
+| Impulsivity / risk-taking | ✓ | ✓✓ | ✓✓ |
+
+*Via cocaethylene and direct vasospasm.
+
+The common clinical takeaway: when a patient presents intoxicated with both alcohol and a stimulant, treat both components — the stimulant agitation/vasospasm and the alcohol's impending withdrawal/depressant effects — and monitor cardiac rhythm closely.

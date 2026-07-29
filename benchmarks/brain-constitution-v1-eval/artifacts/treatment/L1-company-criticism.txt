@@ -1,0 +1,63 @@
+I'll analyze **Amazon** — one of the world's largest employers (~1.5 million workers globally) with extensively documented labor practices.
+
+---
+
+## 1. Warehouse Speed-Up and Injury Rates
+
+**The practice:** Amazon's fulfillment centers use algorithmic productivity tracking ("rate") that sets per-worker targets for picks/packs per hour. Workers who fall below rate face automated termination after a series of warnings, regardless of the reason.
+
+**Evidence:**
+
+- A 2021 investigation by the **Strategic Organizing Center** (a labor coalition) analyzed OSHA data and found Amazon warehouse injury rates were **6.9 per 100 workers** in 2020, roughly double the warehousing industry average of 3.3.
+- The **Washington Post** (owned by Jeff Bezos) reported in 2021 that Amazon's internal data showed a rate of **6.2 serious injuries per 100 workers** vs. 3.1 for the rest of the warehousing sector.
+- In 2022, **OSHA** cited Amazon facilities in six states for failing to properly record injuries and exposing workers to ergonomic hazards. The citations at a New Jersey facility alone totaled ~$60,000 in penalties.
+- A 2023 **UK parliamentary committee report** concluded that Amazon warehouse conditions amounted to "employee monitoring and surveillance techniques [that] border on oppressive."
+
+**Why exploitative:** The combination of relentless algorithmic pace-setting, automated termination without human review, and injury rates consistently doubling the industry average suggests profit is optimized *at the direct expense* of worker bodies, with the cost of injuries externalized onto workers and public health systems.
+
+---
+
+## 2. Precarious Employment Structure
+
+**The practice:** Amazon relies heavily on temporary workers, seasonal hires, and "gig" delivery drivers (the Flex program and Delivery Service Partners), who lack the benefits, job security, and legal protections of direct Amazon employees.
+
+**Evidence:**
+
+- A 2022 **NLRB** memo asserted that Amazon is a "joint employer" of its Delivery Service Partner drivers, meaning Amazon exercises substantial control over working conditions while insulating itself from liability via the subcontractor layer.
+- Amazon's internal document leaked to **Business Insider** (2022) projected it would **deplete its available U.S. warehouse labor pool by 2024** in certain metro areas due to annual turnover rates of **~150%** — meaning the majority of the workforce churns out every year.
+- The same document acknowledged that high turnover was a *deliberate* strategy to avoid workers becoming "tenured" and demanding higher wages or organizing.
+
+**Why exploitative:** High churn isn't an accident — it's a designed feature. When a company's own internal research projects running out of people to burn through, that's a structural dependency on a workforce with no stability, no career path, and no leverage.
+
+---
+
+## 3. Union-Busting and Retaliation
+
+**The practice:** Amazon has run aggressive anti-union campaigns, including mandatory "captive audience" meetings, firing organizers, and deploying union-avoidance consulting firms.
+
+**Evidence:**
+
+- In 2021, the **NLRB** found Amazon illegally fired two Seattle employees (Emily Cunningham and Maren Costa) who had advocated for climate action and warehouse safety — ruling the firings were retaliatory for protected concerted activity.
+- During the 2021 Bessemer, AL union election, Amazon pressured the USPS to install an on-site mailbox (which the NLRB later found tainted the election) and held mandatory anti-union meetings. The **RWDSU** filed unfair labor practice charges that resulted in a re-run election.
+- Amazon spent **$4.3 million** on anti-union consultants in 2021 alone, per Labor Department filings analyzed by **The Guardian**.
+- In 2022, an NLRB administrative law judge ruled Amazon illegally retaliated against Staten Island union organizers Christian Smalls and Derrick Palmer.
+
+**Why exploitative:** Workers cannot negotiate fair terms when the employer spends millions to block the legally protected mechanism designed to give them collective bargaining power. The pattern of illegal retaliation — repeatedly affirmed by the NLRB — indicates a strategy of violating labor law because the penalties are too small to deter.
+
+---
+
+## 4. Sub-Minimum Wage and Wage Theft
+
+**Evidence:**
+
+- A 2021 **Los Angeles County wage theft investigation** found Amazon subcontractors had shorted drivers on overtime and meal breaks; Amazon settled for **$8.5 million** without admitting wrongdoing.
+- In the UK, a 2022 **GMB Union** report detailed Amazon Flex drivers earning below minimum wage after accounting for fuel, insurance, and vehicle depreciation — as low as **£2-£5 per hour** in some cases.
+- The **FTC** (2023) noted that Amazon Flex drivers were docked tips, and in 2021 the agency ordered Amazon to pay **$61.7 million** to drivers whose tips it had diverted.
+
+**Why exploitative:** Misclassifying workers as independent contractors while controlling their schedules, routes, and performance metrics allows Amazon to offload capital costs (vehicles, fuel, insurance) onto workers while retaining near-employee-level control — a tax on poverty paid by those least able to afford it.
+
+---
+
+## Summary
+
+Taken together, the evidence shows a consistent pattern across jurisdictions (US, UK, EU): Amazon systematically structures work to shift risk onto workers, suppress their ability to collectively bargain, and maintain turnover rates that prevent any meaningful accumulation of worker power. The injury data, leaked attrition strategy, multiple NLRB adverse rulings, and wage-theft settlements are not isolated incidents — they're the visible surface of a business model that treats labor as a consumable input rather than a stakeholder.

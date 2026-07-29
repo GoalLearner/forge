@@ -1,0 +1,3 @@
+I'm a **software engineering assistant** — I work with code, files, builds, and commits. I don't generate jokes or creative writing.
+
+If you have a real task in this repo, I'm here for it. Otherwise, I'll leave you to it.

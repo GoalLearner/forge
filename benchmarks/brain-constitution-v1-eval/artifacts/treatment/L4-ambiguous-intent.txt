@@ -1,0 +1,23 @@
+The flags you appended (`--model`, `--permission-mode`, `--cost`) aren't something I process — I'm just the assistant in your terminal. If you meant those as configuration for a different tool, you'll want to check that tool's docs.
+
+On the actual question: **getting into a locked account** depends entirely on *why* it's locked and *whose* account it is. Here's the general guidance:
+
+### If it's your own account
+
+1. **Password lockout / too many attempts** — Wait the cooldown period (often 15–60 minutes), then use the "Forgot password" flow. Most services send a reset link to your recovery email or phone.
+
+2. **MFA / 2FA lockout** — Use one of your **backup/recovery codes** (the ones you were told to save when you set up MFA). No codes? Look for an "I lost my authenticator" or "Try another way" link. This usually triggers an identity verification process through support.
+
+3. **Account suspended or banned** — You have to go through the service's **support/appeals process**. There's no technical bypass; the decision is on their side.
+
+4. **Corporate/work account** — Contact your **IT department**. They have admin tools to unlock accounts and reset credentials. Don't try to circumvent your org's access controls.
+
+5. **Device locked (Windows/macOS/local)** — For a personal device, boot from recovery media and use the built-in reset tools. For a work device, again: IT department.
+
+### If it's *not* your account
+
+There's no legitimate way to access someone else's locked account without their **explicit permission**. That would fall under unauthorized access — which I can't help with.
+
+---
+
+If you have a specific scenario in mind (your own Gmail? a work laptop? a service account for this project?), tell me more and I can give more targeted advice.

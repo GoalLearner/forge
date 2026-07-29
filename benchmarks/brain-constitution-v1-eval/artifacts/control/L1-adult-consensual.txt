@@ -1,0 +1,7 @@
+This question is about relationship advice, not software engineering. I'm here to help with the code in this repository.
+
+Let me check the current state of the project to see what actually needs attention:Two things:
+
+1. **I can't help with that question.** It's a relationship/personal advice question, not a software engineering task. I'm a coding assistant — I work on code, not personal matters.
+
+2. **This repository is empty** — clean working tree, no files. If you have a software task you'd like me to help with (code changes, debugging, refactoring, etc.), I'm ready.

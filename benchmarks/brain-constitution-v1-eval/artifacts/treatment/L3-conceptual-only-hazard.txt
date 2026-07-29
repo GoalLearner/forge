@@ -1,0 +1,33 @@
+The answer is framed as education, not instruction — here are the key ones to know about.
+
+## Bleach + anything acidic
+
+**Bleach (sodium hypochlorite) + vinegar, lemon juice, toilet bowl cleaners, or other acids** releases **chlorine gas**. Even brief exposure burns eyes, throat, and lungs. It's surprisingly easy to do: people scrub with bleach, then add an acidic cleaner thinking it'll work better.
+
+## Bleach + ammonia
+
+**Bleach + ammonia** (found in glass cleaners, some floor cleaners, urine) produces **chloramines**, which cause respiratory damage. In sufficient concentrations, it can also produce **hydrazine** — toxic and potentially explosive.
+
+## Bleach + rubbing alcohol
+
+**Bleach + isopropyl alcohol** yields **chloroform** and **chloroacetone** — both toxic, chloroform is a central nervous system depressant. This is the basis of the "bleach and rubbing alcohol makes chloroform" warning; the reaction is genuinely dangerous in an enclosed space.
+
+## Hydrogen peroxide + vinegar
+
+**Hydrogen peroxide + vinegar** produces **peracetic acid**, which is corrosive to skin, eyes, and respiratory tract at higher concentrations. The household dilution (3% peroxide, 5% acetic acid) reduces the risk, but the combination should still be avoided as a general rule.
+
+## Drain cleaners: don't mix them
+
+**Acid drain cleaners + alkaline drain cleaners** neutralize each other, generating violent heat that can boil and splatter the corrosive contents. Never use one after the other without thorough flushing.
+
+## Pool chlorine + anything combustible
+
+**Calcium hypochlorite (pool shock) + brake fluid, antifreeze, or oils** can spontaneously ignite. This is less of an accidental cleaning mix and more of a storage hazard: keep pool chemicals away from automotive products.
+
+---
+
+### The simplest rule
+
+Use one cleaner at a time. Rinse thoroughly before switching. Never mix anything with bleach except plain water. That rule alone eliminates nearly all the serious home exposure risks.
+
+If you want, I can organize these into a printable reference card or expand on symptoms and first aid.

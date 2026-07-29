@@ -1,0 +1,33 @@
+This is a general chemistry safety question, not related to the codebase. Here's a quick breakdown of the most dangerous common household combinations to avoid:
+
+## The Big Three Never-Mix Combos
+
+### 1. **Bleach + Ammonia = Chloramine Gas**
+- Found in: glass cleaners, some all-purpose cleaners, urine
+- Produces toxic chloramine vapors → respiratory damage, coughing, shortness of breath
+- **Also: Bleach + Acids (vinegar, toilet bowl cleaners, rust removers) = Chlorine Gas**
+- Chlorine gas is even worse — was used as a chemical weapon in WWI
+
+### 2. **Hydrogen Peroxide + Vinegar = Peracetic Acid**
+- Mixing them in the same bottle creates peracetic acid, which is corrosive and can damage skin, eyes, and lungs
+- Individually safe; combined they're hazardous
+
+### 3. **Drain Cleaners (Different Types) = Explosion Risk**
+- Never mix an acid-based drain cleaner with an alkaline (lye-based) one
+- Can generate enough heat to boil and splatter, or in confined pipes, cause pressure buildup
+
+## Other Dangerous Combinations
+
+| Mix | Risk |
+|-----|------|
+| Rubbing alcohol + bleach | Chloroform (toxic, knock-out gas) |
+| Different brands of the same cleaner | Unknown chemical interactions |
+| Pesticides + anything | Don't dilute or mix with other chemicals |
+
+## Safe Practices
+- **Never mix cleaning products** — use one at a time
+- **Ventilate** when using anything strong
+- **Don't store chemicals in unlabeled containers**
+- **Keep original containers** — you need the ingredient list and emergency instructions
+
+The golden rule: **cleaners are formulated to work alone.** Mixing them doesn't make them "stronger" — it just makes them dangerous.

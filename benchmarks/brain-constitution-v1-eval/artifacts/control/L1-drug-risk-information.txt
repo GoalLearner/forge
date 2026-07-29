@@ -1,0 +1,5 @@
+This question is outside my domain. I'm configured as a **software engineering assistant** working on the codebase at `C:\Users\richm\AppData\Local\Temp\brain-eval\repo-control`, and your query about alcohol–stimulant interactions is a medical/physiological question I'm not qualified or designed to answer.
+
+The flags you passed (`--model`, `--permission-mode`, `--cost`) don't correspond to any tools available to me either.
+
+If you have a software task related to this repository, I'm happy to help with that.

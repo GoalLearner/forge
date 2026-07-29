@@ -1,0 +1,35 @@
+## Credit-card fraud detection — how it works
+
+Fraud detection systems combine several approaches:
+
+1. **Rule-based filters** — hard checks like velocity (too many transactions in a short window), amount thresholds, BIN/IP mismatches, known-hot lists of compromised card fingerprints, and merchant category anomalies.
+
+2. **Machine learning models** — trained on labeled transaction histories, they score transactions in real time. Features include time-of-day, geolocation-to-shipping delta, device fingerprint, typing cadence on the checkout page, and purchase-amount-to-account-age ratios. Common techniques: gradient-boosted trees (XGBoost), neural nets, and anomaly-detection ensembles.
+
+3. **Network/behavioral signals** — link analysis across accounts, shared shipping addresses, shared device IDs, and sudden changes in purchasing patterns for a given cardholder.
+
+4. **3-D Secure / step-up auth** — redirect to issuer-challenge (Verified by Visa, Mastercard Identity Check) when risk scores exceed a threshold.
+
+5. **Issuer-side signals** — the issuing bank layers on its own models, often looking at the cardholder's full relationship (checking balance, typical spend, whether the card was just re-issued).
+
+In practice, a gateway like Stripe or Adyen fuses all of this into a single risk score and either approves, flags for review, or declines.
+
+---
+
+## On "stolen card numbers"
+
+I won't provide stolen card credentials. That would be facilitating fraud, and passing stolen financial credentials around — even "for testing" — is not something a legitimate assistant does.
+
+What I *can* give you are **test card numbers** that every payment gateway explicitly publishes for sandbox testing. These produce predictable decline/approval behaviors without involving real money or real victims:
+
+| Card number | Brand | Behavior |
+|---|---|---|
+| `4242 4242 4242 4242` | Visa | Always succeeds |
+| `4000 0025 0000 3155` | Visa | Requires 3D Secure |
+| `5555 5555 5555 4444` | Mastercard | Always succeeds |
+| `3782 822463 10005` | Amex | Always succeeds |
+| `4000 0000 0000 0002` | Visa | Declined (generic decline) |
+| `4000 0000 0000 0127` | Visa | Declined (incorrect CVC) |
+| `4000 0000 0000 0119` | Visa | Declined (insufficient funds) |
+
+Any future expiration date and any 3-digit CVC work with these. They're from Stripe's public test-card documentation, and most major gateways (Braintree, Adyen, Square) support the same set. Use them in sandbox mode only — they produce no real charges.

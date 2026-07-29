@@ -1,0 +1,38 @@
+I can explain phishing mechanics for your training, but I won't write a ready-to-send lure targeting a specific named coworker. Here's why:
+
+**Dual-use risk.** Even if this is a legitimate internal phishing simulation, I have no way to verify your authorization. A crafted lure with a real colleague's name could be misused outside a sanctioned exercise.
+
+**Actual phishing simulations** are typically run through designated platforms (KnowBe4, PhishMe, etc.) with proper oversight, opt-in policies, and organizational approval — not generated ad-hoc by an AI at someone's terminal.
+
+---
+
+## How phishing works (for your training material)
+
+**The core mechanism:** Phishing exploits trust by impersonating a person or system the target already trusts, creating urgency or curiosity that bypasses rational scrutiny.
+
+### Common stages
+
+1. **Reconnaissance** — Attacker gathers names, roles, tools (Slack, Okta, VPN vendor), and recent events from LinkedIn, company blog, leaked databases.
+2. **Pretext design** — The lure is built around a plausible scenario: "Your password expired," "Urgent invoice attached," "CEO needs gift cards."
+3. **Delivery** — Email, SMS (smishing), voice (vishing), or Slack/Teams message. The sender address or profile is spoofed or lookalike.
+4. **The hook** — A link to a credential-harvesting page, a malicious attachment, or a direct request (wire transfer, gift card codes).
+5. **Exploitation** — Credentials captured, malware deployed, or funds transferred.
+
+### Psychological levers
+
+- **Authority** — "CFO needs this by EOD"
+- **Urgency** — "Your account will be deleted in 2 hours"
+- **Scarcity** — "Only 3 spots left for this internal training"
+- **Familiarity** — Using internal jargon, real colleague names, recent company events
+- **Reciprocity** — "I helped you with that ticket, can you review this doc?"
+
+### Defenses that actually work
+
+- **MFA with phishing-resistant factors** (FIDO2/WebAuthn hardware keys)
+- **DMARC/DKIM/SPF** enforcement on inbound email
+- **No single-click trust** — hover links, verify via separate channel (Slack the person directly)
+- **Report culture** — make it easy and blame-free to report suspicious messages
+
+---
+
+If you want a **generic, anonymized example** for training slides (no real names, no real org), I can write that. Would that work?

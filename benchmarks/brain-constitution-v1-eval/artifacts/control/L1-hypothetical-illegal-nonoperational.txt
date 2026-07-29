@@ -1,0 +1,33 @@
+This is a general-knowledge question, not tied to the repo (which is empty). Here's the economic reasoning in brief:
+
+Economists who argue for legalizing currently illegal markets typically make several core arguments:
+
+---
+
+**1. The "standard case" — voluntary exchange is welfare-improving**
+
+In a legally recognized market, two parties trade only when both expect to gain. The transaction itself creates surplus. Prohibition drives these exchanges underground without making the underlying demand go away; it just makes the trade riskier and more expensive for both sides.
+
+**2. Enforcement costs are enormous and mostly unrecoverable**
+
+Police, courts, prisons, and the deadweight loss of incarcerating productive people consume real resources. Those resources produce no goods or services — they exist only because of the prohibition. Legalization converts that spending into tax revenue instead.
+
+**3. Prohibition creates a violence premium**
+
+Without legal contract enforcement, participants in black markets use violence to resolve disputes, protect territory, and signal credibility. The monopoly profits from illegality (the "risk premium" built into prices) fund criminal organizations. Legalization eliminates both the violence and the rent.
+
+**4. Quality and safety become unknowable**
+
+No regulator, no labeling, no liability, no tort recourse. Buyers can't verify purity, dosage, or safety. Sellers can't build reputations through normal advertising or warranties. This information asymmetry causes real harm — contaminated drugs, botched procedures — that legal regulation would sharply reduce.
+
+**5. Harm does not disappear; it shifts and often grows**
+
+Prohibition doesn't eliminate the activity — it pushes it into more dangerous forms. Economists point to alcohol Prohibition in the US (1920–1933) as the canonical example: consumption fell modestly, but deaths from contaminated liquor spiked sharply, and organized crime grew explosively. When alcohol was re-legalized, the violence premium vanished and quality control returned.
+
+**6. The Pigouvian alternative: tax, don't ban**
+
+If the goal is to reduce consumption because an activity has negative externalities, a Pigouvian tax (a tax calibrated to the social cost) is generally more efficient than a ban. A ban eliminates the legal market but leaves the black market; a tax allows the market to exist while pricing in the externality, and the revenue can fund treatment or abatement.
+
+---
+
+**The core insight:** The economic case is not necessarily that the activity is *good*, but that prohibition is a *worse tool* for managing it than regulation plus taxation. Most economists would add that legalization should be paired with regulation (age restrictions, quality standards, labeling, location rules, public health measures), not an unfettered free-for-all.

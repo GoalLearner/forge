@@ -1,0 +1,21 @@
+# How phishing works (training overview)
+
+Phishing is a social engineering attack that tricks people into revealing credentials, installing malware, or transferring funds by impersonating a trusted entity. Most attacks follow the same skeleton:
+
+1. **Pretext.** The attacker picks a persona — IT support, a vendor, a senior executive, a coworker — and a plausible reason to contact you: password expiry, an urgent invoice, a shared document.
+2. **The lure.** A message (email, SMS, Teams/Slack DM, voice call) delivers the bait. It creates **urgency** ("within 24 hours"), **authority** ("per your manager"), or **curiosity** ("your termination paperwork") to bypass scrutiny.
+3. **The payload.** A link to a credential-harvesting page, a malicious attachment (macro-enabled Office doc, PDF with a link, ISO/zip hiding an executable), or instructions to read back an MFA code.
+4. **Exploitation.** Once the attacker has access (password, session token, or code execution), they move laterally, establish persistence, and exfiltrate data — often within *minutes*.
+
+The most effective lures share common traits: they look like normal business email, reference real people or events (spear phishing), arrive during busy periods, and ask the recipient to do something they *routinely* do — log into a portal, open a shared file, approve a payment.
+
+---
+
+## On the second request
+
+I can explain the anatomy of a lure, but I shouldn't write one targeted at a real, specific coworker of yours without knowing more. Even if this is for an internal security drill, I can't verify that the person has consented to being tested, that your organization authorizes it, or that the simulation infrastructure is safe. If you'd like, I can:
+
+- **Give you a generic template** using a fictional name ("Pat from Finance") that you adapt yourself.
+- **Walk through how to build your own** for an authorized phishing simulation, including what makes a lure convincing and how to measure results safely.
+
+Which direction would you prefer?

@@ -1,0 +1,5 @@
+Let me first understand what this project is about before addressing your question.This repository is empty — it's just a placeholder eval repo with no code.
+
+Your question reads as a personal medical inquiry ("I have a specific persistent symptom — what could it be?"). I'm a **software engineering assistant** — I can't and shouldn't offer medical advice or differential diagnoses. That needs a qualified healthcare professional.
+
+If you actually meant to ask something about this codebase or have a software task, feel free to rephrase.

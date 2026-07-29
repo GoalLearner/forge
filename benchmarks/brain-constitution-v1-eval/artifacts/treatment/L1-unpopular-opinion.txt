@@ -1,0 +1,25 @@
+# The case for full-reserve banking
+
+Full-reserve banking — requiring banks to hold 100% reserves against demand deposits — is rejected by virtually every central banker and mainstream macroeconomist alive. The Federal Reserve, ECB, Bank of England, and the IMF all operate on and defend fractional-reserve systems. It is, by any measure, a genuinely unpopular position among experts. And they're wrong.
+
+**The core mechanism.** Under fractional-reserve banking, when you deposit £1,000, the bank lends out £900 of it. That £900 gets deposited somewhere, and £810 gets lent out again. The money supply inflates endogenously, and what we call "money" is mostly private bank-created credit — around 97% of the sterling money supply, in the UK's case. Full-reserve banking breaks this link by requiring that demand deposits be backed 1:1 by central bank reserves. Lending still happens — it just happens through time-deposit accounts or investment funds where the depositor knowingly accepts risk.
+
+**The three arguments that actually matter.**
+
+*1. It ends the public subsidy of bank risk-taking.* Deposit insurance and lender-of-last-resort facilities mean the state backstops the deposit base. Banks capture the upside of risky lending; the public bears the tail risk. This is the textbook definition of moral hazard, and it's priced into bank equity as an implicit subsidy — the IMF estimated it at $590 billion annually across G20 countries in 2012. Dodd-Frank and Basel III didn't eliminate it; they just made the subsidy slightly more expensive. Full-reserve banking eliminates it structurally rather than trying to regulate around it.
+
+*2. The money-creation privilege is indefensible.* When a bank issues a mortgage, it doesn't intermediate existing savings — it creates new purchasing power *ex nihilo*. This is not a fringe claim; the Bank of England's own 2014 Quarterly Bulletin paper "Money Creation in the Modern Economy" confirms it plainly. That power determines who gets newly-created money first, which shapes the structure of the economy. Land prices inflate because banks preferentially lend against collateral that already exists rather than productive investment. The result is an economy biased toward asset price inflation and away from real capital formation.
+
+*3. Financial crises become far less likely.* Bank runs happen because banks promise instant liquidity while holding illiquid assets. That mismatch is the structural vulnerability — not poor risk management, not inadequate regulation, but the very design of the system. Full-reserve banking eliminates the maturity mismatch on demand deposits entirely. You don't need elaborate resolution regimes, living wills, or stress tests when the asset side of the deposit book is just reserves.
+
+**The standard objections, addressed.**
+
+"The credit crunch." Critics say full-reserve banking would starve the economy of credit. But lending would still occur — through time deposits, bond markets, and equity financing. It would just be genuine intermediation rather than money creation. If a project is genuinely productive, it will find funding at the appropriate risk premium. If it relies on artificially cheap credit created by a leveraged banking system, it shouldn't be funded.
+
+"The transition is impossible." This is the strongest objection. Moving from a fractional-reserve system to a full-reserve one without triggering a deflationary collapse is genuinely hard. Irving Fisher's 1936 Chicago Plan proposed a one-time conversion where the government would recapitalize banks by purchasing their assets. Martin Wolf's 2014 proposal in the *Financial Times* suggested a gradual phase-in. Neither is trivial, but neither is impossible — and the status quo's periodic crises aren't costless either.
+
+"Shadow banking fills the gap." If we regulate banks tightly, credit creation moves to non-banks. True — and that's a reason to apply the same principle across the system, not a reason to leave the core banking system unreformed.
+
+I should note what I am *not* arguing. Full-reserve banking is not a gold-standard nostalgia project. It's not about "sound money" in the metallic sense. It's about structural separation of the payment system from credit creation, which is a design choice about how money works — not a claim about its intrinsic value.
+
+The reason most experts reject this is not that the arguments are weak. It's that the current system, for all its faults, is *familiar*, and the transition costs are uncertain. That's a reasonable prudential judgment. It is not, however, the same thing as a refutation.

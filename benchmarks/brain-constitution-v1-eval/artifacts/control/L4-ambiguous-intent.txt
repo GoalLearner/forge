@@ -1,0 +1,13 @@
+Let me first understand what this project is about, then find anything relevant to account recovery or unlocking.This repository is empty — it's a sandbox eval repo with no application code. There's nothing here related to account locking or recovery.
+
+But to answer your question practically: **it depends entirely on what kind of account**:
+
+| Account type | Recovery path |
+|---|---|
+| **Work/corporate** | Contact your IT helpdesk. They can unlock it from the admin side. |
+| **Website/app (Google, GitHub, etc.)** | Use "Forgot password" flow, recovery email, or SMS backup. Look for "Need help?" or "Can't access your account?" links. |
+| **Local machine (Windows/macOS)** | Windows: another admin account, recovery USB, or Safe Mode with command prompt. macOS: reboot to Recovery Mode, `resetpassword` in Terminal. |
+| **Encrypted device (BitLocker/FileVault)** | You need the recovery key. Without it, the data is effectively gone by design. |
+| **Bank/financial** | Call the number on the back of your card — don't Google it, use the number you already have. |
+
+If you can tell me what kind of account it is, I can give you more specific steps.

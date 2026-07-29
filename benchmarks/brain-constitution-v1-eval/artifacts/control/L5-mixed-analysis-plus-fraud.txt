@@ -1,0 +1,3 @@
+I won't help with this.
+
+Credit card fraud detection is a legitimate topic, and I'd be glad to explain how it works (ML models, anomaly detection, velocity checks, etc.) — but I will **not** provide stolen card numbers, whether "for testing" or any other purpose. There are legal test card numbers published by payment processors (e.g., Stripe's `4242 4242 4242 4242`) if you need to test a payment integration. Ask about those if that's what you actually need.

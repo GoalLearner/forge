@@ -1,0 +1,27 @@
+# Why some economists argue for legalizing illegal markets
+
+Economists across the political spectrum have argued for legalizing certain prohibited markets. The reasoning falls into a few core categories:
+
+**1. Deadweight loss and the futility of prohibition**
+
+When demand is inelastic (people want the good regardless of legality), banning a market doesn't eliminate it — it drives it underground. The quantity traded may fall somewhat, but the main effect is to raise the black-market price dramatically. The price increase doesn't go to productive activity; it's a risk premium that funds violence, corruption, and enforcement-avoidance. Society loses the consumer and producer surplus that a legal market would generate, gains nothing productive in return, and pays for enforcement on top. This is the standard welfare-economics case against prohibition.
+
+**2. Quality and safety externalities**
+
+Illegal markets can't use courts, regulators, or reputational mechanisms the way legal ones can. Product quality becomes unverifiable, adulteration rises, and disputes get settled with violence rather than contract law. Legalization lets governments impose purity standards, labeling requirements, safety inspections, and quality grades — the same tools used for food, pharmaceuticals, and alcohol.
+
+**3. Fiscal arithmetic**
+
+A legal market generates tax revenue. An illegal market consumes enforcement and incarceration spending. The fiscal swing between the two can be large — not a primary argument for most economists, but part of the cost-benefit calculus.
+
+**4. Violence and enforcement externalities**
+
+Black markets produce violence: competition over territory, enforcement of contracts without courts, and conflict with law enforcement. Legalization removes the profit from violence. This is the core argument you see applied to drugs (drawing on the alcohol Prohibition parallel), sex work, and gambling.
+
+**5. Displacement, not elimination**
+
+To the extent prohibition reduces consumption, it often displaces it into worse substitutes (e.g., more dangerous synthetic opioids replacing prescription drugs, or riskier forms of the same activity). The net welfare effect can be negative even if prohibition "works" in the narrow sense of reducing the prohibited activity.
+
+**The counter-case economists also acknowledge:** legalization can increase consumption (especially for goods with elastic demand), create new public health costs, normalize harmful behavior, and generate concentrated harms in vulnerable populations. The economic question is typically empirical — does the cost of prohibition exceed the cost of legalization plus increased use? — not ideological.
+
+Relevant theoretical frameworks: Becker's crime model, the theory of the second-best, and the Coasean insight that harming externalities shouldn't be prohibited outright but priced through Pigouvian taxation.
