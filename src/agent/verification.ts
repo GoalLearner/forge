@@ -553,39 +553,148 @@ export function detectPackageManager(
 export type DeclaredCheckReadiness =
   | 'runnable'
   | 'unavailable_missing_dependencies'
+  | 'unavailable_unsupported_dependency_metadata'
+  | 'unavailable_unsupported_manager'
   | 'unavailable_unsupported_command'
+  | 'unavailable_unsupported_lifecycle'
   | 'unknown';
+
+export interface DeclaredCheckReadinessResult {
+  readiness: DeclaredCheckReadiness;
+  /** Bounded explanation. Names scripts; never carries a raw script body. */
+  reason: string;
+}
+
+export type DependencyMetadataState = 'none' | 'declared' | 'unsupported_shape';
+
+const DEPENDENCY_FIELDS = [
+  'dependencies',
+  'devDependencies',
+  'optionalDependencies',
+  'peerDependencies',
+] as const;
+
+/**
+ * Classify a package's dependency declarations, conservatively.
+ *
+ * Only a missing field or a plain object with no keys counts as "declares
+ * nothing". Anything else — a populated map, but equally `null`, an array, a
+ * string, a number, a boolean — blocks the zero-dependency exception. An
+ * unexpected shape means we do not understand this manifest, and not
+ * understanding it must never read as "safe to run without installing".
+ */
+export function classifyDependencyMetadata(pkg: Record<string, unknown>): DependencyMetadataState {
+  let state: DependencyMetadataState = 'none';
+  for (const field of DEPENDENCY_FIELDS) {
+    const value = pkg[field];
+    if (value === undefined) continue;
+    if (Object.prototype.toString.call(value) !== '[object Object]') return 'unsupported_shape';
+    if (Object.keys(value as object).length > 0) state = 'declared';
+  }
+  return state;
+}
+
+/** Is this script body a bare, direct invocation of the node runtime? */
+export function isEligibleDirectNodeCommand(body: string): boolean {
+  const trimmed = body.trim();
+  if (trimmed === '') return false;
+  // Reject any shell composition, redirection, or substitution outright —
+  // conservative on purpose: a composed command may reach package binaries.
+  if (/[&|;<>`$()\r\n]/.test(trimmed)) return false;
+  return trimmed.split(/\s+/, 1)[0] === 'node';
+}
+
+/** Script names come from the repository, so bound them before quoting. */
+function boundedName(name: string): string {
+  // eslint-disable-next-line no-control-regex
+  const oneLine = name.replace(/[\u0000-\u001f\u007f]/g, ' ').trim();
+  return oneLine.length > 60 ? oneLine.slice(0, 57) + '…' : oneLine;
+}
 
 /**
  * Decide whether a selected declared script can actually run.
  *
  * Daily-use finding 001: a zero-dependency project declaring `test: node --test`
  * was marked unavailable purely because node_modules did not exist — a false
- * negative, since a direct `node` invocation needs no installed packages. The
- * narrow rule: with node_modules present, everything selected is runnable
- * (unchanged semantics); without it, ONLY a script that (a) belongs to a
- * package declaring no dependencies of any kind and (b) invokes the node
- * runtime directly — first token exactly `node`, no shell composition, no
- * substitution, no npx/package binaries — is runnable. Everything else keeps
- * the honest unavailable classification. Deterministic; never executes the
- * command to find out.
+ * negative, since a direct `node` invocation needs no installed packages.
+ *
+ * With node_modules present this returns runnable unchanged: the pre-existing
+ * semantics are preserved exactly, and none of the restrictions below apply.
+ *
+ * Without node_modules a narrow exception applies, and independent verification
+ * of the first attempt showed why every clause of it is load-bearing. The
+ * INSPECTED script body is not the EXECUTED command: `npm test` also runs
+ * `pretest`/`posttest`, and the manager prefix may not exist on this machine.
+ * Missing either fact turned an environment problem into a persisted
+ * project-code FAILURE — strictly worse than the false-unavailable it replaced.
+ * So all of the following must hold:
+ *
+ *   1. the package declares no dependencies, in a shape we understand;
+ *   2. the manager is unambiguously npm (it ships with node; pnpm/yarn/bun are
+ *      not probed — we never scan PATH during discovery);
+ *   3. the selected script body is a direct node invocation;
+ *   4. every present lifecycle hook (`pre<S>`, `post<S>`) is one too.
+ *
+ * Deterministic, and it never executes anything to find out.
  */
 export function classifyDeclaredCheckReadiness(opts: {
-  scriptBody: string;
+  scriptName: string;
+  scripts: Record<string, string>;
   hasNodeModules: boolean;
-  declaresDependencies: boolean;
-}): DeclaredCheckReadiness {
-  if (opts.hasNodeModules) return 'runnable';
-  if (opts.declaresDependencies) return 'unavailable_missing_dependencies';
+  dependencyState: DependencyMetadataState;
+  packageManager: PackageManager;
+  managerAmbiguous?: boolean;
+}): DeclaredCheckReadinessResult {
+  if (opts.hasNodeModules) return { readiness: 'runnable', reason: 'node_modules is present' };
 
-  const body = opts.scriptBody.trim();
-  if (body === '') return 'unknown';
-  // Reject any shell composition, redirection, or substitution outright —
-  // conservative on purpose: a composed command may reach package binaries.
-  if (/[&|;<>`$()\r\n]/.test(body)) return 'unavailable_unsupported_command';
-  const first = body.split(/\s+/, 1)[0];
-  if (first !== 'node') return 'unavailable_unsupported_command';
-  return 'runnable';
+  if (opts.dependencyState === 'declared') {
+    return {
+      readiness: 'unavailable_missing_dependencies',
+      reason: 'node_modules is absent and forge never installs',
+    };
+  }
+  if (opts.dependencyState === 'unsupported_shape') {
+    return {
+      readiness: 'unavailable_unsupported_dependency_metadata',
+      reason: 'node_modules is absent and its dependency metadata has an unsupported shape',
+    };
+  }
+  if (opts.managerAmbiguous === true || opts.packageManager !== 'npm') {
+    return {
+      readiness: 'unavailable_unsupported_manager',
+      reason:
+        'zero-dependency verification without node_modules is currently supported only for npm',
+    };
+  }
+
+  const body = opts.scripts[opts.scriptName];
+  if (body === undefined || body.trim() === '') {
+    return {
+      readiness: 'unknown',
+      reason: 'node_modules is absent and its command could not be classified',
+    };
+  }
+  if (!isEligibleDirectNodeCommand(body)) {
+    return {
+      readiness: 'unavailable_unsupported_command',
+      reason: 'node_modules is absent and its command is not a direct node invocation',
+    };
+  }
+
+  // The effective npm lifecycle for `npm run S` is pre<S> -> S -> post<S>.
+  // Hooks are inspected one level only: npm does not run pre<pre<S>>.
+  for (const hook of [`pre${opts.scriptName}`, `post${opts.scriptName}`]) {
+    const hookBody = opts.scripts[hook];
+    if (hookBody === undefined) continue;
+    if (!isEligibleDirectNodeCommand(hookBody)) {
+      return {
+        readiness: 'unavailable_unsupported_lifecycle',
+        reason: `lifecycle hook "${boundedName(hook)}" is not a supported direct node invocation`,
+      };
+    }
+  }
+
+  return { readiness: 'runnable', reason: 'dependency-free direct node invocation' };
 }
 
 /**
@@ -632,22 +741,15 @@ export function buildVerificationPlan(
   }
 
   let scripts: Record<string, string> = {};
-  let declaresDependencies = true;
+  let dependencyState: DependencyMetadataState = 'unsupported_shape';
   try {
-    const parsed = JSON.parse(deps.readFile(pkgPath)) as {
-      scripts?: Record<string, string>;
-      dependencies?: Record<string, string>;
-      devDependencies?: Record<string, string>;
-      optionalDependencies?: Record<string, string>;
-      peerDependencies?: Record<string, string>;
-    };
-    scripts = parsed.scripts ?? {};
-    declaresDependencies = [
-      parsed.dependencies,
-      parsed.devDependencies,
-      parsed.optionalDependencies,
-      parsed.peerDependencies,
-    ].some((d) => d !== undefined && Object.keys(d).length > 0);
+    const parsed = JSON.parse(deps.readFile(pkgPath)) as Record<string, unknown>;
+    const declared = parsed.scripts;
+    scripts =
+      Object.prototype.toString.call(declared) === '[object Object]'
+        ? (declared as Record<string, string>)
+        : {};
+    dependencyState = classifyDependencyMetadata(parsed ?? {});
   } catch {
     unavailable.push('package.json could not be parsed — no declared scripts to run');
     return { checks, packageManager: null, projectRoot: cwd, unavailableReasons: unavailable };
@@ -724,16 +826,17 @@ export function buildVerificationPlan(
 
   for (const s of selected) {
     const readiness = classifyDeclaredCheckReadiness({
-      scriptBody: scripts[s.name] ?? '',
+      scriptName: s.name,
+      scripts,
       hasNodeModules: hasModules,
-      declaresDependencies,
+      dependencyState,
+      packageManager: manager,
+      managerAmbiguous: pm.ambiguous,
     });
-    if (readiness !== 'runnable') {
-      unavailable.push(
-        readiness === 'unavailable_unsupported_command' || readiness === 'unknown'
-          ? `script "${s.name}" cannot run — node_modules is absent and its command is not a direct node invocation`
-          : `script "${s.name}" cannot run — node_modules is absent and forge never installs`,
-      );
+    if (readiness.readiness !== 'runnable') {
+      // Script names come from the repository: bound them so a crafted name
+      // cannot inject a line into the model-visible verification summary.
+      unavailable.push(`script "${boundedName(s.name)}" cannot run — ${readiness.reason}`);
       continue;
     }
     checks.push({

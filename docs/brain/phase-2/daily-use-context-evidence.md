@@ -93,3 +93,18 @@ package.json rediscovery, or a subjective impression without tool evidence.
   `fix/verification-zero-dependency-checks` (`classifyDeclaredCheckReadiness`: direct-node
   scripts in dependency-free packages are runnable; package binaries/npx/composed commands
   and dependency-declaring packages remain unavailable). The original run result stands.
+- **Second correction (finding 001 v2):** `beb9413` fixed the basic npm happy path, but
+  independent verification found two gaps in it, both because the *inspected* script body is
+  not the *executed* command. (1) **Lifecycle hooks:** `npm test` also runs `pretest`/
+  `posttest`, so `pretest: vitest` executed and exited 1. (2) **Package manager:** a
+  pnpm-lock repo emitted `pnpm run test` on a machine without pnpm. Both persisted an
+  **environment failure as a project-code failure** (`status: failed`) — worse than the
+  false-unavailable they replaced — so **finding 001 remained open**. The v2 correction
+  classifies the effective npm lifecycle chain (`pre<S>`, `S`, `post<S>`, one level only)
+  and restricts the zero-dependency exception to unambiguous npm, plus conservative
+  dependency-shape handling (`null`/array/primitive metadata no longer counts as
+  dependency-free, and no longer crashes into a bogus "could not be parsed"). Unavailable
+  now means unavailable: zero commands execute and nothing is persisted as failed.
+  **Candidate B still did not fire** — none of this is context selection. The **static
+  profile remained correct throughout**: it has no readiness logic of its own and mirrored
+  the canonical plan exactly at every step, including while the plan was wrong.
