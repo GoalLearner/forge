@@ -1,0 +1,137 @@
+{
+  "arms": {
+    "control": {
+      "runs": 4,
+      "attempts": 28,
+      "usageRowsTotal": 28,
+      "totalInput": 19027,
+      "totalCachedInput": 99584,
+      "warmCacheRatio": 0.8273,
+      "coldCacheRatio": 0.8593,
+      "totalOutput": 6103,
+      "medianDurMs": 33078,
+      "msPerOutTok": 28.2,
+      "medianCostUsd": 0.003209,
+      "totalCostUsd": 0.013947,
+      "totalRediscovery": 4,
+      "totalIrrelevant": 0,
+      "medianFirstUsefulMs": 17988.5
+    },
+    "treatment": {
+      "runs": 4,
+      "attempts": 20,
+      "usageRowsTotal": 20,
+      "totalInput": 16688,
+      "totalCachedInput": 65664,
+      "warmCacheRatio": 0.7812,
+      "coldCacheRatio": 0.8349,
+      "totalOutput": 5113,
+      "medianDurMs": 27260,
+      "msPerOutTok": 25.3,
+      "medianCostUsd": 0.002947,
+      "totalCostUsd": 0.011946,
+      "totalRediscovery": 1,
+      "totalIrrelevant": 0,
+      "medianFirstUsefulMs": 12044.5
+    }
+  },
+  "paired": {
+    "p1": {
+      "rediscovery": {
+        "control": 1,
+        "treatment": 0
+      },
+      "firstUsefulMs": {
+        "control": 28161,
+        "treatment": 25019
+      },
+      "durationMs": {
+        "control": 81771,
+        "treatment": 55422
+      },
+      "attempts": {
+        "control": 10,
+        "treatment": 6
+      },
+      "costUsd": {
+        "control": 0.004596,
+        "treatment": 0.002965
+      }
+    },
+    "p2": {
+      "rediscovery": {
+        "control": 2,
+        "treatment": 0
+      },
+      "firstUsefulMs": {
+        "control": 15535,
+        "treatment": 10033
+      },
+      "durationMs": {
+        "control": 32552,
+        "treatment": 30567
+      },
+      "attempts": {
+        "control": 7,
+        "treatment": 6
+      },
+      "costUsd": {
+        "control": 0.003125,
+        "treatment": 0.003463
+      }
+    },
+    "p3": {
+      "rediscovery": {
+        "control": 1,
+        "treatment": 1
+      },
+      "firstUsefulMs": {
+        "control": 17820,
+        "treatment": 11817
+      },
+      "durationMs": {
+        "control": 33604,
+        "treatment": 23953
+      },
+      "attempts": {
+        "control": 7,
+        "treatment": 4
+      },
+      "costUsd": {
+        "control": 0.003293,
+        "treatment": 0.002929
+      }
+    },
+    "p4": {
+      "rediscovery": {
+        "control": 0,
+        "treatment": 0
+      },
+      "firstUsefulMs": {
+        "control": 18157,
+        "treatment": 12272
+      },
+      "durationMs": {
+        "control": 24114,
+        "treatment": 19210
+      },
+      "attempts": {
+        "control": 4,
+        "treatment": 4
+      },
+      "costUsd": {
+        "control": 0.002933,
+        "treatment": 0.002589
+      }
+    }
+  },
+  "deltas": {
+    "warmCacheRatioPP": -4.61,
+    "medianCostPct": -8.2,
+    "msPerOutTokPct": -10.3,
+    "medianDurPct": -17.6,
+    "rediscoveryDelta": -3
+  },
+  "totalSpendUsd": 0.02589,
+  "totalDurationS": 301.2
+}

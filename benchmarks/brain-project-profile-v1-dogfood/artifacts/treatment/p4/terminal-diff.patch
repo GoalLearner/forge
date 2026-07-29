@@ -1,0 +1,33 @@
+diff --git a/checks/slug.check.mjs b/checks/slug.check.mjs
+index d5434a3..d532f40 100644
+--- a/checks/slug.check.mjs
++++ b/checks/slug.check.mjs
+@@ -6,5 +6,10 @@ const { slug } = pkg;
+ 
+ assert.equal(slug('Hello World'), 'hello-world');
+ assert.equal(slug('  Spaced  Out  '), 'spaced-out');
++assert.equal(slug(' --Big  News-- '), 'big-news');
++assert.equal(slug('foo---bar'), 'foo-bar');
++assert.equal(slug('---leading'), 'leading');
++assert.equal(slug('trailing---'), 'trailing');
++assert.equal(slug('-'), '');
+ 
+ console.log('slug checks ok');
+diff --git a/lib/slug.js b/lib/slug.js
+index aec2524..7b9d219 100644
+--- a/lib/slug.js
++++ b/lib/slug.js
+@@ -2,7 +2,12 @@
+ 
+ /** Turn a title into a URL slug. */
+ function slug(input) {
+-  return String(input).toLowerCase().trim().replace(/\s+/g, '-');
++  return String(input)
++    .toLowerCase()
++    .trim()
++    .replace(/\s+/g, '-')
++    .replace(/-+/g, '-')
++    .replace(/^-+|-+$/g, '');
+ }
+ 
+ module.exports = { slug };

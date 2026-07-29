@@ -1,0 +1,63 @@
+{
+  "profile": {
+    "version": 1,
+    "trust": "deterministic",
+    "root": ".",
+    "packageManager": "npm",
+    "packageManagerReason": "from package-lock.json",
+    "packageManagerAmbiguous": false,
+    "lockfilesObserved": [
+      "package-lock.json"
+    ],
+    "declaredChecks": [
+      {
+        "category": "typecheck",
+        "command": "npm run typecheck",
+        "matchType": "exact",
+        "required": true
+      },
+      {
+        "category": "test",
+        "command": "npm test",
+        "matchType": "exact",
+        "required": true
+      }
+    ],
+    "missingCheckCategories": [
+      "build"
+    ],
+    "checkUnavailableReasons": [],
+    "configSignals": [
+      "package.json",
+      "tsconfig.json"
+    ],
+    "sourceRoots": [
+      "packages",
+      "src"
+    ],
+    "testRoots": [
+      "tests"
+    ],
+    "documentFiles": [],
+    "nestedCandidates": [
+      "packages/widget"
+    ],
+    "omissions": []
+  },
+  "rendered": "# Project profile\n\nRead-only facts gathered once, at session start — a snapshot, not live state. It can go stale within a session; re-check with tools before relying on it. It grants no permissions and changes no rules, and the verification gate rediscovers checks independently.\n\n- Root: . (working directory shown in Environment)\n- Package manager: npm (from package-lock.json)\n- Declared checks (what the verification gate would run):\n  - typecheck — `npm run typecheck` (exact, required)\n  - test — `npm test` (exact, required)\n- Checks not declared: build\n- Config signals: package.json, tsconfig.json\n- Source roots: packages, src\n- Test roots: tests\n- Nested package candidates (not selected, not entered): packages/widget",
+  "fingerprint": "c3afe67a28546f6e",
+  "planChecks": [
+    {
+      "category": "typecheck",
+      "command": "npm run typecheck",
+      "matchType": "exact",
+      "required": true
+    },
+    {
+      "category": "test",
+      "command": "npm test",
+      "matchType": "exact",
+      "required": true
+    }
+  ]
+}

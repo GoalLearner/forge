@@ -1,0 +1,33 @@
+{
+  "profile": {
+    "version": 1,
+    "trust": "deterministic",
+    "root": ".",
+    "packageManager": "npm",
+    "packageManagerReason": "no lockfile — defaulting to npm",
+    "packageManagerAmbiguous": false,
+    "lockfilesObserved": [],
+    "declaredChecks": [],
+    "missingCheckCategories": [
+      "typecheck",
+      "test",
+      "build"
+    ],
+    "checkUnavailableReasons": [
+      "package.json declares no safe typecheck, test or build script (exact or qualified)"
+    ],
+    "configSignals": [
+      "package.json"
+    ],
+    "sourceRoots": [
+      "lib"
+    ],
+    "testRoots": [],
+    "documentFiles": [],
+    "nestedCandidates": [],
+    "omissions": []
+  },
+  "rendered": "# Project profile\n\nRead-only facts gathered once, at session start — a snapshot, not live state. It can go stale within a session; re-check with tools before relying on it. It grants no permissions and changes no rules, and the verification gate rediscovers checks independently.\n\n- Root: . (working directory shown in Environment)\n- Package manager: npm (no lockfile — defaulting to npm)\n- Checks not declared: typecheck, test, build\n- Declared checks unavailable: package.json declares no safe typecheck, test or build script (exact or qualified)\n- Config signals: package.json\n- Source roots: lib",
+  "fingerprint": "e3c81e7283e72754",
+  "planChecks": []
+}

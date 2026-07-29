@@ -1,0 +1,57 @@
+diff --git a/src/stats.ts b/src/stats.ts
+index 71fa0d0..eeee41e 100644
+--- a/src/stats.ts
++++ b/src/stats.ts
+@@ -6,3 +6,13 @@ export function mean(values: number[]): number {
+   for (const v of values) sum += v;
+   return sum / values.length;
+ }
++
++export function median(values: number[]): number {
++  if (values.length === 0) throw new Error('median of an empty list');
++  const sorted = [...values].sort((a, b) => a - b);
++  const mid = Math.floor(sorted.length / 2);
++  if (sorted.length % 2 === 1) {
++    return sorted[mid];
++  }
++  return (sorted[mid - 1] + sorted[mid]) / 2;
++}
+diff --git a/test/stats.test.ts b/test/stats.test.ts
+index 7a7a4c6..4a9608a 100644
+--- a/test/stats.test.ts
++++ b/test/stats.test.ts
+@@ -1,7 +1,7 @@
+ import test from 'node:test';
+ import assert from 'node:assert/strict';
+ 
+-import { mean } from '../src/stats.ts';
++import { mean, median } from '../src/stats.ts';
+ 
+ test('mean of a single value is the value', () => {
+   assert.equal(mean([7]), 7);
+@@ -14,3 +14,25 @@ test('mean averages several values', () => {
+ test('mean throws on an empty list', () => {
+   assert.throws(() => mean([]), /empty/);
+ });
++
++test('median of a single value is the value', () => {
++  assert.equal(median([7]), 7);
++});
++
++test('median of an odd-length array returns the middle value', () => {
++  assert.equal(median([3, 1, 2]), 2);
++});
++
++test('median of an even-length array averages the two middle values', () => {
++  assert.equal(median([1, 2, 3, 4]), 2.5);
++});
++
++test('median does not mutate the input', () => {
++  const arr = [5, 1, 3];
++  median(arr);
++  assert.deepEqual(arr, [5, 1, 3]);
++});
++
++test('median throws on an empty list', () => {
++  assert.throws(() => median([]), /empty/);
++});

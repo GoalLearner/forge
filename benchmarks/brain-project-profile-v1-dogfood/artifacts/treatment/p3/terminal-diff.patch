@@ -1,0 +1,52 @@
+diff --git a/src/order.ts b/src/order.ts
+index d4da800..abaa064 100644
+--- a/src/order.ts
++++ b/src/order.ts
+@@ -10,3 +10,10 @@ export function orderTotal(items: LineItem[]): number {
+   for (const item of items) total += item.price * item.qty;
+   return total;
+ }
++
++export function applyDiscount(total: number, percent: number): number {
++  if (percent < 0 || percent > 100) {
++    throw new Error('percent must be between 0 and 100');
++  }
++  return total * (1 - percent / 100);
++}
+diff --git a/tests/order.test.ts b/tests/order.test.ts
+index f12ce24..ca1c256 100644
+--- a/tests/order.test.ts
++++ b/tests/order.test.ts
+@@ -1,7 +1,7 @@
+ import test from 'node:test';
+ import assert from 'node:assert/strict';
+ 
+-import { orderTotal } from '../src/order.ts';
++import { orderTotal, applyDiscount } from '../src/order.ts';
+ 
+ test('orderTotal of no items is zero', () => {
+   assert.equal(orderTotal([]), 0);
+@@ -10,3 +10,23 @@ test('orderTotal of no items is zero', () => {
+ test('orderTotal multiplies price by quantity', () => {
+   assert.equal(orderTotal([{ price: 10, qty: 2 }, { price: 5, qty: 1 }]), 25);
+ });
++
++test('applyDiscount reduces total by percent', () => {
++  assert.equal(applyDiscount(200, 25), 150);
++});
++
++test('applyDiscount with 0 percent returns original total', () => {
++  assert.equal(applyDiscount(100, 0), 100);
++});
++
++test('applyDiscount with 100 percent returns zero', () => {
++  assert.equal(applyDiscount(100, 100), 0);
++});
++
++test('applyDiscount throws when percent is below 0', () => {
++  assert.throws(() => applyDiscount(100, -1), /percent must be between 0 and 100/);
++});
++
++test('applyDiscount throws when percent is above 100', () => {
++  assert.throws(() => applyDiscount(100, 101), /percent must be between 0 and 100/);
++});

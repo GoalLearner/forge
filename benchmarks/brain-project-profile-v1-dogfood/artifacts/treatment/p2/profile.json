@@ -1,0 +1,61 @@
+{
+  "profile": {
+    "version": 1,
+    "trust": "deterministic",
+    "root": ".",
+    "packageManager": "npm",
+    "packageManagerReason": "from package-lock.json",
+    "packageManagerAmbiguous": false,
+    "lockfilesObserved": [
+      "package-lock.json"
+    ],
+    "declaredChecks": [
+      {
+        "category": "typecheck",
+        "command": "npm run typecheck",
+        "matchType": "exact",
+        "required": true
+      },
+      {
+        "category": "test",
+        "command": "npm run test:unit",
+        "matchType": "qualified_fallback",
+        "required": true,
+        "selectionReason": "no exact \"test\" script is declared — selected from declared qualified script test:unit"
+      }
+    ],
+    "missingCheckCategories": [
+      "build"
+    ],
+    "checkUnavailableReasons": [],
+    "configSignals": [
+      "package.json",
+      "tsconfig.json"
+    ],
+    "sourceRoots": [
+      "src"
+    ],
+    "testRoots": [
+      "test"
+    ],
+    "documentFiles": [],
+    "nestedCandidates": [],
+    "omissions": []
+  },
+  "rendered": "# Project profile\n\nRead-only facts gathered once, at session start — a snapshot, not live state. It can go stale within a session; re-check with tools before relying on it. It grants no permissions and changes no rules, and the verification gate rediscovers checks independently.\n\n- Root: . (working directory shown in Environment)\n- Package manager: npm (from package-lock.json)\n- Declared checks (what the verification gate would run):\n  - typecheck — `npm run typecheck` (exact, required)\n  - test — `npm run test:unit` (qualified_fallback, required; no exact \"test\" script is declared — selected from declared qualified script test:unit)\n- Checks not declared: build\n- Config signals: package.json, tsconfig.json\n- Source roots: src\n- Test roots: test",
+  "fingerprint": "90b6577ef04e58a5",
+  "planChecks": [
+    {
+      "category": "typecheck",
+      "command": "npm run typecheck",
+      "matchType": "exact",
+      "required": true
+    },
+    {
+      "category": "test",
+      "command": "npm run test:unit",
+      "matchType": "qualified_fallback",
+      "required": true
+    }
+  ]
+}

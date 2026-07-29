@@ -1,0 +1,42 @@
+{
+  "B1038f3a95d": {
+    "id": "p1-control",
+    "fixture": "p1",
+    "arm": "control"
+  },
+  "B2844266cfa": {
+    "id": "p1-treatment",
+    "fixture": "p1",
+    "arm": "treatment"
+  },
+  "Bf87430fa69": {
+    "id": "p2-treatment",
+    "fixture": "p2",
+    "arm": "treatment"
+  },
+  "Bdffccdfe4b": {
+    "id": "p2-control",
+    "fixture": "p2",
+    "arm": "control"
+  },
+  "Ba156ac89ff": {
+    "id": "p3-control",
+    "fixture": "p3",
+    "arm": "control"
+  },
+  "B5950ab9b7e": {
+    "id": "p3-treatment",
+    "fixture": "p3",
+    "arm": "treatment"
+  },
+  "Be2ab156b3b": {
+    "id": "p4-treatment",
+    "fixture": "p4",
+    "arm": "treatment"
+  },
+  "Bfa6e573b5c": {
+    "id": "p4-control",
+    "fixture": "p4",
+    "arm": "control"
+  }
+}
