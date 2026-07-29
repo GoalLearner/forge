@@ -550,6 +550,44 @@ export function detectPackageManager(
   return { manager: 'npm', lockfilesPresent, ambiguous: managers.size > 1 };
 }
 
+export type DeclaredCheckReadiness =
+  | 'runnable'
+  | 'unavailable_missing_dependencies'
+  | 'unavailable_unsupported_command'
+  | 'unknown';
+
+/**
+ * Decide whether a selected declared script can actually run.
+ *
+ * Daily-use finding 001: a zero-dependency project declaring `test: node --test`
+ * was marked unavailable purely because node_modules did not exist — a false
+ * negative, since a direct `node` invocation needs no installed packages. The
+ * narrow rule: with node_modules present, everything selected is runnable
+ * (unchanged semantics); without it, ONLY a script that (a) belongs to a
+ * package declaring no dependencies of any kind and (b) invokes the node
+ * runtime directly — first token exactly `node`, no shell composition, no
+ * substitution, no npx/package binaries — is runnable. Everything else keeps
+ * the honest unavailable classification. Deterministic; never executes the
+ * command to find out.
+ */
+export function classifyDeclaredCheckReadiness(opts: {
+  scriptBody: string;
+  hasNodeModules: boolean;
+  declaresDependencies: boolean;
+}): DeclaredCheckReadiness {
+  if (opts.hasNodeModules) return 'runnable';
+  if (opts.declaresDependencies) return 'unavailable_missing_dependencies';
+
+  const body = opts.scriptBody.trim();
+  if (body === '') return 'unknown';
+  // Reject any shell composition, redirection, or substitution outright —
+  // conservative on purpose: a composed command may reach package binaries.
+  if (/[&|;<>`$()\r\n]/.test(body)) return 'unavailable_unsupported_command';
+  const first = body.split(/\s+/, 1)[0];
+  if (first !== 'node') return 'unavailable_unsupported_command';
+  return 'runnable';
+}
+
 /**
  * Build the verification plan for `cwd`.
  *
@@ -594,9 +632,22 @@ export function buildVerificationPlan(
   }
 
   let scripts: Record<string, string> = {};
+  let declaresDependencies = true;
   try {
-    const parsed = JSON.parse(deps.readFile(pkgPath)) as { scripts?: Record<string, string> };
+    const parsed = JSON.parse(deps.readFile(pkgPath)) as {
+      scripts?: Record<string, string>;
+      dependencies?: Record<string, string>;
+      devDependencies?: Record<string, string>;
+      optionalDependencies?: Record<string, string>;
+      peerDependencies?: Record<string, string>;
+    };
     scripts = parsed.scripts ?? {};
+    declaresDependencies = [
+      parsed.dependencies,
+      parsed.devDependencies,
+      parsed.optionalDependencies,
+      parsed.peerDependencies,
+    ].some((d) => d !== undefined && Object.keys(d).length > 0);
   } catch {
     unavailable.push('package.json could not be parsed — no declared scripts to run');
     return { checks, packageManager: null, projectRoot: cwd, unavailableReasons: unavailable };
@@ -613,8 +664,10 @@ export function buildVerificationPlan(
   }
 
   // Dependencies are never installed automatically. Without node_modules a
-  // script would fail for a reason that has nothing to do with the model's
-  // change, and reporting that as a verification failure would be a lie.
+  // script that needs installed packages would fail for a reason that has
+  // nothing to do with the model's change, and reporting that as a
+  // verification failure would be a lie. Dependency-free direct-node scripts
+  // are the exception — classifyDeclaredCheckReadiness decides per script.
   const hasModules = deps.exists(join(cwd, 'node_modules'));
 
   /** One entry per category, in run order. Never two from the same category. */
@@ -670,8 +723,17 @@ export function buildVerificationPlan(
   }
 
   for (const s of selected) {
-    if (!hasModules) {
-      unavailable.push(`script "${s.name}" cannot run — node_modules is absent and forge never installs`);
+    const readiness = classifyDeclaredCheckReadiness({
+      scriptBody: scripts[s.name] ?? '',
+      hasNodeModules: hasModules,
+      declaresDependencies,
+    });
+    if (readiness !== 'runnable') {
+      unavailable.push(
+        readiness === 'unavailable_unsupported_command' || readiness === 'unknown'
+          ? `script "${s.name}" cannot run — node_modules is absent and its command is not a direct node invocation`
+          : `script "${s.name}" cannot run — node_modules is absent and forge never installs`,
+      );
       continue;
     }
     checks.push({

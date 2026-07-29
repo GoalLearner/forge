@@ -202,11 +202,14 @@ describe('plan discovery', () => {
     assert.deepEqual(names(p), [], 'effects outside the working tree are never automatic');
   });
 
-  test('missing node_modules makes checks unavailable rather than failing', () => {
+  test('missing node_modules makes package-binary checks unavailable rather than failing', () => {
+    // tsc is a package binary: without node_modules it cannot run, and the
+    // reason names the real cause (finding 001 refined the wording — a
+    // dependency-free DIRECT node script would now be runnable instead).
     const p = plan({ 'package.json': pkg({ typecheck: 'tsc --noEmit' }), 'package-lock.json': '{}' });
     assert.deepEqual(names(p), []);
     assert.match(p.unavailableReasons.join(' '), /node_modules is absent/);
-    assert.match(p.unavailableReasons.join(' '), /never installs/);
+    assert.match(p.unavailableReasons.join(' '), /not a direct node invocation/);
   });
 
   test('ambiguous lockfiles fall back to npm and record why', () => {

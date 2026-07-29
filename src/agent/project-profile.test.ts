@@ -208,8 +208,10 @@ describe('declared checks', () => {
     assert.deepEqual(p.missingCheckCategories, ['typecheck', 'test', 'build']);
   });
 
-  test('node_modules absent → checks unavailable, reported honestly', () => {
-    const deps = makeDeps({ 'package.json': pkg({ test: 'node --test' }), 'package-lock.json': '{}' });
+  test('node_modules absent → package-binary checks unavailable, reported honestly', () => {
+    // Finding 001: a dependency-free DIRECT node script is now runnable without
+    // node_modules, so the honest-unavailable case needs a package binary.
+    const deps = makeDeps({ 'package.json': pkg({ test: 'vitest' }), 'package-lock.json': '{}' });
     const p = buildProjectProfile(ROOT, { deps });
     assert.equal(p.declaredChecks.length, 0);
     assert.ok(p.checkUnavailableReasons.some((r) => /node_modules/.test(r)));

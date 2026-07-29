@@ -82,3 +82,14 @@ package.json rediscovery, or a subjective impression without tool evidence.
   unavailability rule is conservative — `node --test` runs fine without installing. A
   future narrow verification-discovery refinement could treat "no dependencies declared"
   as runnable; noted only, not scheduled.
+- **Correction (finding 001 adjudicated):** the package.json read stays classified
+  `project_fact_rediscovery`, but the original "justified" framing is refined: the read was
+  *induced by a verification-readiness false negative*, not by a profile gap — the gate
+  (and therefore the profile) wrongly marked the declared zero-dependency `node --test`
+  check unavailable solely because node_modules was absent. Adjudicated result: task
+  accepted; claim honesty passed; **verification readiness false negative found**
+  (reproduced at `verification.ts` — blanket node_modules rule); Candidate B trigger NOT
+  fired; narrow verification correction opened and fixed on
+  `fix/verification-zero-dependency-checks` (`classifyDeclaredCheckReadiness`: direct-node
+  scripts in dependency-free packages are runnable; package binaries/npx/composed commands
+  and dependency-declaring packages remain unavailable). The original run result stands.

@@ -237,8 +237,8 @@ for (const [lock, expected] of MANAGERS) {
 // Missing prerequisites stay honest
 // ---------------------------------------------------------------------------
 
-test('a qualified script without node_modules is unavailable, not selected', () => {
-  const p = planFrom({ 'package.json': pkg({ 'test:unit': 'node x' }), 'package-lock.json': '' });
+test('a qualified script needing package binaries without node_modules is unavailable, not selected', () => {
+  const p = planFrom({ 'package.json': pkg({ 'test:unit': 'vitest run' }), 'package-lock.json': '' });
   assert.deepEqual(names(p), []);
   assert.match(p.unavailableReasons.join(' '), /node_modules is absent/);
 });
