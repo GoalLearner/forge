@@ -28,6 +28,7 @@ import { loadConfig } from './config/load.ts';
 import { ProviderRegistry, ConfigurationError } from './providers/registry.ts';
 import { Conversation } from './agent/messages.ts';
 import { buildSystemPrompt } from './agent/prompt.ts';
+import { resolveProjectProfile } from './agent/project-profile.ts';
 import { buildTools, toolSchemas } from './tools/index.ts';
 import { TodoStore } from './tools/todo.ts';
 import { resolveShell } from './tools/shell.ts';
@@ -238,6 +239,7 @@ async function main(): Promise<void> {
     shell: shell.label,
     isGitRepo,
     projectDoc,
+    projectProfile: resolveProjectProfile(cwd, { isGitRepo }),
     toolNames: [...tools.keys()],
     permissionMode: config.permissions.mode,
   });

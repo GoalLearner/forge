@@ -24,6 +24,15 @@ export interface PromptContext {
   isGitRepo: boolean;
   /** Contents of AGENTS.md / CLAUDE.md if present — read once, at startup. */
   projectDoc?: string;
+  /**
+   * Rendered static project profile (Forge Brain Phase 2). A session-static,
+   * deterministic, read-only snapshot of project facts, produced once at
+   * session start by the shared `resolveProjectProfile` builder. Omitting it (or
+   * passing an empty string) removes the profile and leaves the rest of the
+   * prompt byte-for-byte unchanged — the off seam for tests, rollback, and later
+   * paired evaluation. There is no per-front-end user flag in V1.
+   */
+  projectProfile?: string;
   /** Names of the tools actually registered this session. */
   toolNames: string[];
   permissionMode: 'safe' | 'auto-edit' | 'yolo';
@@ -87,6 +96,14 @@ Your output is rendered in a terminal as Markdown. Keep it tight.
   sections.push(`# Environment\n\n${envLines.join('\n')}`);
 
   sections.push(`All file paths you pass to tools must be inside the working directory. Paths outside it are rejected.`);
+
+  // Static project profile — session-static facts, placed AFTER the environment
+  // block and BEFORE the project's own conventions, and always AFTER the
+  // constitution. It is pre-rendered and byte-bounded by the shared builder, so
+  // it stays inside the frozen, cached prefix and never varies per turn.
+  if (ctx.projectProfile?.trim()) {
+    sections.push(ctx.projectProfile.trim());
+  }
 
   if (ctx.projectDoc?.trim()) {
     // Project conventions carry real authority — they are the user's own

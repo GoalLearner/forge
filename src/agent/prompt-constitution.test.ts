@@ -99,6 +99,21 @@ describe('stability', () => {
     assert.ok(!/\b[0-9a-f]{8,}\b/i.test(c), 'no hash-like token');
   });
 
+  test('the project profile does not perturb the constitution or its position', () => {
+    // Phase 2 inserts a static project profile after Environment, before projectDoc.
+    // It must leave the constitution byte-identical and still sit before the profile.
+    const profileBlock = '# Project profile\n\nfacts here';
+    const withProfile = buildSystemPrompt(ctx({ projectProfile: profileBlock }));
+    const off = buildSystemPrompt(ctx());
+    assert.ok(withProfile.includes(BEHAVIORAL_CONSTITUTION_V1), 'constitution intact with profile');
+    assert.ok(
+      withProfile.indexOf(CONSTITUTION_HEADING) < withProfile.indexOf('# Project profile'),
+      'constitution precedes the profile',
+    );
+    // Removing the profile block restores the exact off-mode prompt.
+    assert.equal(withProfile.replace('\n\n' + profileBlock, ''), off);
+  });
+
   test('constitution is independent of cwd, shell, git and permission mode', () => {
     const base = buildSystemPrompt(ctx());
     const varied = buildSystemPrompt(

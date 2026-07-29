@@ -44,6 +44,7 @@ import { AgentRun, RunCancelledError } from '../agent/run.ts';
 import { aggregateSession, formatLedgerCost } from '../session/ledger.ts';
 import { RunCoordinator, SessionWork, replaceSession, type CancelReason } from './run-coordinator.ts';
 import { buildSystemPrompt } from '../agent/prompt.ts';
+import { resolveProjectProfile } from '../agent/project-profile.ts';
 import { assessContext } from '../agent/truncate.ts';
 import { buildTools, toolSchemas } from '../tools/index.ts';
 import { TodoStore } from '../tools/todo.ts';
@@ -209,11 +210,13 @@ class DesktopSession {
     });
 
     const shellSpec = resolveShell(loaded.config.shell);
+    const cwdIsGitRepo = detectGitRepo(this.cwd);
     const system = buildSystemPrompt({
       cwd: this.cwd,
       shell: shellSpec.label,
-      isGitRepo: detectGitRepo(this.cwd),
+      isGitRepo: cwdIsGitRepo,
       projectDoc: readProjectDoc(this.cwd),
+      projectProfile: resolveProjectProfile(this.cwd, { isGitRepo: cwdIsGitRepo }),
       toolNames: [...this.tools.keys()],
       permissionMode: backendMode(this.uiPermissionMode),
     });

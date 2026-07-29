@@ -364,7 +364,7 @@ const LOCKFILES: Array<{ file: string; manager: PackageManager }> = [
  * so finding it before a slow test suite gives the model a better repair signal
  * for less time and less money.
  */
-const CANDIDATE_SCRIPTS = ['typecheck', 'test', 'build'] as const;
+export const CANDIDATE_SCRIPTS = ['typecheck', 'test', 'build'] as const;
 
 /** Considered only after the three above, and never in their place. */
 const OPTIONAL_SCRIPTS = ['lint'] as const;
@@ -520,6 +520,36 @@ const REAL_DEPS: PlanDeps = {
   readFile: (p) => readFileSync(p, 'utf8'),
 };
 
+export interface PackageManagerDetection {
+  /** Selected manager — npm when there is no lockfile or the lockfiles disagree. */
+  manager: PackageManager;
+  /** Lockfiles observed, in precedence order. */
+  lockfilesPresent: string[];
+  /** True when the present lockfiles map to more than one DISTINCT manager. */
+  ambiguous: boolean;
+}
+
+/**
+ * Resolve the package manager from lockfiles — the single source of truth for
+ * both the verification plan and the project profile, so the two can never
+ * disagree about the manager, the observed lockfiles, or ambiguity.
+ *
+ * Ambiguity is by DISTINCT manager, not lockfile count: two lockfiles that both
+ * mean bun (`bun.lockb` + `bun.lock`) resolve cleanly to bun and are NOT
+ * ambiguous. More than one distinct manager falls back to npm, the resolver
+ * every Node install can run, rather than guessing a winner.
+ */
+export function detectPackageManager(
+  cwd: string,
+  deps: Pick<PlanDeps, 'exists'>,
+): PackageManagerDetection {
+  const found = LOCKFILES.filter((l) => deps.exists(join(cwd, l.file)));
+  const lockfilesPresent = found.map((l) => l.file);
+  const managers = new Set(found.map((l) => l.manager));
+  if (managers.size === 1) return { manager: found[0]!.manager, lockfilesPresent, ambiguous: false };
+  return { manager: 'npm', lockfilesPresent, ambiguous: managers.size > 1 };
+}
+
 /**
  * Build the verification plan for `cwd`.
  *
@@ -572,16 +602,13 @@ export function buildVerificationPlan(
     return { checks, packageManager: null, projectRoot: cwd, unavailableReasons: unavailable };
   }
 
-  const found = LOCKFILES.filter((l) => deps.exists(join(cwd, l.file)));
-  const managers = new Set(found.map((l) => l.manager));
-  let manager: PackageManager = 'npm';
-  if (managers.size === 1) {
-    manager = found[0]!.manager;
-  } else if (managers.size > 1) {
+  const pm = detectPackageManager(cwd, deps);
+  const manager = pm.manager;
+  if (pm.ambiguous) {
     // Ambiguous: fall back to the universally available resolver rather than
     // picking a winner and running the wrong one.
     unavailable.push(
-      `multiple lockfiles present (${found.map((f) => f.file).join(', ')}) — defaulting to npm`,
+      `multiple lockfiles present (${pm.lockfilesPresent.join(', ')}) — defaulting to npm`,
     );
   }
 
