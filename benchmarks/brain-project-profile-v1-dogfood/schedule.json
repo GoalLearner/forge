@@ -1,0 +1,42 @@
+{
+  "model": "deepseek/deepseek-v4-pro",
+  "provider": "deepseek",
+  "permissionMode": "yolo",
+  "controlCommit": "16ef34b4505644119f37356986429ce68284a0e9",
+  "treatmentCommit": "9ce342e58e56ac23e7c3722d45f317862b05c9df",
+  "totalRuns": 8,
+  "schedule": [
+    {
+      "seq": 1,
+      "fixture": "p1",
+      "armOrder": [
+        "control",
+        "treatment"
+      ]
+    },
+    {
+      "seq": 2,
+      "fixture": "p2",
+      "armOrder": [
+        "treatment",
+        "control"
+      ]
+    },
+    {
+      "seq": 3,
+      "fixture": "p3",
+      "armOrder": [
+        "control",
+        "treatment"
+      ]
+    },
+    {
+      "seq": 4,
+      "fixture": "p4",
+      "armOrder": [
+        "treatment",
+        "control"
+      ]
+    }
+  ]
+}
