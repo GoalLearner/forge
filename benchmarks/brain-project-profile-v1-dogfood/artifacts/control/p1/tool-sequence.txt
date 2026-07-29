@@ -1,0 +1,39 @@
+   7008ms ● read_file read src/stats.ts
+   7009ms ● read_file read test/stats.test.ts
+   7009ms ● read_file read package.json
+  15337ms ● todo_write todos 0/3
+  28161ms ● edit_file edit src/stats.ts
+  32293ms ● todo_write todos 1/3
+  34918ms ● edit_file edit test/stats.test.ts
+  39662ms ● edit_file edit test/stats.test.ts
+  43659ms ● todo_write todos 2/3
+  51690ms ● run_shell npm run typecheck
+  51690ms ● run_shell npm test
+  72913ms ● todo_write todos 3/3
+  77149ms All done. Typecheck passes cleanly, all 8 tests pass (3 existing + 5 new).
+  77149ms 
+  77437ms **`src/stats.ts`** — added `median(values: number[])`:
+  77694ms - Sorts a copy of the input so it doesn't mutate the caller's array
+  78060ms - Returns the middle element for odd-length input
+  78502ms - Returns the average of the two middle elements for even-length input
+  78577ms - Throws `Error('median of an empty list')` on empty input, matching `mean`
+  78577ms 
+  78806ms **`test/stats.test.ts`** — added 5 test cases:
+  78900ms - Odd-length list → middle value
+  78901ms - Even-length list → average of two middle values
+  78901ms - Single value
+  79074ms - Unsorted input (sort-before-compute)
+  79074ms - Empty list throws! Verifying the changes…
+  81710ms ! Verified — typecheck, test passed.
+  81711ms 
+  81711ms deepseek/deepseek-v4-pro  $0.00460  10 request(s)  cache 86%
+  81711ms   Verified — typecheck, test passed.
+  81711ms     ok   typecheck — npm run typecheck (exit 0)
+  81711ms     ok   test — npm test (exit 0)
+  81712ms     coverage — typecheck: npm run typecheck · test: npm test · build: not declared
+  81712ms     ok   git diff --check — git diff --check (exit 0) [advisory]
+  81712ms     repair rounds used: 0/2
+  81712ms     files changed: src/stats.ts, test/stats.test.ts
+  81712ms   10 model request(s), 10 provider attempt(s), 0/4 retries used
+  81717ms   cache-hit 39,168 · cache-miss 6,413 · output 1,913 · reasoning 457
+  81717ms   $0.00460 estimated

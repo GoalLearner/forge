@@ -1,0 +1,26 @@
+   3742ms ● read_file read src/clamp.ts
+   3742ms ● glob glob test/clamp*
+   5736ms ● read_file read test/clamp.unit.test.ts
+   7934ms ● read_file read package.json
+  15535ms Now I'll add the function and the tests.● edit_file edit src/clamp.ts
+  15535ms ● edit_file edit test/clamp.unit.test.ts
+  20760ms ● edit_file edit test/clamp.unit.test.ts
+  23552ms ● run_shell npm run test:unit
+  23552ms ● run_shell npm run typecheck
+  28244ms All 8 tests pass, typechecker is clean. Here's what was done:
+  28244ms 
+  29085ms - **`src/clamp.ts:7–11`** — Added `wrapRange(value, min, max)`: maps `value` into `[min, max)` via modular wrap. Throws `Error` when `min >= max`.
+  29819ms - **`test/clamp.unit.test.ts:19–42`** — Five new tests: in-range pass-through, above-range wrap, negative wrap, exact upper-bound wrap, and `min >= max` rejection.! Verifying the changes…
+  32492ms ! Verified — typecheck, test:unit passed.
+  32493ms 
+  32493ms deepseek/deepseek-v4-pro  $0.00313  7 request(s)  cache 85%
+  32493ms   Verified — typecheck, test:unit passed.
+  32493ms     ok   typecheck — npm run typecheck (exit 0)
+  32493ms     ok   test:unit — npm run test:unit (exit 0) [qualified declared script]
+  32493ms     coverage — typecheck: npm run typecheck · test: npm run test:unit · build: not declared
+  32493ms     ok   git diff --check — git diff --check (exit 0) [advisory]
+  32493ms     repair rounds used: 0/2
+  32493ms     files changed: src/clamp.ts, test/clamp.unit.test.ts
+  32493ms   7 model request(s), 7 provider attempt(s), 0/4 retries used
+  32499ms   cache-hit 23,552 · cache-miss 4,200 · output 1,394 · reasoning 316
+  32499ms   $0.00313 estimated

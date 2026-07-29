@@ -1,0 +1,20 @@
+   3502ms ● read_file read lib/slug.js
+   3502ms ● read_file read checks/slug.check.mjs
+  18157ms ● edit_file edit lib/slug.js
+  18157ms ● edit_file edit checks/slug.check.mjs
+  20923ms ● run_shell node checks/slug.check.mjs
+  22897ms All three checks pass. Two changes:
+  22897ms 
+  23510ms - **`lib/slug.js:5`** — Added `.replace(/-+/g, '-')` to collapse consecutive dashes, then `.replace(/^-+|-+$/g, '')` to strip leading/trailing dashes.
+  23846ms - **`checks/slug.check.mjs:9`** — Added `assert.equal(slug(' --Big  News-- '), 'big-news')`.! Verifying the changes…
+  24092ms ! Files changed but could not be automatically verified — no required project checks are declared — only advisory diagnostics ran.
+  24092ms 
+  24092ms deepseek/deepseek-v4-pro  $0.00293  4 request(s)  cache 74%
+  24093ms   Files were changed but could not be automatically verified.
+  24093ms     coverage — typecheck: not declared · test: not declared · build: not declared
+  24093ms     ok   git diff --check — git diff --check (exit 0) [advisory]
+  24093ms     repair rounds used: 0/2
+  24093ms     files changed: checks/slug.check.mjs, lib/slug.js
+  24093ms   4 model request(s), 4 provider attempt(s), 0/4 retries used
+  24098ms   cache-hit 11,392 · cache-miss 3,914 · output 1,367 · reasoning 840
+  24098ms   $0.00293 estimated

@@ -1,0 +1,30 @@
+   3800ms ● read_file read src/order.ts
+   3800ms ● read_file read tests/order.test.ts
+   3800ms ● read_file read package.json
+  11817ms ● multi_edit edit src/order.ts (1 change)
+  11817ms ● multi_edit edit tests/order.test.ts (1 change)
+  14595ms ● run_shell npm run typecheck
+  14595ms ● run_shell npm test
+  19309ms Both checks pass — typecheck clean, all 7 tests passing.
+  19309ms 
+  19718ms **Added `applyDiscount(total, percent)`** in `src/order.ts:14-20`:
+  20045ms - Returns `total` reduced by `percent` (e.g. `applyDiscount(200, 25)` → `150`)
+  20383ms - Throws `Error('percent must be between 0 and 100')` when `percent < 0` or `percent > 100`
+  20383ms 
+  20588ms **Tests** in `tests/order.test.ts` cover:
+  20798ms - Standard discount (`200, 25` → `150`)
+  20989ms - Edge cases: 0% and 100%
+  21291ms - Error cases: `-1` (below range) and `101` (above range)! Verifying the changes…
+  23891ms ! Verified — typecheck, test passed.
+  23892ms 
+  23892ms deepseek/deepseek-v4-pro  $0.00293  4 request(s)  cache 74%
+  23892ms   Verified — typecheck, test passed.
+  23892ms     ok   typecheck — npm run typecheck (exit 0)
+  23892ms     ok   test — npm test (exit 0)
+  23892ms     coverage — typecheck: npm run typecheck · test: npm test · build: not declared
+  23892ms     ok   git diff --check — git diff --check (exit 0) [advisory]
+  23892ms     repair rounds used: 0/2
+  23892ms     files changed: src/order.ts, tests/order.test.ts
+  23892ms   4 model request(s), 4 provider attempt(s), 0/4 retries used
+  23898ms   cache-hit 12,160 · cache-miss 4,247 · output 1,193 · reasoning 107
+  23898ms   $0.00293 estimated

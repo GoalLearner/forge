@@ -1,0 +1,37 @@
+   3540ms ● read_file read src/clamp.ts
+   3540ms ● read_file read test/clamp.unit.test.ts
+  10033ms ● edit_file edit src/clamp.ts
+  17217ms ● multi_edit edit test/clamp.unit.test.ts (2 changes)
+  19397ms ● run_shell npm run typecheck
+  22716ms ● run_shell npm run test:unit
+  25644ms Both checks pass:
+  25644ms 
+  25666ms - **typecheck** — clean
+  25948ms - **test:unit** — 9/9 pass (3 existing `clamp` tests + 6 new `wrapRange` tests)
+  25948ms 
+  25996ms Here's what was added:
+  25996ms 
+  26580ms **`src/clamp.ts`** — `wrapRange` maps a value into `[min, max)` via modular wrapping, throwing `Error` when `min >= max`:
+  26580ms 
+  26581ms ```ts
+  26708ms export function wrapRange(value: number, min: number, max: number): number {
+  26893ms   if (min >= max) throw new Error('wrapRange: min must be less than max');
+  26950ms   const span = max - min;
+  27149ms   return min + ((((value - min) % span) + span) % span);
+  27149ms }
+  27149ms ```
+  27149ms 
+  27909ms **`test/clamp.unit.test.ts`** — six new tests covering: in-range pass-through, wrapping above max, wrapping negative, multiple wraps, non-zero min, and the `min >= max` rejection (both equal and inverted).! Verifying the changes…
+  30508ms ! Verified — typecheck, test:unit passed.
+  30509ms 
+  30509ms deepseek/deepseek-v4-pro  $0.00346  6 request(s)  cache 82%
+  30509ms   Verified — typecheck, test:unit passed.
+  30509ms     ok   typecheck — npm run typecheck (exit 0)
+  30509ms     ok   test:unit — npm run test:unit (exit 0) [qualified declared script]
+  30509ms     coverage — typecheck: npm run typecheck · test: npm run test:unit · build: not declared
+  30509ms     ok   git diff --check — git diff --check (exit 0) [advisory]
+  30509ms     repair rounds used: 0/2
+  30509ms     files changed: src/clamp.ts, test/clamp.unit.test.ts
+  30509ms   6 model request(s), 6 provider attempt(s), 0/4 retries used
+  30514ms   cache-hit 21,248 · cache-miss 4,653 · output 1,565 · reasoning 334
+  30515ms   $0.00346 estimated

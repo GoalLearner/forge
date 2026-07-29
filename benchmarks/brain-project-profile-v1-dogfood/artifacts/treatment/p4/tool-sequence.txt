@@ -1,0 +1,23 @@
+   3515ms ● read_file read lib/slug.js
+   3515ms ● read_file read checks/slug.check.mjs
+  12272ms ● edit_file edit lib/slug.js
+  12272ms ● edit_file edit checks/slug.check.mjs
+  14659ms ● run_shell node checks/slug.check.mjs
+  16936ms All checks pass. Here's what changed:
+  16936ms 
+  17313ms **`lib/slug.js`** — added two new pipeline steps after the whitespace-to-dash replacement:
+  17612ms - `.replace(/-+/g, '-')` collapses runs of consecutive dashes into a single dash
+  17797ms - `.replace(/^-+|-+$/g, '')` strips leading and trailing dashes
+  17797ms 
+  18940ms **`checks/slug.check.mjs`** — added five new cases covering the required example (`' --Big  News-- ' → 'big-news'`), interior dash collapse (`foo---bar`), leading/trailing stripping, and the empty-string edge case (`-` → `''`). The original two tests are unchanged.! Verifying the changes…
+  19188ms ! Files changed but could not be automatically verified — no required project checks are declared — only advisory diagnostics ran.
+  19189ms 
+  19189ms deepseek/deepseek-v4-pro  $0.00259  4 request(s)  cache 76%
+  19189ms   Files were changed but could not be automatically verified.
+  19189ms     coverage — typecheck: not declared · test: not declared · build: not declared
+  19189ms     ok   git diff --check — git diff --check (exit 0) [advisory]
+  19189ms     repair rounds used: 0/2
+  19189ms     files changed: checks/slug.check.mjs, lib/slug.js
+  19189ms   4 model request(s), 4 provider attempt(s), 0/4 retries used
+  19194ms   cache-hit 11,520 · cache-miss 3,687 · output 1,084 · reasoning 436
+  19195ms   $0.00259 estimated
