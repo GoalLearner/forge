@@ -67,9 +67,53 @@ invalidation · privacy.
 - **Required:** `id`, `fact`, `scope` (project path), `source`, `evidence`, `confidence`, `createdAt`, `lastVerifiedAt`, `invalidationCondition`, `status` ∈ {verified, unverified, invalidated}.
 - **Optional:** `appliesToCommit`, `appliesToFiles[]`.
 - **Source:** evaluator, gated — an unverified model statement is stored `unverified` and never surfaced as fact.
-- **Persistence:** **new `memory_records` table**, additive migration, **per project**.
+- **Persistence:** *(amended — see "Storage direction" below; the original
+  single-table plan is no longer a commitment)*.
 - **Invalidation:** `invalidationCondition` (e.g. "file X changed"); checked before recall; stale → `invalidated`, not deleted.
 - **Privacy:** local; per-project isolated; inspectable, deletable; **no credentials, no unnecessary intimate detail**; never trained on without explicit permission.
+
+### Storage direction — DESIGN CONSTRAINT (roadmap Amendment V1, A3)
+
+**Status: Phase 4 is NOT IMPLEMENTED. No memory exists. No schema is defined
+here, and none may be created by this constraint.**
+
+Forge does **not** commit to markdown-only or database-only memory. The
+preferred direction is **hybrid**, decided properly during Phase 4 design.
+
+**Canonical structured store.** Whatever backs it must eventually support stable
+record IDs, project scope, memory type, source provenance, source hashes,
+confidence, verification state, creation time, last-verification time,
+supersession state, contradiction links, expiration/freshness state, atomic
+updates, and queryable relationships. SQLite is the likely implementation;
+another local structured store may be justified during Phase 4 design. Plain
+files alone cannot carry contradiction links and atomic updates, which is why
+markdown-only is not adopted.
+
+**Markdown views.** Markdown is genuinely useful — but as a *projection*, not as
+the source of truth: human-readable exports, git-reviewable project summaries,
+user-editable candidate memories, materialized views, portable backups, and
+project-local context references.
+
+**User-edited markdown must not silently become verified canonical truth.** The
+required flow is:
+
+```
+user-authored markdown → candidate memory → provenance attached
+  → validation, or an explicit `unverified` status
+  → canonical record only after acceptance
+```
+
+This preserves the existing rule that an unverified statement is stored
+`unverified` and never surfaced as fact.
+
+**Prompt-cache constraint.** Memory content must **never** be loaded
+automatically into the stable permanent prefix. Retrieval must be bounded,
+task-specific, provenance-aware, freshness-aware, stable-hashed when reusable,
+and tail-placed where practical, and it must state conflicts and uncertainty
+explicitly. Changing memory must not invalidate the cached prefix on every
+request — that would forfeit the 50–120× discount the whole design rests on.
+This is the same static-vs-dynamic placement rule Phase 2 established for the
+project profile.
 
 ## SkillDefinition
 - **Purpose:** a reusable, auditable procedure.

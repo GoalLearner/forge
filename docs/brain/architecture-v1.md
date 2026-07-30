@@ -146,14 +146,16 @@ existing loop: permissions → tools → mutation → verification → repair �
 | B Intent | `run_ledgers` JSON, additive key | per run | none |
 | C Selected context | `run_ledgers` JSON | per run | none |
 | D Plan state | `run_ledgers` JSON | per run | none |
-| E Memory | **new table** `memory_records` | per project | additive `CREATE TABLE IF NOT EXISTS` |
+| E Memory | *hybrid — canonical structured store + markdown views; see `data-models-v1.md` → MemoryRecord → "Storage direction"* | per project | additive; **not decided — Phase 4 design** |
 | F Skills | files under `.forge/skills/` | project + global | none |
 | G Experience | **new table** `experience_records` | per project | additive |
 | H Evaluation | `run_ledgers` JSON | per run | none |
 | I Capability profiles | config | global | none |
 
-Only E and G need new tables. Everything else rides the additive JSON pattern
-already proven by `verification`.
+Only E and G need durable storage beyond the run ledger. Everything else rides
+the additive JSON pattern already proven by `verification`. E's exact backing
+store is **not decided** — roadmap Amendment V1 (A3) records a hybrid direction
+and defers the choice to Phase 4 design.
 
 ---
 

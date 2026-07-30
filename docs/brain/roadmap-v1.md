@@ -136,6 +136,181 @@ identical. Never a default.
 
 ---
 
+---
+
+# Amendment V1 (2026-07-30) — verification, recurrence, memory
+
+Recorded after reviewing an external write-up on building a personal AI agent.
+The article describes a *business assistant configured on top of* a coding
+runtime; Forge *is* the runtime, so most of its advice is out of category. Three
+adjustments were adopted, one candidate deferred, and several recommendations
+explicitly rejected. **No production behaviour changed with this amendment.**
+
+Everything below is either **BINDING POLICY**, **DESIGN CONSTRAINT**,
+**DEFERRED — EVIDENCE REQUIRED**, or **NON-GOAL**. Nothing below describes an
+implemented capability.
+
+## Why the rejections are economic, not stylistic
+
+Forge's thesis is a dependable daily coding agent at a fraction of the cost of a
+flat-rate subscription. That depends on six properties, and each rejection in
+§A4 protects at least one:
+
+- a **byte-stable cached prefix** (the 50–120× discount on DeepSeek);
+- **bounded, deterministic project context**;
+- **on-demand retrieval** rather than speculative loading;
+- **evidence-gated execution**;
+- **honest verification** — never a pass that was not run;
+- **low marginal provider cost** per request.
+
+Advice written from inside a flat-rate model treats context as free. It is not
+free here, which is why several widely-repeated recommendations are rejected
+below rather than deferred.
+
+## A1. Independent-verification policy — BINDING POLICY
+
+Supersedes the per-phase "IV gate" lines above, which remain accurate about
+*what* is reviewed; this defines *how independent* the reviewer must be. Tier is
+chosen by what the change can break, not by diff size.
+
+### Tier 1 — routine bounded task
+
+Small features, focused bug fixes, regression tests, one-to-three-file changes,
+UI work inside the approved envelope.
+
+Required: declared checks · deterministic validation · human diff review · a
+task-acceptance judgment recorded **separately** from verification status.
+A different verification model is **not** mandatory.
+
+### Tier 2 — core runtime or trust-boundary change
+
+Verification semantics, process settlement, cancellation, retry/repair, cost and
+accounting truthfulness, permission behaviour, repository safety, memory
+correctness rules, provider-boundary behaviour.
+
+Required: a **frozen** verification protocol · the verifier may not modify source
+· full diff inspection · independently constructed or external fixtures · real
+command execution · inspection of persisted state where applicable · implementer
+and verifier identities recorded. **A different model family is strongly
+preferred.**
+
+### Tier 3 — phase closure or envelope expansion
+
+Brain-phase closure, execution-safety closure, permission-envelope expansion,
+autonomous-boundary expansion, daily-use readiness decisions, long-horizon
+autonomy approval, memory-system acceptance.
+
+Required: **a different model family from the implementer** · frozen protocol ·
+no source modification · direct diff inspection · external and adversarial
+fixtures · real execution · explicit findings and a closure classification.
+
+### Same-model exception
+
+A same-model verifier is permitted at Tier 2, and at Tier 3 **only when another
+model is genuinely unavailable**, provided all of the following hold:
+
+1. same-agent or same-model status is **disclosed** in the report;
+2. the verification is explicitly marked a **process limitation**;
+3. evidence is strengthened with adversarial external fixtures and direct
+   execution rather than reasoning alone;
+4. the limitation is weighed during final acceptance.
+
+A Tier 3 verification taken under this exception **must not be described as
+fully independent**, and the closure record must state the accepted limitation.
+
+### Scope of this policy
+
+Different-model verification is an **evaluation policy, not a production
+architecture**. It authorises no council, no parallel coding agents, and no
+autonomous delegation. Model diversity alone is not evidence: a second model
+that inspects nothing adds nothing.
+
+## A2. Recurring-failure evidence — BINDING POLICY (manual)
+
+Recorded in `phase-2/daily-use-context-evidence.md`. Recurrence is captured **by
+hand**; the runtime does **not** aggregate failures and no storage was added.
+Crossing a threshold surfaces a *candidate finding* for human review — it never
+edits the constitution, changes permissions, alters this roadmap, writes source,
+promotes autonomy, or opens Candidate B.
+
+## A3. Verified memory — DESIGN CONSTRAINT (Phase 4, unimplemented)
+
+See `data-models-v1.md` → *MemoryRecord*. Forge does **not** commit now to
+markdown-only or database-only memory; the direction is hybrid — a canonical
+structured store with markdown as views and as a candidate-memory inbox. Memory
+content must never be loaded automatically into the stable prefix.
+
+## A4. Explicit rejections — NON-GOALS
+
+**Multi-agent council architecture.** No agent councils, parallel coding agents,
+mandatory strategist/devil's-advocate agents, autonomous delegation, agent
+voting, or multi-agent edit reconciliation. Reasons: cost multiplication,
+context duplication, ownership ambiguity, conflicting edits, settlement
+complexity, unclear verification attribution, reconciliation risk. A separate
+verifier on a different model (§A1) is not a production multi-agent system.
+
+**Fail-open context loading.** Rejected: *"when uncertain, load more context."*
+Forge's policy remains **retrieve narrowly, and only when justified**. Reasons:
+provider cost, cache degradation, latency, stale-fact risk, instruction
+dilution, reduced reproducibility, context-window pressure. Protected: the
+bounded static profile, the stable prefix, on-demand task-specific retrieval.
+
+**Dynamic session metadata in the stable prefix.** No automatic injection of
+current time, date, day of week, machine identity, session ID, or changing task
+counts. `agent/prompt.ts` already forbids this; a per-request clock is a silent
+50–120× cost regression. Dynamic facts may be supplied *outside* the stable
+prefix when a task genuinely needs them.
+
+**Automatic earned privilege.** Forge may never expand its own authority. The
+only permitted flow is: successful evidence → Forge *proposes* a permission
+change → the user explicitly approves → a visible policy update.
+
+**Self-scored refinement as verification.** Model-generated scores ("8/10",
+"continue until satisfied") are not completion evidence. Iteration is triggered
+only by a declared-check failure, a deterministic evaluator failure, an unmet
+acceptance criterion, human rejection, or an explicit bounded refinement request.
+
+**Proactive unsolicited repository changes.** No autonomous source edits, branch
+creation, feature implementation, or roadmap changes based on an observation
+alone. A future read-only observation system may record evidence, attach
+confidence, and surface a candidate task — it may not act without authorisation.
+
+**Autonomous self-maintained backlog.** No agent-controlled backlog that silently
+reorders Forge's priorities. Recurring evidence may produce a proposed finding;
+roadmap changes remain a human decision.
+
+## A5. Project-profile drift warning — DEFERRED — EVIDENCE REQUIRED
+
+A possible future use of the existing profile fingerprint: capture it at session
+start, recompute relevant project facts before verification or session
+resumption, compare, and warn **only** when meaningful facts changed (e.g.
+package.json or the declared verification commands). Constraints if it is ever
+built: no time, weekday, or machine identity injection; no freshness banner on
+every response; live verification stays authoritative. **Build only after real
+daily-use drift produces evidence for it.** Not implemented; no such warning
+exists today.
+
+## A6. Roadmap state after this amendment
+
+| Item | Status |
+|---|---|
+| Trustworthy execution | COMPLETE |
+| Daily-use reliability envelope | COMPLETE |
+| Brain Phase 1 — constitution | COMPLETE |
+| Brain Phase 2 — static project profile | COMPLETE |
+| Daily real-project use | CURRENT |
+| Candidate B — task selector | DEFERRED, pending the existing triggers |
+| Verified memory (Phase 4) | NOT IMPLEMENTED |
+| Long-horizon planner (Phase 5) | NOT IMPLEMENTED |
+| Autonomous supervisor | SEPARATE FUTURE PROGRAM |
+| Multi-agent council | NON-GOAL |
+
+Recurring-failure counting is **not** a new Brain phase — it is an evidence
+practice. This amendment moves Candidate B neither forward nor backward: an
+article is not daily-use evidence, and only the locked triggers can reopen it.
+
+---
+
 ## Global rollback boundary
 
 Every phase is additive or feature-flagged, never a rewrite of a trustworthy

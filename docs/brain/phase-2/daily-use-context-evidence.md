@@ -43,6 +43,77 @@ package.json rediscovery, or a subjective impression without tool evidence.
 - Evidence: <transcript/session ref or tool-sequence excerpt>
 ```
 
+## Recurrence fields — record when a run FAILED or needed correction
+
+Added by roadmap Amendment V1 (`roadmap-v1.md` → A2). These are **recorded by
+hand**. The runtime does not aggregate failures, no storage was added, and
+nothing here fires automatically.
+
+Fill this block **in addition to** the entry template above whenever a run
+produced a failure, an unavailable check, a repair round, or a substantive user
+correction. Skip it for clean runs.
+
+```markdown
+- failure_class: <see list below>
+- failure_signature: <normalized — see rule below>
+- repository: <name>
+- subsystem: <e.g. verification / shell / edit / profile / provider>
+- environment_or_code: <environment | project_code | forge_runtime | task_specification | unknown>
+- verification_outcome: <passed | failed | unavailable | not_applicable>
+- repair_count: <n>
+- user_correction: <none | detail>
+- first_seen: <YYYY-MM-DD>
+- last_seen: <YYYY-MM-DD>
+- occurrence_count: <n>
+- affected_commit: <short sha>
+- evidence_link_or_path: <transcript ref / artifact path>
+```
+
+**`failure_class`** — a stable broad category, one of: `verification_readiness`,
+`wrong_file_selection`, `process_settlement`, `provider_retry`,
+`structured_edit`, `task_acceptance`, `stale_context`, `environment`,
+`accounting`, `user_specification`.
+
+**`failure_signature`** — a normalized description that must stay comparable
+across runs. Exclude absolute paths, timestamps, random IDs, exact
+temporary-directory names, and provider request IDs. Good:
+`declared node --test check marked unavailable because node_modules absent`.
+Bad: `C:\Users\...\Temp\forge-bench-20260726\scratch\A4\repo failed at 17:41`.
+
+**`environment_or_code`** — separates "the machine was wrong" from "the code was
+wrong". Finding 001 turned on exactly this distinction: an `environment` failure
+was being persisted as a `project_code` failure.
+
+## Recurrence thresholds
+
+A **candidate finding** should be surfaced when any one of these holds:
+
+1. the same normalized class/signature appears in **≥3 independent runs**;
+2. the same failure appears in **≥2 different repositories**;
+3. the user makes the same substantive correction in **≥3 sessions**;
+4. a failure consumes repair attempts in **≥2 otherwise unrelated tasks**;
+5. a **previously accepted limitation** starts occurring in normal daily use.
+
+Crossing a threshold does exactly three things: surface a candidate finding,
+link the supporting evidence, and recommend a bounded audit.
+
+It must **not** edit the constitution, change permissions, modify the roadmap,
+create source changes, promote autonomy, add a feature, or open Candidate B.
+The required flow is:
+
+```
+evidence collected → threshold reached → candidate finding surfaced
+  → human review → explicit authorization → bounded correction
+```
+
+This is deliberately **not** an autonomous self-improvement backlog.
+
+## Recurrence tally
+
+| failure_class | Occurrences | Repos | Candidate finding? |
+|---|---|---|---|
+| verification_readiness | 1 (finding 001, closed) | 1 | no — resolved at `3877c47` |
+
 ## Running tally
 
 | Trigger | Count so far | Threshold |
