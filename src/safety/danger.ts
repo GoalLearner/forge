@@ -140,6 +140,9 @@ const SAFE_COMMAND_HEADS = [
   'go', 'cargo', 'python', 'python3', 'pip', 'ruby', 'java', 'dotnet', 'mvn',
   'get-childitem', 'get-content', 'get-location', 'select-string', 'measure-object',
   'test-path', 'resolve-path',
+  // Read-only PowerShell pipeline stages. Deliberately excludes where-object
+  // and foreach-object: those take script blocks and can run anything.
+  'select-object', 'sort-object', 'format-table', 'format-list', 'out-string',
 ];
 
 const SAFE_GIT_SUBCOMMANDS = [
@@ -168,11 +171,53 @@ export function assessCommand(command: string): RiskAssessment {
     : { level: 'caution', reasons: ['Unrecognized command — review before running'] };
 }
 
+/**
+ * Split a compound command on its separators, ignoring quoted text.
+ *
+ * A naive `.split(/\|/)` shreds an argument like
+ * `-Pattern "fail|FAIL|Error"` into fragments that look nothing like commands,
+ * so a wholly read-only pipeline gets classified as unrecognised. Quotes are
+ * tracked so only real separators split.
+ */
+export function splitCommandSegments(command: string): string[] {
+  const segments: string[] = [];
+  let current = '';
+  let quote: "'" | '"' | null = null;
+
+  for (let i = 0; i < command.length; i++) {
+    const ch = command[i]!;
+
+    if (quote) {
+      current += ch;
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === "'" || ch === '"') {
+      quote = ch;
+      current += ch;
+      continue;
+    }
+    if (ch === '|' || ch === ';' || ch === '\n') {
+      // Consume the second character of `||` so it is one separator, not two.
+      if (ch === '|' && command[i + 1] === '|') i++;
+      segments.push(current);
+      current = '';
+      continue;
+    }
+    if (ch === '&' && command[i + 1] === '&') {
+      i++;
+      segments.push(current);
+      current = '';
+      continue;
+    }
+    current += ch;
+  }
+  segments.push(current);
+  return segments.map((s) => s.trim()).filter(Boolean);
+}
+
 function allSegmentsReadOnly(command: string): boolean {
-  const segments = command
-    .split(/&&|\|\||;|\||\n/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+  const segments = splitCommandSegments(command);
   if (segments.length === 0) return false;
 
   return segments.every((segment) => {

@@ -24,9 +24,10 @@
  *     overrides chosen in Settings, desktop-only.
  */
 
-import { app, BrowserWindow, dialog, ipcMain, shell, type IpcMainInvokeEvent } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell, type IpcMainInvokeEvent } from 'electron';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { execFile } from 'node:child_process';
 import { execFileSync } from 'node:child_process';
 
@@ -60,6 +61,8 @@ import { buildCostReport } from '../session/report.ts';
 import type { Config } from '../config/schema.ts';
 import type { PermissionDecision, PermissionRequest, Tool, ToolContext } from '../tools/types.ts';
 import { log, logPath } from './log.ts';
+import { isInsideDir } from '../util/pathtemp.ts';
+import { deriveArmWord } from '../util/arm-word.ts';
 
 /**
  * Directory of this bundle, used to locate preload.cjs and the renderer files.
@@ -505,7 +508,7 @@ class DesktopSession {
         runId: run?.id ?? null,
         // The renderer's type-to-arm input needs a word to demand. Derived
         // here, next to the danger classifier, not in the UI.
-        armWord: request.danger ? deriveArmWord(request.detail) : null,
+        armWord: request.requiresArming ? deriveArmWord(request.detail) : null,
         pending: this.work.pendingApprovals - 1,
       });
       send('agent:state', this.state());
@@ -657,29 +660,6 @@ function trackRunState(run: AgentRun, event: LoopEvent): void {
   }
 }
 
-/**
- * The word the dangerous-approval card demands the user type.
- *
- * Heuristic: the last argument that isn't a flag — for `rm -rf build` that is
- * "build", the thing being destroyed, which is what someone should consciously
- * confirm. Falls back to the command word itself.
- */
-export function deriveArmWord(detail: string): string {
-  const firstLine = detail.split('\n')[0] ?? '';
-  const tokens = firstLine
-    .trim()
-    .split(/\s+/)
-    .map((t) => t.replace(/^["']|["']$/g, ''));
-  for (let i = tokens.length - 1; i > 0; i--) {
-    const token = tokens[i]!;
-    if (token.startsWith('-') || token.includes('=')) continue;
-    // Use the final path segment so "Type dist to arm" instead of a full path.
-    const segment = token.split(/[\\/]/).filter(Boolean).pop();
-    if (segment) return segment.toLowerCase();
-  }
-  return (tokens[0] ?? 'allow').toLowerCase();
-}
-
 // ---------------------------------------------------------------------------
 // Window
 // ---------------------------------------------------------------------------
@@ -704,6 +684,34 @@ function createWindow(): void {
 
   mainWindow.once('ready-to-show', () => mainWindow?.show());
   void mainWindow.loadFile(join(here, 'renderer', 'index.html'));
+
+  // Right-click menu. Chromium supplies no default one in a packaged app, which
+  // left the composer with no way to paste but the keyboard. Built from roles so
+  // the OS handles the actual clipboard work and the labels stay localized.
+  mainWindow.webContents.on('context-menu', (_event, props) => {
+    const items: Electron.MenuItemConstructorOptions[] = [];
+    const { editFlags, isEditable, selectionText } = props;
+    const hasSelection = selectionText.trim().length > 0;
+
+    if (isEditable) {
+      items.push(
+        { role: 'undo', enabled: editFlags.canUndo },
+        { role: 'redo', enabled: editFlags.canRedo },
+        { type: 'separator' },
+        { role: 'cut', enabled: editFlags.canCut },
+        { role: 'copy', enabled: editFlags.canCopy },
+        { role: 'paste', enabled: editFlags.canPaste },
+        { type: 'separator' },
+        { role: 'selectAll', enabled: editFlags.canSelectAll },
+      );
+    } else if (hasSelection) {
+      items.push({ role: 'copy', enabled: editFlags.canCopy }, { type: 'separator' }, { role: 'selectAll' });
+    } else {
+      items.push({ role: 'selectAll' });
+    }
+
+    Menu.buildFromTemplate(items).popup({ window: mainWindow ?? undefined });
+  });
 
   mainWindow.webContents.on('console-message', (event) => {
     if (event.level === 'warning' || event.level === 'error') {
@@ -774,11 +782,24 @@ async function ensureSession(
   return session!;
 }
 
-/** Reopen where the user last worked, not their home directory. */
+/**
+ * Pick the most recent real project for auto-reopen, skipping temp dirs.
+ *
+ * The list is sorted by last-used descending, so the first non-temp that
+ * still exists on disk wins. When every recent project is a temp (e.g. all
+ * benchmark fixtures) or the list is empty, we fall back to the home
+ * directory. The temp filter is deliberately filesystem-free: it compares
+ * normalized path strings so it can't be fooled by case or slash style on
+ * Windows.
+ */
 function lastProjectOrHome(): string {
   if (!sessionStore) sessionStore = new SessionStore();
-  const recent = sessionStore.listProjects(1)[0];
-  if (recent && existsSync(recent.cwd)) return recent.cwd;
+  const candidates = sessionStore.listProjects(12);
+  const temp = tmpdir();
+  for (const p of candidates) {
+    if (isInsideDir(p.cwd, temp)) continue;
+    if (existsSync(p.cwd)) return p.cwd;
+  }
   return app.getPath('home');
 }
 

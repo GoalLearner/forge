@@ -105,6 +105,9 @@ export const shellTool: Tool = {
       title: risk.level === 'dangerous' ? 'Run DANGEROUS command' : 'Run shell command',
       detail: command,
       ...(risk.reasons.length > 0 ? { danger: risk.reasons.join('; ') } : {}),
+      // Only genuinely destructive commands get the type-to-arm gate. Caution
+      // still shows its reason, but stays a one-click approval.
+      ...(risk.level === 'dangerous' ? { requiresArming: true } : {}),
       // Scope by the full command text: approving `npm test` must not silently
       // approve `npm publish`. Coarser scoping here would be a real footgun.
       scopeKey: `shell:${command.trim()}`,

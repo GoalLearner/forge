@@ -63,6 +63,17 @@ export interface PermissionRequest {
   /** Rendered above the prompt when the action is risky. */
   danger?: string;
   /**
+   * Demand type-to-arm before this can be approved, and never offer "always
+   * allow" for it.
+   *
+   * Reserved for genuinely destructive actions. A merely UNRECOGNISED command
+   * still sets `danger` (the user deserves the reason) but leaves this false:
+   * treating "I don't know this command" as identical to `rm -rf` trained the
+   * maximum-friction gate onto ordinary things like a piped `npm test`, which
+   * is how a safety control turns into muscle-memory noise.
+   */
+  requiresArming?: boolean;
+  /**
    * Stable key for "don't ask again". Two calls with the same key are the same
    * kind of action (e.g. `shell:npm test`), so approval can be remembered.
    */

@@ -144,6 +144,19 @@ input,textarea,select{font:inherit;color:inherit;background:none;border:none;out
 .msg-user p{margin:0;font-size:14px;line-height:1.55}
 .prose{max-width:64ch;font-size:14px;line-height:1.62}
 .prose p{margin:0 0 8px}.prose p:last-child{margin:0}
+/* Message action row — sits AFTER the output, so it never overlaps the text.
+   Hidden while the message is still streaming. */
+.prose-wrap{max-width:64ch}
+.msg-actions{display:flex;align-items:center;gap:2px;margin-top:6px}
+.prose-wrap.is-streaming .msg-actions{display:none}
+.act-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;color:var(--faint)}
+.act-btn:hover{background:var(--surface2);color:var(--text)}
+.act-btn.is-done{color:var(--green)}
+.act-btn.is-failed{color:var(--red)}
+/* Tooltip. Label comes from data-tip so the button itself stays icon-only. */
+.act-btn::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);padding:4px 8px;border-radius:6px;background:#0f1216;border:1px solid var(--border);color:#e8ecf2;font-size:11px;line-height:1.25;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .12s ease;z-index:5}
+.act-btn:hover::after,.act-btn:focus-visible::after{opacity:1}
+.offscreen{position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0}
 code.inline{font-family:var(--mono);font-size:11.5px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:1px 5px}
 .caret{display:inline-block;width:7px;height:14px;background:var(--accent);vertical-align:-2px;margin-left:2px;animation:fblink 1.1s steps(1) infinite}
 
