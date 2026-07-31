@@ -98,6 +98,7 @@
     <!-- Changes (review, after a run) -->
     <aside class="panel" id="changes-panel" hidden>
       <div class="panel-hdr"><span class="title">Changes</span><span class="sub" id="ch-sub">this session</span><span class="spacer"></span><span class="stat-add" id="ch-add"></span><span class="stat-del" id="ch-del"></span><button class="close" id="ch-close" title="Close — Esc"><svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5"></path></svg></button></div>
+      <div class="verify-line" id="ch-verify" hidden></div>
       <div class="panel-sec" id="ch-files"></div>
       <div class="panel-fill diff-host">
         <div class="revert-note" id="revert-note" hidden><span>Reverted — file restored to its pre-Forge state. Diff kept for reference.</span><button class="expand" id="restore-btn">Restore edit</button></div>
@@ -129,6 +130,7 @@
         <p class="saved" id="u-saved" hidden></p>
       </div>
       <div class="model-table" id="u-models"></div>
+      <div class="cache-resets"><span class="sec-label">WHAT RESETS THE CACHE</span><p>Switching models mid-session · editing earlier messages · idle gaps over ~5 minutes. Forge warns before the first two.</p></div>
     </div>
   </div>
 

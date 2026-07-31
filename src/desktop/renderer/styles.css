@@ -228,6 +228,16 @@ button.trow:hover{background:var(--surface2)}
 .out-copy{align-self:flex-start;margin:2px 0 2px 10px;font-size:10.5px;color:var(--faint);border:1px solid transparent;border-radius:4px;padding:1px 6px}
 .out-copy:hover{color:var(--text);border-color:var(--border);background:var(--surface)}
 
+/* Verification verdict above the changed-file list. `unk` is deliberately as
+   visible as the other two: "nothing was checked" is the state a reviewer most
+   needs to notice, so it must not read as a quiet pass. */
+.verify-line{display:flex;align-items:center;gap:7px;padding:7px 13px;border-bottom:1px solid var(--border);font-size:11.5px}
+.verify-line.ok{color:var(--green);background:var(--add-bg)}
+.verify-line.bad{color:var(--red);background:var(--red-bg)}
+.verify-line.unk{color:var(--amber);background:var(--amber-bg)}
+.cache-resets{border-top:1px solid var(--border);padding:12px 16px;display:flex;flex-direction:column;gap:5px}
+.cache-resets p{margin:0;font-size:11.5px;color:var(--dim);line-height:1.55}
+
 /* ---------- run completion breakdown + what-changed card ---------- */
 .run-hdr .breakdown{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim)}
 .run-hdr .breakdown .cmd{font-family:var(--mono);font-size:10.5px}

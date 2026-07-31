@@ -59,6 +59,7 @@ import { closeDatabase } from '../session/db.ts';
 import { addUsage, cacheHitRate, EMPTY_TOTALS, type UsageTotals } from '../session/cost.ts';
 import { buildCostReport } from '../session/report.ts';
 import type { Config } from '../config/schema.ts';
+import type { VerificationSummary } from '../agent/verification.ts';
 import type { PermissionDecision, PermissionRequest, Tool, ToolContext } from '../tools/types.ts';
 import { log, logPath } from './log.ts';
 import { isInsideDir } from '../util/pathtemp.ts';
@@ -163,6 +164,15 @@ class DesktopSession {
 
   /** The one run allowed to be active on this session. Null when idle. */
   activeRun: AgentRun | null = null;
+
+  /**
+   * Verification result of the most recent run, for display only.
+   *
+   * The Changes panel shows edits; this lets it also say whether the project's
+   * own checks passed against them. Nothing reads this to make a decision — the
+   * gate in the loop remains the sole authority on whether a run may complete.
+   */
+  lastVerification: VerificationSummary | null = null;
 
   /**
    * Owns "is a run in flight, and may this session be replaced yet".
@@ -446,6 +456,11 @@ class DesktopSession {
       const ledgerSummary = run.ledger.finalize();
       run.mutations.finalize();
       const verificationSummary = run.mutations.summary();
+      // Kept so the Changes panel can say whether the project's own checks
+      // passed against the edits it is showing. Read-only surfacing of a value
+      // this path already computes — it changes no verification behaviour, and
+      // the gate remains the sole authority on whether a run may complete.
+      this.lastVerification = verificationSummary;
       this.activeRun = null;
       // Persistence happens INSIDE the tracked lifecycle on purpose: supersede()
       // awaits this promise, so a replacement session cannot load the transcript
@@ -614,6 +629,15 @@ class DesktopSession {
         active: todos.find((t) => t.status === 'in_progress')?.content ?? null,
       },
       changes: changeTotals,
+      // Display only. Reduced to what the panel renders so a large check
+      // payload never rides on every state broadcast.
+      verification: this.lastVerification
+        ? {
+            status: this.lastVerification.status,
+            passed: this.lastVerification.checks.filter((c) => c.result === 'passed').map((c) => c.name),
+            failed: this.lastVerification.checks.filter((c) => c.result === 'failed').map((c) => c.name),
+          }
+        : null,
       canRetry: this.canRetry(),
     };
   }
