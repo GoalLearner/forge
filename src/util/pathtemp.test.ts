@@ -47,7 +47,7 @@ test('sibling that merely starts with same prefix is NOT inside', () => {
 
 test('real project path is NOT inside temp', () => {
   const temp = 'C:\\Users\\richm\\AppData\\Local\\Temp';
-  const project = 'C:\\Users\\richm\\OneDrive\\Desktop\\forge';
+  const project = 'C:\\dev\\forge';
   assert.equal(isInsideDir(project, temp), false);
 });
 
